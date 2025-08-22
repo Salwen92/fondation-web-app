@@ -13,6 +13,14 @@ declare module "next-auth" {
       id: string;
       githubId?: string;
     } & DefaultSession["user"];
+    accessToken?: string;
+  }
+}
+
+declare module "@auth/core/jwt" {
+  interface JWT {
+    githubId?: string;
+    accessToken?: string;
   }
 }
 
@@ -38,13 +46,15 @@ export const authConfig = {
       ...session,
       user: {
         ...session.user,
-        id: token.sub,
-        githubId: token.githubId as string | undefined,
+        id: token.sub ?? "",
+        githubId: token.githubId,
       },
+      accessToken: token.accessToken,
     }),
     jwt: async ({ token, account, profile }) => {
       if (account?.provider === "github" && profile) {
         token.githubId = String(profile.id);
+        token.accessToken = account.access_token;
       }
       return token;
     },
