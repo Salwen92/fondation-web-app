@@ -47,13 +47,14 @@ export const getUserByGithubId = query({
 export const getCurrentUser = query({
   args: { githubId: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    if (!args.githubId) {
+    const { githubId } = args;
+    if (!githubId) {
       return null;
     }
-    
+
     return await ctx.db
       .query("users")
-      .withIndex("by_github_id", (q) => q.eq("githubId", args.githubId))
+      .withIndex("by_github_id", (q) => q.eq("githubId", githubId))
       .first();
   },
 });

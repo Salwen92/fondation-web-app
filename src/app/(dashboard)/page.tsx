@@ -6,11 +6,14 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h2 className="text-3xl font-bold mb-6">Dashboard</h2>
+      <h2 className="mb-6 text-3xl font-bold">Dashboard</h2>
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-2">Welcome back, {session?.user?.name}!</h3>
+        <h3 className="mb-2 text-lg font-semibold">
+          Welcome back, {session?.user?.name}!
+        </h3>
         <p className="text-muted-foreground">
-          You are successfully logged in. Repository listing will be implemented in Phase 1.2.
+          You are successfully logged in. Repository listing will be implemented
+          in Phase 1.2.
         </p>
       </Card>
     </div>

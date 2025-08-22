@@ -6,10 +6,7 @@ import { signIn } from "next-auth/react";
 
 export function LoginButton() {
   return (
-    <Button
-      onClick={() => signIn("github", { callbackUrl: "/" })}
-      size="lg"
-    >
+    <Button onClick={() => signIn("github", { callbackUrl: "/" })} size="lg">
       <Github className="mr-2 h-5 w-5" />
       Sign in with GitHub
     </Button>

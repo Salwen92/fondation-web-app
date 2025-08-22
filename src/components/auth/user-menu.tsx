@@ -25,7 +25,7 @@ export function UserMenu({ session }: UserMenuProps) {
         size="sm"
         onClick={() => signOut({ callbackUrl: "/login" })}
       >
-        <LogOut className="h-4 w-4 mr-2" />
+        <LogOut className="mr-2 h-4 w-4" />
         Sign out
       </Button>
     </div>

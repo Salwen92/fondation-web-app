@@ -48,7 +48,7 @@ export const authConfig = {
       }
       return token;
     },
-    signIn: async ({ user, account, profile }) => {
+    signIn: async ({ account, profile }) => {
       if (account?.provider === "github" && profile) {
         // User creation will be handled client-side after sign-in
         return true;
