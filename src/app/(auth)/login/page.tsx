@@ -1,17 +1,32 @@
-import { LoginButton } from "@/components/auth/login-button";
-import { Card } from "@/components/ui/card";
+import { type Metadata } from "next";
+import { LoginCard } from "@/components/auth/login-card";
+import { AnimatedBackground } from "@/components/ui/animated-background";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+
+export const metadata: Metadata = {
+  title: "Login | Fondation",
+  description: "Sign in to Fondation with your GitHub account",
+};
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Card className="w-full max-w-md p-8">
-        <h1 className="mb-6 text-2xl font-bold">Welcome to Fondation</h1>
-        <p className="text-muted-foreground mb-8">
-          Sign in with your GitHub account to get started with automated
-          documentation generation.
-        </p>
-        <LoginButton />
-      </Card>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
+      {/* Animated Background */}
+      <AnimatedBackground />
+
+      {/* Grid Pattern Overlay */}
+      <div
+        className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f10_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f10_1px,transparent_1px)] bg-[size:24px_24px]"
+        aria-hidden="true"
+      />
+
+      {/* Theme Switcher */}
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeSwitcher />
+      </div>
+
+      {/* Login Card */}
+      <LoginCard />
     </div>
   );
 }

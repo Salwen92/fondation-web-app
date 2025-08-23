@@ -26,7 +26,7 @@ export default defineSchema({
       v.literal("pending"),
       v.literal("running"),
       v.literal("completed"),
-      v.literal("failed")
+      v.literal("failed"),
     ),
     prompt: v.string(),
     callbackToken: v.string(),

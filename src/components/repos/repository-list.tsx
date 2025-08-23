@@ -16,10 +16,14 @@ interface RepositoryListProps {
 
 export function RepositoryList({ userId }: RepositoryListProps) {
   const { data: session } = useSession();
-  const [isGenerating, setIsGenerating] = useState<Id<"repositories"> | null>(null);
+  const [isGenerating, setIsGenerating] = useState<Id<"repositories"> | null>(
+    null,
+  );
   const [isFetching, setIsFetching] = useState(false);
-  
-  const repositories = useQuery(api.repositories.listUserRepositories, { userId });
+
+  const repositories = useQuery(api.repositories.listUserRepositories, {
+    userId,
+  });
   const fetchRepositories = useAction(api.repositories.fetchGitHubRepositories);
   const createJob = useMutation(api.jobs.create);
 
@@ -52,7 +56,7 @@ export function RepositoryList({ userId }: RepositoryListProps) {
         repositoryId,
         prompt: "Generate comprehensive documentation for this repository",
       });
-      
+
       toast.success("Documentation generation started");
       console.log("Job created:", result);
     } catch (error) {
@@ -90,16 +94,24 @@ export function RepositoryList({ userId }: RepositoryListProps) {
           variant="outline"
           size="sm"
         >
-          <RefreshCw className={isFetching ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"} />
+          <RefreshCw
+            className={
+              isFetching ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"
+            }
+          />
           Refresh
         </Button>
       </div>
 
       {repositories.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <p className="mb-4 text-muted-foreground">No repositories found</p>
+          <p className="text-muted-foreground mb-4">No repositories found</p>
           <Button onClick={handleFetchRepositories} disabled={isFetching}>
-            <RefreshCw className={isFetching ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"} />
+            <RefreshCw
+              className={
+                isFetching ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"
+              }
+            />
             Fetch Repositories from GitHub
           </Button>
         </div>

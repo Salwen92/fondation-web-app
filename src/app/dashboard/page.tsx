@@ -10,8 +10,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <DashboardContent 
-      githubId={session.user.githubId} 
+    <DashboardContent
+      githubId={session.user.githubId}
       userName={session.user.name}
     />
   );

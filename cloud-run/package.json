@@ -1,0 +1,22 @@
+{
+  "name": "fondation-cloud-run",
+  "version": "1.0.0",
+  "description": "Cloud Run service for Fondation CLI execution",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js",
+    "build": "npm run copy-cli && npm run copy-prompts",
+    "copy-cli": "cp ../../fondation/dist/cli.bundled.cjs ./cli.bundled.cjs",
+    "copy-prompts": "cp -r ../../fondation/prompts ./prompts",
+    "docker:build": "docker build -t fondation-cli-runner .",
+    "docker:run": "docker run -p 8080:8080 fondation-cli-runner",
+    "deploy": "gcloud run deploy fondation-cli --source . --region us-central1 --allow-unauthenticated"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
