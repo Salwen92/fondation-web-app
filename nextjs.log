@@ -60,3 +60,624 @@ $ next dev --turbo
  GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 377ms
  GET /api/auth/session 200 in 287ms
  GET /api/auth/session 200 in 248ms
+ GET / 200 in 95ms
+ GET / 200 in 566ms
+ GET /api/auth/session 200 in 686ms
+ GET /api/auth/session 200 in 819ms
+ GET /login 200 in 194ms
+ GET /api/auth/providers 200 in 693ms
+ GET /api/auth/csrf 200 in 564ms
+ POST /api/auth/signin/github? 200 in 517ms
+ GET /api/auth/callback/github?code=2f70af050bca10983e23 302 in 1757ms
+ GET /dashboard 200 in 1253ms
+ GET /api/auth/session 200 in 570ms
+ GET /api/auth/session 200 in 481ms
+ GET /course/Salwen92/test/latest 302 in 1145ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 592ms
+ GET /api/auth/session 200 in 341ms
+ GET /api/auth/session 200 in 303ms
+ ✓ Compiled in 2.5s
+ ○ Compiling /course/[owner]/[repo]/[jobId] ...
+ ✓ Compiled /course/[owner]/[repo]/[jobId] in 643ms
+ GET / 200 in 986ms
+ GET / 200 in 2161ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 3108ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 3852ms
+ GET /api/auth/session 200 in 1303ms
+ GET /api/auth/session 200 in 403ms
+ GET /api/auth/session 200 in 661ms
+ GET /api/auth/session 200 in 584ms
+ ✓ Compiled in 756ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 1923ms
+ GET /api/auth/session 200 in 473ms
+ GET /api/auth/session 200 in 363ms
+ GET /dashboard 200 in 227ms
+ GET /api/auth/session 200 in 321ms
+ GET /api/auth/session 200 in 571ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 376ms
+ GET /api/auth/session 200 in 565ms
+ GET /api/auth/session 200 in 610ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 158ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 2151ms
+ GET /api/auth/session 200 in 565ms
+ GET /api/auth/session 200 in 357ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 226ms
+ GET /api/auth/session 200 in 1103ms
+ GET /api/auth/session 200 in 691ms
+ GET /dashboard 200 in 257ms
+ GET /api/auth/session 200 in 462ms
+ GET /api/auth/session 200 in 467ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 1527ms
+ GET /api/auth/session 200 in 487ms
+ GET /api/auth/session 200 in 592ms
+Docs loaded: undefined Selected slug: null
+Selected doc: undefined
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 1584ms
+ GET /api/auth/session 200 in 550ms
+ GET /api/auth/session 200 in 438ms
+Docs loaded: undefined Selected slug: null
+Selected doc: undefined
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 653ms
+ GET /api/auth/session 200 in 493ms
+ GET /api/auth/session 200 in 501ms
+ ✓ Compiled in 139ms
+ ✓ Compiled in 77ms
+ ✓ Compiled in 110ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 752ms
+ GET /api/auth/session 200 in 481ms
+ GET /api/auth/session 200 in 413ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 758ms
+ GET /api/auth/session 200 in 590ms
+ GET /api/auth/session 200 in 836ms
+ ✓ Compiled in 212ms
+ ✓ Compiled in 119ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 1120ms
+ GET /api/auth/session 200 in 401ms
+ GET /api/auth/session 200 in 360ms
+ GET /dashboard 200 in 237ms
+ GET /api/auth/session 200 in 462ms
+ GET /api/auth/session 200 in 446ms
+ GET /course/Salwen92/test/latest 302 in 1445ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 615ms
+ GET /api/auth/session 200 in 688ms
+ GET /api/auth/session 200 in 546ms
+ GET /login 200 in 104ms
+ GET /api/auth/providers 200 in 266ms
+ GET /api/auth/csrf 200 in 250ms
+ POST /api/auth/signin/github? 200 in 259ms
+ GET /api/auth/callback/github?code=c0460474875c97bef569 302 in 1477ms
+ GET /dashboard 200 in 176ms
+ GET /api/auth/session 200 in 277ms
+ GET /api/auth/session 200 in 289ms
+ GET /course/Salwen92/test/latest 302 in 1174ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 480ms
+ GET /api/auth/session 200 in 364ms
+ GET /api/auth/session 200 in 373ms
+ GET /dashboard 200 in 279ms
+ GET /api/auth/session 200 in 371ms
+ GET /api/auth/session 200 in 304ms
+ GET /course/Salwen92/test/latest 302 in 1267ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 672ms
+ GET /api/auth/session 200 in 377ms
+ GET /api/auth/session 200 in 420ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 206ms
+ GET /api/auth/session 200 in 544ms
+ GET /api/auth/session 200 in 412ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 136ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 1578ms
+ GET /api/auth/session 200 in 605ms
+ GET /api/auth/session 200 in 413ms
+ ✓ Compiled in 126ms
+ ✓ Compiled in 130ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 546ms
+ GET /api/auth/session 200 in 364ms
+ GET /api/auth/session 200 in 330ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 505ms
+ GET /api/auth/session 200 in 351ms
+ GET /api/auth/session 200 in 409ms
+ GET /course/Salwen92/test/j97enrjwt0sbqs2g18899mwjws7p99am 200 in 68ms
+ GET /dashboard 200 in 199ms
+ GET /api/auth/session 200 in 263ms
+ GET /api/auth/session 200 in 487ms
+ GET /course/Salwen92/test/j97enrjwt0sbqs2g18899mwjws7p99am 200 in 234ms
+ GET /api/auth/session 200 in 529ms
+ GET /api/auth/session 200 in 445ms
+ GET /course/Salwen92/test/j97enrjwt0sbqs2g18899mwjws7p99am 200 in 343ms
+ GET /api/auth/session 200 in 457ms
+ GET /api/auth/session 200 in 500ms
+ GET /course/Salwen92/test/j97enrjwt0sbqs2g18899mwjws7p99am 200 in 207ms
+ GET /api/auth/session 200 in 264ms
+ GET /api/auth/session 200 in 274ms
+ GET /dashboard 200 in 196ms
+ GET /api/auth/session 200 in 750ms
+ GET /api/auth/session 200 in 393ms
+ ✓ Compiled in 330ms
+ GET /course/Salwen92/test/j97enrjwt0sbqs2g18899mwjws7p99am 200 in 1852ms
+ GET /api/auth/session 200 in 316ms
+ GET /api/auth/session 200 in 378ms
+ GET /course/Salwen92/test/j97enrjwt0sbqs2g18899mwjws7p99am 200 in 304ms
+ GET /api/auth/session 200 in 406ms
+ GET /api/auth/session 200 in 557ms
+ GET /dashboard 200 in 178ms
+ GET /api/auth/session 200 in 279ms
+ GET /api/auth/session 200 in 313ms
+ GET /course/Salwen92/test/latest 302 in 2139ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 238ms
+ GET /api/auth/session 200 in 418ms
+ GET /api/auth/session 200 in 471ms
+ ✓ Compiled /api/analyze-proxy in 162ms
+[Analyze Proxy] Forwarding request to local Cloud Run service {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  repositoryUrl: 'https://github.com/Salwen92/test'
+}
+[Analyze Proxy] Success response: {
+  status: 'accepted',
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  message: 'Course generation started',
+  estimatedMinutes: 45
+}
+ POST /api/analyze-proxy 200 in 435ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 118ms
+ ○ Compiling /api/webhook/job-callback ...
+ ✓ Compiled /api/webhook/job-callback in 800ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'cloning',
+  timestamp: '2025-08-24T18:09:50.449Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'cloning',
+  progress: undefined,
+  step: 0,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 2429ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:09:53.816Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 1,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 511ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:10:34.381Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 2,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1722ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:10:44.391Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 2,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1011ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:10:54.400Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 2,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1056ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:11:04.408Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 3,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1070ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:11:14.419Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 3,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 822ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:11:24.423Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 4,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 969ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:11:34.430Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 5,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1001ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:11:44.441Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 5,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 859ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:11:54.447Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 5,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1230ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:12:04.457Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 5,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1084ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:12:14.466Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 5,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1610ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:12:24.471Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 5,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 894ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:12:34.481Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 6,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1088ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:12:44.483Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 6,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 957ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:12:54.485Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 6,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 926ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:13:04.498Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 7,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1221ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:13:14.509Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 7,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 872ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:13:24.515Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 7,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1159ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:13:34.521Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 7,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1017ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T18:13:44.533Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'analyzing',
+  progress: undefined,
+  step: 7,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 964ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'progress',
+  status: 'gathering',
+  timestamp: '2025-08-24T18:13:50.460Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'gathering',
+  progress: undefined,
+  step: 7,
+  filesProcessed: undefined
+}
+ POST /api/webhook/job-callback 200 in 1451ms
+[Job Callback Webhook] Received: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  type: 'complete',
+  status: 'success',
+  timestamp: '2025-08-24T18:13:51.923Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Processing 6 files for completion
+[Job Callback Webhook] Persisted 6 docs (2 chapters, 1 tutorials)
+[Job Callback Webhook] Updated Convex job status: {
+  jobId: 'j9705604nvs4kze52pccetsc9d7p8cqp',
+  status: 'completed',
+  progress: undefined,
+  step: undefined,
+  filesProcessed: 6
+}
+ POST /api/webhook/job-callback 200 in 1556ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 264ms
+ GET /api/auth/session 200 in 275ms
+ GET /api/auth/session 200 in 745ms
+ GET /dashboard 200 in 273ms
+ GET /api/auth/session 200 in 466ms
+ GET /api/auth/session 200 in 395ms
+ GET /course/Salwen92/test/latest 302 in 1799ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 1106ms
+ GET /api/auth/session 200 in 535ms
+ GET /api/auth/session 200 in 403ms
+ GET /dashboard 200 in 534ms
+ GET /api/auth/session 200 in 424ms
+ GET /api/auth/session 200 in 466ms
+ ✓ Compiled in 564ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 1414ms
+ GET /api/auth/session 200 in 467ms
+ GET /api/auth/session 200 in 282ms
+ GET /api/auth/session 200 in 311ms
+ GET /course/Salwen92/test/latest 302 in 1516ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 918ms
+ GET /api/auth/session 200 in 775ms
+ GET /api/auth/session 200 in 573ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 879ms
+ GET /api/auth/session 200 in 348ms
+ GET /api/auth/session 200 in 316ms
+ ✓ Compiled in 200ms
+ ✓ Compiled in 2.2s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /api/auth/session 200 in 981ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 1523ms
+ GET /api/auth/session 200 in 308ms
+ GET /api/auth/session 200 in 249ms
+ ✓ Compiled in 115ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 591ms
+ GET /api/auth/session 200 in 401ms
+ GET /api/auth/session 200 in 251ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 1176ms
+ GET /api/auth/session 200 in 698ms
+ GET /api/auth/session 200 in 1105ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 325ms
+ GET /api/auth/session 200 in 290ms
+ GET /api/auth/session 200 in 327ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1197ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 1572ms
+ GET /api/auth/session 200 in 382ms
+ GET /api/auth/session 200 in 384ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 476ms
+ GET /api/auth/session 200 in 382ms
+ GET /api/auth/session 200 in 562ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 193ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 229ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 175ms
+ GET /api/auth/session 200 in 247ms
+ GET /api/auth/session 200 in 239ms
+ GET / 200 in 163ms
+ GET /api/auth/session 200 in 249ms
+ GET /api/auth/session 200 in 255ms
+ GET /dashboard 200 in 147ms
+ GET /api/auth/session 200 in 240ms
+ GET /api/auth/session 200 in 242ms
+ GET /course/Salwen92/test/latest 302 in 1287ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 165ms
+ GET /api/auth/session 200 in 342ms
+ GET /api/auth/session 200 in 231ms
+ ✓ Compiled in 731ms
+ ✓ Compiled in 94ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 546ms
+ GET /api/auth/session 200 in 245ms
+ GET /api/auth/session 200 in 238ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 92ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 628ms
+ GET /api/auth/session 200 in 251ms
+ GET /api/auth/session 200 in 237ms
+ ✓ Compiled in 489ms
+ ✓ Compiled in 128ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 548ms
+ GET /api/auth/session 200 in 237ms
+ GET /api/auth/session 200 in 242ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 652ms
+ GET /api/auth/session 200 in 245ms
+ GET /api/auth/session 200 in 250ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 149ms
+ GET /api/auth/session 200 in 236ms
+ GET /api/auth/session 200 in 251ms
+ GET /course/Salwen92/test/j9705604nvs4kze52pccetsc9d7p8cqp 200 in 192ms
+ GET /api/auth/session 200 in 342ms
+ GET /api/auth/session 200 in 245ms
+ ✓ Compiled /_not-found/page in 194ms
+ GET /api/jobs/k17cjhcq09xp5bj3b5qxxjqz60dj8c7j/docs 404 in 281ms
+ GET /course/anthropics/claude-code/k17cjhcq09xp5bj3b5qxxjqz60dj8c7j 200 in 178ms
+ GET /api/auth/session 200 in 243ms
+ GET /api/auth/session 200 in 271ms
+[?25h

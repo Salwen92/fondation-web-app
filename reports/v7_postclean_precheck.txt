@@ -1,0 +1,29 @@
+V7 POST-CLEAN PRECHECK
+=====================
+
+Branch: fix/v7-regen-hardening
+Latest Commit: 78744172631250b1b1fc3c1e65ecab50c002c65f
+Commit Message: feat(v7): implement regeneration hardening and data cleanup
+
+- Add idempotent document upsert with source key derivation
+- Implement empty content rejection guards
+- Add duplicate cleanup function with smart selection
+- Track regeneration runs with runId
+- Update schema with new fields and indexes
+- Clean existing duplicate (1 empty doc removed)
+- Retain v5 client-side deduplication as fallback
+
+Files changed:
+- convex/schema.ts: Added tracking fields
+- convex/docs.ts: Idempotent upsert logic
+- convex/repositories.ts: Minor updates
+- course-content.tsx: v5 deduplication retained
+- course/layout.tsx: New layout component
+- reports/: v7 documentation
+
+Resolves duplicate chapter rendering issue
+
+Git Status:
+ M convex.log
+ M nextjs.log
+?? reports/v7_postclean_precheck.txt

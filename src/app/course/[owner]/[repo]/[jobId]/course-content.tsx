@@ -98,6 +98,27 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
         repositoryId: repository._id 
       });
       
+      // Trigger the Cloud Run service to actually process the job
+      if (result.jobId) {
+        const response = await fetch("/api/analyze-proxy", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            jobId: result.jobId,
+            repositoryUrl: `https://github.com/${repository.fullName}`,
+            branch: repository.defaultBranch || "main",
+            callbackUrl: `http://localhost:3000/api/webhook/job-callback`,
+            callbackToken: result.callbackToken,
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to start analysis service");
+        }
+      }
+      
       toast({
         title: "Regeneration Started",
         description: "Your course is being regenerated. This may take 30-60 minutes.",
