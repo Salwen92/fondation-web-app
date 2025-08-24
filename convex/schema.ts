@@ -44,6 +44,14 @@ export default defineSchema({
     docsCount: v.optional(v.number()),
     completedAt: v.optional(v.number()),
     cancelRequested: v.optional(v.boolean()),
+    runId: v.optional(v.string()),
+    regenerationStats: v.optional(v.object({
+      inserted: v.number(),
+      updated: v.number(),
+      skipped: v.number(),
+      rejected: v.number(),
+      deleted: v.number()
+    })),
   })
     .index("by_user", ["userId"])
     .index("by_repository", ["repositoryId"]),
@@ -62,7 +70,12 @@ export default defineSchema({
     ),
     content: v.string(),
     createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+    sourceKey: v.optional(v.string()),
+    runId: v.optional(v.string()),
+    normalizedAt: v.optional(v.number()),
   })
     .index("by_job", ["jobId"])
-    .index("by_repository", ["repositoryId"]),
+    .index("by_repository", ["repositoryId"])
+    .index("by_source_key", ["sourceKey"]),
 });

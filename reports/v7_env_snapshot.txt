@@ -1,0 +1,51 @@
+V7 REGENERATION HARDENING - ENVIRONMENT SNAPSHOT
+================================================
+Date: 2025-01-24
+Branch: fix/v7-regen-hardening
+Purpose: Implement idempotent regeneration and data cleanup
+
+SYSTEM STATE
+------------
+Node Version: $(node --version)
+NPM Version: $(npm --version)
+Working Directory: /Users/salwen/Documents/Cyberscaling/fondation-web-app
+
+CONVEX STATE
+------------
+Deployment: prod:resolute-canary-474
+Database: Production
+Tables Affected: docs, repositories
+
+V5 CHANGES APPLIED
+------------------
+File: src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+- Added deduplication logic (lines 167-234)
+- Content fetch guard (lines 60-89)
+- Empty content validation (lines 471-495)
+
+V7 OBJECTIVES
+-------------
+1. Make regeneration idempotent with runId tracking
+2. Implement source key derivation for stable IDs
+3. Add write-path guards to reject empty content
+4. Clean existing duplicate data
+5. Verify with new crawl and manifests
+
+DUPLICATE PATTERNS FOUND
+------------------------
+- Same title, different slugs (chapters/ vs reviewed-chapters/)
+- One empty (0 bytes), one populated (>0 bytes)
+- Created within same job run
+- Example IDs: jh759g2f039z2k4v4k1snxdmzd7p8j5f (empty), jh79db2g1s2c50jbhdx4fw9fxh7p8r7c (populated)
+
+FILES TO MODIFY
+---------------
+1. convex/docs.ts - Add idempotent upsert logic
+2. convex/repositories.ts - Track runId for jobs
+3. convex/schema.ts - Add sourceKey field if needed
+
+ROLLBACK PLAN
+-------------
+1. git checkout main
+2. Restore from v7_docs_before.json backup
+3. Redeploy previous Convex functions

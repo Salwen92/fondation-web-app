@@ -202,6 +202,13 @@ export const triggerAnalyze = mutation({
     // to avoid localhost restrictions in development
     console.log("Regeneration job created, client will trigger Cloud Run service");
 
-    return newJobId;
+    return {
+      jobId: newJobId,
+      callbackToken,
+      repository: {
+        fullName: repository.fullName,
+        defaultBranch: repository.defaultBranch || "main"
+      }
+    };
   },
 });

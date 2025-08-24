@@ -4,7 +4,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../../../convex/_generated/api';
 import type { Id } from '../../../../../../convex/_generated/dataModel';
 import { notFound, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
@@ -55,6 +55,38 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
       slug: selectedSlug 
     } : 'skip'
   );
+
+  // Content fetch guard - handle empty content scenarios
+  useEffect(() => {
+    if (selectedDoc && selectedSlug) {
+      if (!selectedDoc.content || selectedDoc.content.length === 0) {
+        console.warn('[Empty Content] Document has no content:', {
+          id: selectedDoc._id,
+          slug: selectedDoc.slug,
+          title: selectedDoc.title
+        });
+        
+        // Try to find a canonical counterpart with content
+        if (docs && docs.length > 0) {
+          const normalizedTitle = selectedDoc.title.toLowerCase().trim();
+          const canonical = docs.find(doc => 
+            doc.title.toLowerCase().trim() === normalizedTitle &&
+            doc.content && doc.content.length > 0 &&
+            doc._id !== selectedDoc._id
+          );
+          
+          if (canonical) {
+            console.info('[Fallback] Switching to canonical document with content:', {
+              from: selectedDoc._id,
+              to: canonical._id,
+              slug: canonical.slug
+            });
+            setSelectedSlug(canonical.slug);
+          }
+        }
+      }
+    }
+  }, [selectedDoc, selectedSlug, docs]);
 
   // Handle regenerate
   const handleRegenerate = async () => {
@@ -163,11 +195,85 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
     return notFound();
   }
 
-  // Organize docs by type
-  const chapters = docs.filter(doc => doc.kind === 'chapter').sort((a, b) => a.chapterIndex - b.chapterIndex);
-  const tutorials = docs.filter(doc => doc.kind === 'tutorial');
-  const yamls = docs.filter(doc => doc.kind === 'yaml');
-  const tocs = docs.filter(doc => doc.kind === 'toc');
+  // De-duplication logic for docs with same title
+  const deduplicateDocs = (docList: typeof docs) => {
+    const seen = new Map<string, typeof docs[0]>();
+    const duplicates: Array<{id: string, slug: string, title: string}> = [];
+    
+    for (const doc of docList) {
+      const normalizedTitle = doc.title.toLowerCase().trim();
+      const existing = seen.get(normalizedTitle);
+      
+      if (existing) {
+        // Duplicate found - apply canonical selection rules
+        const existingHasContent = existing.content && existing.content.length > 0;
+        const docHasContent = doc.content && doc.content.length > 0;
+        
+        let keepExisting = true;
+        
+        // Rule 1: Prefer non-empty content
+        if (!existingHasContent && docHasContent) {
+          keepExisting = false;
+        } else if (existingHasContent && !docHasContent) {
+          keepExisting = true;
+        } else {
+          // Rule 2: Prefer reviewed-* prefix
+          const existingIsReviewed = existing.slug.includes('reviewed-');
+          const docIsReviewed = doc.slug.includes('reviewed-');
+          
+          if (!existingIsReviewed && docIsReviewed) {
+            keepExisting = false;
+          } else if (existingIsReviewed && !docIsReviewed) {
+            keepExisting = true;
+          } else {
+            // Rule 3: Prefer most recent
+            keepExisting = (existing.createdAt || 0) >= (doc.createdAt || 0);
+          }
+        }
+        
+        if (!keepExisting) {
+          // Log the duplicate being suppressed
+          duplicates.push({
+            id: existing._id,
+            slug: existing.slug,
+            title: existing.title
+          });
+          seen.set(normalizedTitle, doc);
+        } else {
+          duplicates.push({
+            id: doc._id,
+            slug: doc.slug,
+            title: doc.title
+          });
+        }
+        
+        console.info('[De-duplication] Duplicate detected:', {
+          kept: keepExisting ? existing._id : doc._id,
+          suppressed: keepExisting ? doc._id : existing._id,
+          title: doc.title,
+          slugs: [existing.slug, doc.slug]
+        });
+      } else {
+        seen.set(normalizedTitle, doc);
+      }
+    }
+    
+    if (duplicates.length > 0) {
+      console.warn('[Data Issue] Duplicates found and suppressed:', duplicates);
+    }
+    
+    return Array.from(seen.values());
+  };
+
+  // Organize docs by type with de-duplication
+  const chapters = deduplicateDocs(docs.filter(doc => doc.kind === 'chapter'))
+    .sort((a, b) => a.chapterIndex - b.chapterIndex);
+  const tutorials = deduplicateDocs(docs.filter(doc => doc.kind === 'tutorial'));
+  const yamls = deduplicateDocs(docs.filter(doc => doc.kind === 'yaml'));
+  const tocs = deduplicateDocs(docs.filter(doc => doc.kind === 'toc'));
+  
+  // Track if there were duplicates for UI indication
+  const hasDuplicates = docs.length > (chapters.length + tutorials.length + yamls.length + tocs.length);
 
   const statusDisplay = getStatusDisplay(job?.status);
   const StatusIcon = statusDisplay.icon;
@@ -190,6 +296,12 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                   <div className={`flex items-center gap-2 ${statusDisplay.color}`}>
                     <StatusIcon className="w-4 h-4" />
                     <span className="text-sm font-medium">{statusDisplay.label}</span>
+                  </div>
+                )}
+                {hasDuplicates && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-md text-xs">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>Data issue detected</span>
                   </div>
                 )}
               </div>
@@ -362,16 +474,31 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                     [&_[data-highlighted-line]]:bg-gray-800/50 [&_[data-highlighted-line]]:border-l-2 [&_[data-highlighted-line]]:border-purple-500
                     [&_[data-line-numbers]_[data-line]]:before:content-[attr(data-line-number)] [&_[data-line-numbers]_[data-line]]:before:text-gray-500 [&_[data-line-numbers]_[data-line]]:before:mr-4
                     [&_[data-highlighted-chars]]:bg-yellow-500/20 [&_[data-highlighted-chars]]:rounded [&_[data-highlighted-chars]]:px-1">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[
-                        rehypeSlug,
-                        [rehypeAutolinkHeadings, { behavior: 'wrap' }],
-                        rehypeHighlight
-                      ]}
-                    >
-                      {selectedDoc.content}
-                    </ReactMarkdown>
+                    {selectedDoc.content && selectedDoc.content.length > 0 ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[
+                          rehypeSlug,
+                          [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+                          rehypeHighlight
+                        ]}
+                      >
+                        {selectedDoc.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <div className="p-8 text-center">
+                        <div className="text-gray-500 italic mb-4">
+                          <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          No content available for this document
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          This appears to be a data integrity issue. The document exists but has no content.
+                        </div>
+                        <div className="text-xs text-gray-400 mt-2">
+                          Document ID: {selectedDoc._id}
+                        </div>
+                      </div>
+                    )}
                   </article>
                 </div>
               </div>
