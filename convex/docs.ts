@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 // Helper function to normalize markdown content
 function normalizeMarkdown(content: string): string {
@@ -163,6 +164,21 @@ export const upsertFromJob = mutation({
     });
 
     console.log('[V7] Regeneration complete:', stats);
+    
+    // Clean up old generation documents after successful regeneration
+    if (stats.inserted > 0 || stats.updated > 0) {
+      try {
+        const cleanupResult = await ctx.runMutation(internal.docs.cleanupOldGenerations, {
+          repositoryId: args.repositoryId,
+          keepLatestJobId: args.jobId
+        });
+        console.log('[V7] Cleanup result:', cleanupResult);
+      } catch (error) {
+        console.error('[V7] Cleanup failed:', error);
+        // Don't fail the regeneration if cleanup fails
+      }
+    }
+    
     return { docsCount: docIds.length, docIds, stats };
   }
 });
@@ -338,6 +354,53 @@ export const cleanupDuplicates = mutation({
       message: args.dryRun 
         ? `[DRY RUN] Would delete ${toDelete.length} duplicates`
         : `Deleted ${stats.deleted} duplicate documents`
+    };
+  }
+});
+
+// Clean up old generation documents after successful regeneration
+export const cleanupOldGenerations = internalMutation({
+  args: { 
+    repositoryId: v.id("repositories"),
+    keepLatestJobId: v.id("jobs")
+  },
+  handler: async (ctx, args) => {
+    // Get all completed jobs for this repository except the latest one
+    const oldJobs = await ctx.db
+      .query("jobs")
+      .withIndex("by_repository", (q) => q.eq("repositoryId", args.repositoryId))
+      .filter((q) => 
+        q.and(
+          q.eq(q.field("status"), "completed"),
+          q.neq(q.field("_id"), args.keepLatestJobId)
+        )
+      )
+      .collect();
+    
+    let deletedDocsCount = 0;
+    const deletedJobIds: string[] = [];
+    
+    // Delete all documents from old jobs
+    for (const oldJob of oldJobs) {
+      const oldDocs = await ctx.db
+        .query("docs")
+        .withIndex("by_job", (q) => q.eq("jobId", oldJob._id))
+        .collect();
+      
+      for (const doc of oldDocs) {
+        await ctx.db.delete(doc._id);
+        deletedDocsCount++;
+      }
+      
+      deletedJobIds.push(oldJob._id);
+    }
+    
+    console.log(`[Cleanup] Deleted ${deletedDocsCount} documents from ${oldJobs.length} old jobs for repository ${args.repositoryId}`);
+    
+    return {
+      deletedDocsCount,
+      deletedJobsCount: oldJobs.length,
+      deletedJobIds
     };
   }
 });
