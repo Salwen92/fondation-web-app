@@ -2,28 +2,40 @@
 FROM node:20-alpine
 
 # Install git and other dependencies
-RUN apk add --no-cache git bash
+RUN apk add --no-cache git bash curl
 
-# Set working directory
+# Install bun for TypeScript execution
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+
+# Copy Fondation source code (will be provided during build)
+WORKDIR /fondation
+# Note: During build, use --build-arg to specify Fondation path
+# docker build --build-context fondation-source=/path/to/fondation .
+COPY --from=fondation-source . .
+
+# Install Fondation dependencies
+RUN bun install
+
+# Set working directory for server
 WORKDIR /app
 
-# Copy the CLI bundle and prompts
-COPY cli.bundled.cjs .
-COPY prompts ./prompts
-
 # Copy and install server dependencies
-COPY package*.json ./
-RUN npm ci --only=production
+COPY package.json ./
+RUN npm install --production
 
 # Copy server code
 COPY server.js .
+
+# Create required directories
+RUN mkdir -p /tmp/repos /tmp/outputs
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 # Set ownership
-RUN chown -R nodejs:nodejs /app
+RUN chown -R nodejs:nodejs /app /fondation /tmp/repos /tmp/outputs
 
 # Switch to non-root user
 USER nodejs

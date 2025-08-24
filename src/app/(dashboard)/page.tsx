@@ -5,14 +5,20 @@ import { DashboardContent } from "@/components/dashboard/dashboard-content";
 export default async function DashboardPage() {
   const session = await auth();
 
-  if (!session?.user?.githubId) {
+  if (!session?.user) {
     redirect("/login");
   }
 
+  // Use the user ID from session (which comes from GitHub) as githubId
+  const githubId = session.user.githubId || session.user.id || "unknown";
+  const userName = session.user.name || "User";
+  
+  console.log("Session data:", { githubId, userName, session });
+
   return (
     <DashboardContent
-      githubId={session.user.githubId}
-      userName={session.user.name}
+      githubId={githubId}
+      userName={userName}
     />
   );
 }

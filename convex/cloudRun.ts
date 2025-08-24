@@ -49,7 +49,7 @@ export const triggerDocGeneration = action({
       const callbackUrl = `${convexUrl}/api/webhook/job-callback`;
 
       // Trigger Cloud Run service
-      const response = await fetch(`${cloudRunUrl}/execute`, {
+      const response = await fetch(`${cloudRunUrl}/analyze`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

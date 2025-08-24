@@ -26,7 +26,7 @@ export function UserMenu({ session }: UserMenuProps) {
         onClick={() => signOut({ callbackUrl: "/login" })}
       >
         <LogOut className="mr-2 h-4 w-4" />
-        Sign out
+        Déconnexion
       </Button>
     </div>
   );

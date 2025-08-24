@@ -29,7 +29,7 @@ export function RepositoryList({ userId }: RepositoryListProps) {
 
   const handleFetchRepositories = async () => {
     if (!session?.accessToken) {
-      toast.error("No access token available");
+      toast.error("Aucun jeton d'accès disponible");
       return;
     }
 
@@ -39,10 +39,10 @@ export function RepositoryList({ userId }: RepositoryListProps) {
         accessToken: session.accessToken,
         userId,
       });
-      toast.success("Repositories fetched successfully");
+      toast.success("Dépôts récupérés avec succès");
     } catch (error) {
       console.error("Error fetching repositories:", error);
-      toast.error("Failed to fetch repositories");
+      toast.error("Échec de la récupération des dépôts");
     } finally {
       setIsFetching(false);
     }
@@ -54,14 +54,13 @@ export function RepositoryList({ userId }: RepositoryListProps) {
       const result = await createJob({
         userId,
         repositoryId,
-        prompt: "Generate comprehensive documentation for this repository",
       });
 
-      toast.success("Documentation generation started");
+      toast.success("Génération de la documentation démarrée");
       console.log("Job created:", result);
     } catch (error) {
       console.error("Error creating job:", error);
-      toast.error("Failed to start documentation generation");
+      toast.error("Échec du démarrage de la génération de documentation");
     } finally {
       setIsGenerating(null);
     }
@@ -78,7 +77,7 @@ export function RepositoryList({ userId }: RepositoryListProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <p className="text-muted-foreground">Loading repositories...</p>
+          <p className="text-muted-foreground">Chargement des dépôts...</p>
         </div>
       </div>
     );
@@ -87,7 +86,7 @@ export function RepositoryList({ userId }: RepositoryListProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-semibold">Your Repositories</h3>
+        <h3 className="text-2xl font-semibold">Vos Dépôts</h3>
         <Button
           onClick={handleFetchRepositories}
           disabled={isFetching}
@@ -99,20 +98,20 @@ export function RepositoryList({ userId }: RepositoryListProps) {
               isFetching ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"
             }
           />
-          Refresh
+          Actualiser
         </Button>
       </div>
 
       {repositories.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <p className="text-muted-foreground mb-4">No repositories found</p>
+          <p className="text-muted-foreground mb-4">Aucun dépôt trouvé</p>
           <Button onClick={handleFetchRepositories} disabled={isFetching}>
             <RefreshCw
               className={
                 isFetching ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"
               }
             />
-            Fetch Repositories from GitHub
+            Récupérer les dépôts depuis GitHub
           </Button>
         </div>
       ) : (
@@ -121,8 +120,7 @@ export function RepositoryList({ userId }: RepositoryListProps) {
             <RepoCard
               key={repo._id}
               repo={repo}
-              onGenerate={handleGenerateDocs}
-              isGenerating={isGenerating === repo._id}
+              userId={userId}
             />
           ))}
         </div>

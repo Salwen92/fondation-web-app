@@ -2,16 +2,17 @@
 
 ## Overview
 
-This roadmap follows a **progressive enhancement** approach, starting with the absolute minimum viable product and incrementally adding features. Each version is a deliverable, working application.
+This roadmap provides a comprehensive plan for building a web interface for the Fondation CLI's powerful course generation capabilities. The application enables users to generate complete AI-powered tutorial courses from their GitHub repositories.
 
-## Versions
+## 📋 Master Plan
 
-- **[v0.1 - Core Pipeline](./v0.1-core-pipeline.md)** - Basic auth, repo list, job creation
-- **[v0.2 - Execution & Feedback](./v0.2-execution-feedback.md)** - Real-time updates, results display
-- **[v0.3 - User Experience](./v0.3-user-experience.md)** - Dashboard, configuration, chat mode
-- **[v0.4 - Team Features](./v0.4-team-features.md)** - Organizations, collaboration
-- **[v1.0 - Production Ready](./v1.0-production-ready.md)** - Polish, billing, security
-- **[v1.1 - Advanced AI](./v1.1-advanced-ai.md)** - Multi-modal docs, code analysis
+**[→ View the Master Plan](./MASTER_PLAN.md)**
+
+The Master Plan consolidates all our learnings and provides the definitive development roadmap. It includes:
+- Corrected implementation details for 30-60 minute course generation
+- Proper Cloud Run integration with Fondation CLI
+- Realistic timeline and technical architecture
+- Progress monitoring strategies for long-running jobs
 
 ## Development Philosophy
 
@@ -118,8 +119,8 @@ gantt
 3. Run tests and performance checks at each milestone
 4. Document decisions and learnings
 
-## Resources
+## Key Technical Documentation
 
-- [Architecture Document](../ARCHITECTURE.md)
-- [Security Refinements](../ARCHITECTURE_REFINEMENTS.md)
-- [Package Reference](./packages-reference.md)
+- **[CLI Integration Guide](../docs/cli-integration-guide.md)** - Definitive guide for integrating Fondation CLI
+- **[Architecture Document](../docs/ARCHITECTURE.md)** - System architecture and design patterns
+- **[Master Plan](./MASTER_PLAN.md)** - Complete development roadmap with all corrections

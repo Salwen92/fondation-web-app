@@ -6,9 +6,17 @@ import { Providers } from "@/components/providers";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Fondation",
-  description: "Automated documentation generation for your repositories",
+  title: "Fondation - Génération de Documentation par IA",
+  description: "Génération automatique de documentation pour vos dépôts avec l'intelligence artificielle",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
+  keywords: ["documentation", "IA", "GitHub", "génération automatique", "développement"],
+  authors: [{ name: "Fondation" }],
+  openGraph: {
+    title: "Fondation - Documentation par IA",
+    description: "Transformez votre code en documentation complète avec l'IA",
+    type: "website",
+    locale: "fr_FR",
+  },
 };
 
 const geist = Geist({
@@ -20,7 +28,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
+    <html lang="fr" className={`${geist.variable}`} suppressHydrationWarning>
       <body className="min-h-screen">
         <div className="bg-gradient-mesh pointer-events-none fixed inset-0" />
         <Providers>{children}</Providers>

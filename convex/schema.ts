@@ -7,6 +7,7 @@ export default defineSchema({
     username: v.string(),
     email: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
+    githubAccessToken: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_github_id", ["githubId"]),
 
@@ -31,5 +32,7 @@ export default defineSchema({
     prompt: v.string(),
     callbackToken: v.string(),
     createdAt: v.number(),
-  }).index("by_user", ["userId"]),
+  })
+    .index("by_user", ["userId"])
+    .index("by_repository", ["repositoryId"]),
 });

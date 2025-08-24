@@ -24,47 +24,47 @@ import { useState, useEffect } from "react";
 const features = [
   {
     icon: <GitBranch className="h-6 w-6" />,
-    title: "GitHub Integration",
-    description: "Seamlessly connect and analyze your GitHub repositories with one-click authentication.",
+    title: "Intégration GitHub",
+    description: "Connectez et analysez vos dépôts GitHub en un clic avec une authentification sécurisée.",
     gradient: "from-purple-500 to-pink-500"
   },
   {
     icon: <Sparkles className="h-6 w-6" />,
-    title: "AI-Powered Documentation",
-    description: "Generate comprehensive, intelligent documentation that understands your code context.",
+    title: "Documentation par IA",
+    description: "Générez une documentation complète et intelligente qui comprend le contexte de votre code.",
     gradient: "from-blue-500 to-cyan-500"
   },
   {
     icon: <Zap className="h-6 w-6" />,
-    title: "Lightning Fast",
-    description: "Cloud-native architecture ensures blazing fast documentation generation at scale.",
+    title: "Ultra Rapide",
+    description: "Architecture cloud native garantissant une génération de documentation ultra-rapide à grande échelle.",
     gradient: "from-orange-500 to-red-500"
   },
   {
     icon: <Shield className="h-6 w-6" />,
-    title: "Enterprise Security",
-    description: "Bank-grade encryption and security practices to protect your code and data.",
+    title: "Sécurité Enterprise",
+    description: "Chiffrement de niveau bancaire et pratiques de sécurité pour protéger votre code et vos données.",
     gradient: "from-green-500 to-emerald-500"
   },
   {
     icon: <Code2 className="h-6 w-6" />,
-    title: "Multi-Language Support",
-    description: "Works with all major programming languages and frameworks out of the box.",
+    title: "Support Multi-Langages",
+    description: "Compatible avec tous les principaux langages de programmation et frameworks.",
     gradient: "from-indigo-500 to-purple-500"
   },
   {
     icon: <FileText className="h-6 w-6" />,
-    title: "Smart Formatting",
-    description: "Beautiful, readable documentation with automatic formatting and structure.",
+    title: "Formatage Intelligent",
+    description: "Documentation magnifique et lisible avec formatage et structure automatiques.",
     gradient: "from-pink-500 to-rose-500"
   }
 ];
 
 const stats = [
-  { value: "10K+", label: "Repositories Analyzed" },
-  { value: "50M+", label: "Lines Documented" },
-  { value: "99.9%", label: "Uptime" },
-  { value: "< 30s", label: "Average Generation" }
+  { value: "10K+", label: "Dépôts Analysés" },
+  { value: "50M+", label: "Lignes Documentées" },
+  { value: "99.9%", label: "Disponibilité" },
+  { value: "< 30s", label: "Génération Moyenne" }
 ];
 
 export default function LandingPage() {
@@ -112,18 +112,18 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center space-x-6">
             <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
-              Features
+              Fonctionnalités
             </Link>
             <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
-              Pricing
+              Tarifs
             </Link>
             <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
-              Docs
+              Documentation
             </Link>
             <ThemeSwitcher />
             <Link href="/login">
               <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-                Get Started
+                Commencer
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -141,32 +141,32 @@ export default function LandingPage() {
         >
           <div className="inline-flex items-center space-x-2 rounded-full border border-border/50 bg-muted/50 px-4 py-2 mb-8 backdrop-blur-sm">
             <Sparkles className="h-4 w-4 text-purple-500" />
-            <span className="text-sm font-medium">Powered by Advanced AI</span>
+            <span className="text-sm font-medium">Propulsé par l&apos;IA Avancée</span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
             <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
-              Documentation
+              La Documentation
             </span>
             <br />
-            <span className="text-foreground">That Writes Itself</span>
+            <span className="text-foreground">Qui S&apos;Écrit Toute Seule</span>
           </h1>
           
           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Transform your codebase into comprehensive, intelligent documentation with the power of AI. 
-            Ship faster, onboard easier, maintain better.
+            Transformez votre code en documentation complète et intelligente grâce à la puissance de l&apos;IA. 
+            Livrez plus vite, intégrez plus facilement, maintenez mieux.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login">
               <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-lg px-8">
-                Start Generating
+                Générer Maintenant
                 <Zap className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="text-lg px-8 glass">
               <Github className="mr-2 h-5 w-5" />
-              View on GitHub
+              Voir sur GitHub
             </Button>
           </div>
         </motion.div>
@@ -187,22 +187,22 @@ export default function LandingPage() {
                 <span className="ml-4 text-sm text-muted-foreground">fondation-cli</span>
               </div>
               <div className="font-mono text-sm space-y-2">
-                <div className="text-green-500">$ fondation analyze ./my-project</div>
+                <div className="text-green-500">$ fondation analyser ./mon-projet</div>
                 <div className="text-muted-foreground">
-                  <span className="inline-block animate-pulse">▸</span> Scanning repository structure...
+                  <span className="inline-block animate-pulse">▸</span> Analyse de la structure du dépôt...
                 </div>
                 <div className="text-muted-foreground">
                   <CheckCircle className="inline h-4 w-4 text-green-500 mr-2" />
-                  Found 142 files across 23 directories
+                  142 fichiers trouvés dans 23 répertoires
                 </div>
                 <div className="text-muted-foreground">
-                  <span className="inline-block animate-pulse">▸</span> Analyzing code patterns with AI...
+                  <span className="inline-block animate-pulse">▸</span> Analyse des patterns de code avec l&apos;IA...
                 </div>
                 <div className="text-muted-foreground">
                   <CheckCircle className="inline h-4 w-4 text-green-500 mr-2" />
-                  Generated comprehensive documentation
+                  Documentation complète générée
                 </div>
-                <div className="text-green-500">✨ Documentation ready at ./docs</div>
+                <div className="text-green-500">✨ Documentation prête dans ./docs</div>
               </div>
             </div>
           </div>
@@ -220,11 +220,11 @@ export default function LandingPage() {
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">
-              Powerful Features
+              Fonctionnalités Puissantes
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to create world-class documentation, automatically.
+            Tout ce dont vous avez besoin pour créer une documentation de classe mondiale, automatiquement.
           </p>
         </motion.div>
 
@@ -284,17 +284,17 @@ export default function LandingPage() {
         >
           <Cpu className="h-16 w-16 mx-auto mb-6 text-purple-500" />
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Transform Your
+            Prêt à Transformer Votre
             <span className="block bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Documentation Workflow?
+              Flux de Documentation ?
             </span>
           </h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Join thousands of developers who are shipping faster with AI-powered documentation.
+            Rejoignez des milliers de développeurs qui livrent plus rapidement avec une documentation générée par IA.
           </p>
           <Link href="/login">
             <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-lg px-12 py-6">
-              Get Started for Free
+              Commencer Gratuitement
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
@@ -310,8 +310,8 @@ export default function LandingPage() {
               <span className="text-xl font-bold">Fondation</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <Link href="/login" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link href="/login" className="hover:text-foreground transition-colors">Terms</Link>
+              <Link href="/login" className="hover:text-foreground transition-colors">Confidentialité</Link>
+              <Link href="/login" className="hover:text-foreground transition-colors">Conditions</Link>
               <Link href="/login" className="hover:text-foreground transition-colors">Contact</Link>
               <div className="flex items-center space-x-2">
                 <Globe className="h-4 w-4" />

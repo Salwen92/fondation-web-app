@@ -9,25 +9,25 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ 
     status: 'healthy', 
-    service: 'fondation-cli-runner',
-    version: '1.0.0'
+    service: 'fondation-analyze-runner',
+    version: '2.0.0',
+    mode: 'analyze-command'
   });
 });
 
-// Main execution endpoint
-app.post('/execute', async (req, res) => {
+// Main analyze endpoint
+app.post('/analyze', async (req, res) => {
   const { 
     jobId, 
     repositoryUrl, 
     branch = 'main',
-    prompt = 'general',
     callbackUrl, 
     callbackToken,
     githubToken 
@@ -41,19 +41,19 @@ app.post('/execute', async (req, res) => {
     });
   }
 
-  // Send immediate response
+  // Send immediate response with realistic timing
   res.json({ 
     status: 'accepted', 
     jobId,
-    message: 'Job processing started'
+    message: 'Course generation started',
+    estimatedMinutes: 45
   });
 
   // Process job asynchronously
-  processJob({
+  processAnalyzeJob({
     jobId,
     repositoryUrl,
     branch,
-    prompt,
     callbackUrl,
     callbackToken,
     githubToken
@@ -68,129 +68,152 @@ app.post('/execute', async (req, res) => {
   });
 });
 
-// Job processing function
-async function processJob({ jobId, repositoryUrl, branch, prompt, callbackUrl, callbackToken, githubToken }) {
-  console.log(`Starting job ${jobId} for repository ${repositoryUrl}`);
+// Job processing function for analyze command
+async function processAnalyzeJob({ jobId, repositoryUrl, branch, callbackUrl, callbackToken, githubToken }) {
+  console.log(`Starting analyze job ${jobId} for repository ${repositoryUrl}`);
   
-  const workDir = `/tmp/fondation-${jobId}`;
-  const outputDir = `${workDir}/output`;
+  const repoPath = `/tmp/repos/${jobId}`;
+  const outputDir = `/tmp/outputs/${jobId}`;
   
   try {
-    // Send progress update
+    // Step 1: Clone repository
     await sendCallback(callbackUrl, callbackToken, {
       jobId,
       type: 'progress',
       status: 'cloning',
       message: 'Cloning repository...',
+      step: 0,
+      totalSteps: 7,
       timestamp: new Date().toISOString()
     });
 
-    // Create working directory
-    await execAsync(`mkdir -p ${workDir} ${outputDir}`);
+    // Create directories
+    await execAsync(`mkdir -p ${repoPath} ${outputDir}`);
     
-    // Clone repository with authentication if token provided
-    console.log(`Cloning ${repositoryUrl} to ${workDir}/repo`);
+    // Clone with authentication if token provided
     let cloneUrl = repositoryUrl;
-    
-    // If GitHub token provided, use it for authentication
     if (githubToken && repositoryUrl.includes('github.com')) {
-      // Extract owner/repo from URL
       const match = repositoryUrl.match(/github\.com[/:]([\w-]+)\/([\w-]+)/);
       if (match) {
         cloneUrl = `https://${githubToken}@github.com/${match[1]}/${match[2]}.git`;
       }
     }
     
-    await execAsync(`git clone --depth 1 --branch ${branch} ${cloneUrl} ${workDir}/repo`, {
-      timeout: 60000 // 1 minute timeout
+    console.log(`Cloning repository to ${repoPath}`);
+    await execAsync(`git clone --depth 1 --branch ${branch} ${cloneUrl} ${repoPath}`, {
+      timeout: 120000 // 2 minute timeout for clone
     });
 
-    // Send progress update
     await sendCallback(callbackUrl, callbackToken, {
       jobId,
       type: 'progress',
       status: 'analyzing',
-      message: 'Analyzing codebase...',
+      message: 'Repository cloned. Starting AI analysis...',
+      step: 1,
+      totalSteps: 7,
       timestamp: new Date().toISOString()
     });
 
-    // Run documentation generation
-    const repoPath = `${workDir}/repo`;
-    console.log(`Running documentation generation for job ${jobId}`);
+    // Step 2: Run analyze command
+    const startTime = Date.now();
+    const analyzeCommand = `cd /fondation && bun run src/analyze-all.ts ${repoPath}`;
     
-    let command;
-    let commandEnv = { ...process.env };
+    console.log(`Running analyze command: ${analyzeCommand}`);
     
-    // Always use Fondation CLI for consistency
-    const fondationCliPath = path.resolve(__dirname, '../../../fondation/dist/cli.bundled.cjs');
-    
-    // Check if we have local Fondation CLI available
-    const fs = require('fs');
-    const useLocalFondation = fs.existsSync(fondationCliPath) && process.env.NODE_ENV === 'development';
-    
-    // Documentation generation prompt
-    const docPrompt = `Generate comprehensive documentation for this codebase. Include:
-    1. Project Overview (purpose, features, target audience)
-    2. Architecture (system design, components, data flow)
-    3. Installation Guide (prerequisites, setup steps)
-    4. Usage Guide (getting started, examples, best practices)
-    5. API Documentation (all functions/endpoints with parameters and examples)
-    6. Configuration (environment variables, settings)
-    7. Testing (how to run tests, test coverage)
-    8. Contributing Guidelines
-    
-    Output everything in well-structured markdown format with clear sections and code examples.`;
-    
-    if (useLocalFondation) {
-      // Use local Fondation CLI
-      console.log('Using local Fondation CLI');
-      command = `cd ${repoPath} && node ${fondationCliPath} run -p "${docPrompt}" --quiet`;
-    } else {
-      // Use bundled Fondation CLI with API key
-      const cliPath = path.join(__dirname, 'cli.bundled.cjs');
-      const anthropicKey = process.env.ANTHROPIC_API_KEY;
-      
-      if (!anthropicKey) {
-        throw new Error('ANTHROPIC_API_KEY not configured');
+    // Start the analyze process with extended timeout
+    const analyzeProcess = exec(analyzeCommand, {
+      timeout: 3600000, // 60 minutes timeout
+      maxBuffer: 50 * 1024 * 1024, // 50MB buffer
+      env: {
+        ...process.env,
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+        CLAUDE_OUTPUT_DIR: outputDir
       }
-      
-      command = `cd ${repoPath} && node ${cliPath} run -p "${docPrompt}" --profile production --quiet`;
-      commandEnv.ANTHROPIC_API_KEY = anthropicKey;
-    }
-    
-    const { stdout, stderr } = await execAsync(command, {
-      timeout: 120000, // 2 minutes timeout (reasonable for most projects)
-      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-      env: commandEnv
     });
 
-    // The run command outputs to stdout, so we capture that as the documentation
-    const documentation = {
-      'README.md': stdout || 'No documentation generated'
-    };
+    // Step 3: Monitor progress via file detection
+    const progressMonitor = setInterval(async () => {
+      try {
+        const progress = await checkProgress(outputDir);
+        if (progress) {
+          await sendCallback(callbackUrl, callbackToken, {
+            jobId,
+            type: 'progress',
+            ...progress,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error('Progress check error:', error);
+      }
+    }, 10000); // Check every 10 seconds
 
-    // Send success callback
+    // Wait for completion
+    const { stdout, stderr } = await new Promise((resolve, reject) => {
+      let output = { stdout: '', stderr: '' };
+      
+      analyzeProcess.stdout?.on('data', (data) => {
+        output.stdout += data.toString();
+        console.log(`[${jobId}] stdout:`, data.toString());
+      });
+      
+      analyzeProcess.stderr?.on('data', (data) => {
+        output.stderr += data.toString();
+        console.error(`[${jobId}] stderr:`, data.toString());
+      });
+      
+      analyzeProcess.on('exit', (code) => {
+        clearInterval(progressMonitor);
+        if (code === 0) {
+          resolve(output);
+        } else {
+          reject(new Error(`Process exited with code ${code}\n${output.stderr}`));
+        }
+      });
+      
+      analyzeProcess.on('error', (error) => {
+        clearInterval(progressMonitor);
+        reject(error);
+      });
+    });
+
+    const duration = Math.round((Date.now() - startTime) / 1000);
+    console.log(`Analyze completed in ${duration} seconds`);
+
+    // Step 4: Gather output files
+    await sendCallback(callbackUrl, callbackToken, {
+      jobId,
+      type: 'progress',
+      status: 'gathering',
+      message: 'Analysis complete. Gathering output files...',
+      step: 7,
+      totalSteps: 7,
+      timestamp: new Date().toISOString()
+    });
+
+    const files = await gatherOutputFiles(outputDir);
+    
+    // Send completion with files
     await sendCallback(callbackUrl, callbackToken, {
       jobId,
       type: 'complete',
       status: 'success',
-      documentation,
-      stdout: stdout.substring(0, 5000), // Limit output size
+      duration,
+      filesCount: files.length,
+      files,
       timestamp: new Date().toISOString()
     });
 
-    console.log(`Job ${jobId} completed successfully`);
+    console.log(`Job ${jobId} completed successfully with ${files.length} files`);
 
   } catch (error) {
     console.error(`Job ${jobId} failed:`, error);
     
-    // Send error callback
     await sendCallback(callbackUrl, callbackToken, {
       jobId,
       type: 'error',
       status: 'failed',
       error: error.message,
-      stderr: error.stderr?.substring(0, 5000),
       timestamp: new Date().toISOString()
     });
     
@@ -198,12 +221,98 @@ async function processJob({ jobId, repositoryUrl, branch, prompt, callbackUrl, c
   } finally {
     // Cleanup
     try {
-      await execAsync(`rm -rf ${workDir}`);
-      console.log(`Cleaned up working directory for job ${jobId}`);
+      await execAsync(`rm -rf ${repoPath} ${outputDir}`);
+      console.log(`Cleaned up job ${jobId}`);
     } catch (cleanupError) {
-      console.error(`Failed to cleanup job ${jobId}:`, cleanupError);
+      console.error(`Cleanup failed for job ${jobId}:`, cleanupError);
     }
   }
+}
+
+// Check progress based on file creation
+async function checkProgress(outputDir) {
+  const progressSteps = [
+    { file: 'step1_abstractions.yaml', message: 'Extracting core abstractions', step: 2 },
+    { file: 'step2_relationships.yaml', message: 'Analyzing component relationships', step: 3 },
+    { file: 'step3_order.yaml', message: 'Determining chapter order', step: 4 },
+    { file: 'chapters', message: 'Generating chapter content', step: 5 },
+    { file: 'reviewed-chapters', message: 'Reviewing and enhancing chapters', step: 6 },
+    { file: 'tutorials', message: 'Creating interactive tutorials', step: 7 }
+  ];
+
+  for (let i = progressSteps.length - 1; i >= 0; i--) {
+    const step = progressSteps[i];
+    const filePath = path.join(outputDir, step.file);
+    
+    try {
+      await fs.access(filePath);
+      return {
+        status: 'analyzing',
+        message: step.message,
+        step: step.step,
+        totalSteps: 7
+      };
+    } catch {
+      // File doesn't exist yet, check previous step
+    }
+  }
+
+  return null;
+}
+
+// Gather all output files
+async function gatherOutputFiles(outputDir) {
+  const files = [];
+  
+  try {
+    // Check if output directory exists
+    await fs.access(outputDir);
+    
+    // Gather YAML configuration files
+    const yamlFiles = ['step1_abstractions.yaml', 'step2_relationships.yaml', 'step3_order.yaml'];
+    for (const yamlFile of yamlFiles) {
+      try {
+        const filePath = path.join(outputDir, yamlFile);
+        const content = await fs.readFile(filePath, 'utf-8');
+        files.push({
+          path: yamlFile,
+          content,
+          type: 'yaml',
+          size: Buffer.byteLength(content, 'utf-8')
+        });
+      } catch (error) {
+        console.log(`YAML file ${yamlFile} not found`);
+      }
+    }
+    
+    // Gather markdown files from directories
+    const directories = ['chapters', 'reviewed-chapters', 'tutorials'];
+    for (const dir of directories) {
+      try {
+        const dirPath = path.join(outputDir, dir);
+        const dirFiles = await fs.readdir(dirPath);
+        
+        for (const file of dirFiles) {
+          if (file.endsWith('.md')) {
+            const filePath = path.join(dirPath, file);
+            const content = await fs.readFile(filePath, 'utf-8');
+            files.push({
+              path: `${dir}/${file}`,
+              content,
+              type: 'markdown',
+              size: Buffer.byteLength(content, 'utf-8')
+            });
+          }
+        }
+      } catch (error) {
+        console.log(`Directory ${dir} not found or empty`);
+      }
+    }
+  } catch (error) {
+    console.error('Error gathering output files:', error);
+  }
+  
+  return files;
 }
 
 // Send callback to Convex
@@ -219,17 +328,18 @@ async function sendCallback(url, token, data) {
     });
 
     if (!response.ok) {
-      throw new Error(`Callback failed: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`Callback failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
-    console.log(`Callback sent for job ${data.jobId}: ${data.type}`);
+    console.log(`Callback sent for job ${data.jobId}: ${data.type} - ${data.message || ''}`);
   } catch (error) {
     console.error('Failed to send callback:', error);
     // Don't throw - callback failures shouldn't stop the process
   }
 }
 
-// Error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({
@@ -240,8 +350,9 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Fondation CLI Runner listening on port ${PORT}`);
+  console.log(`Fondation Analyze Runner listening on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Mode: Full analyze command (30-60 minutes per job)`);
 });
 
 // Graceful shutdown

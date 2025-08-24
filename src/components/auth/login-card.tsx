@@ -15,7 +15,7 @@ export function LoginCard() {
       setIsLoading(true);
       await signIn("github", { callbackUrl: "/dashboard" });
     } catch (error) {
-      toast.error("Failed to sign in. Please try again.");
+      toast.error("Échec de la connexion. Veuillez réessayer.");
       console.error("Sign in error:", error);
       setIsLoading(false);
     }
@@ -34,7 +34,7 @@ export function LoginCard() {
             <span className="text-gradient">Fondation</span>
           </h1>
           <p className="text-muted-foreground">
-            AI-Powered Documentation Generation
+            Génération de Documentation par IA
           </p>
         </div>
 
@@ -42,15 +42,15 @@ export function LoginCard() {
         <div className="mb-8 space-y-3">
           <FeatureItem
             icon={<Zap className="h-4 w-4" />}
-            text="Lightning-fast documentation generation"
+            text="Génération de documentation ultra-rapide"
           />
           <FeatureItem
             icon={<Sparkles className="h-4 w-4" />}
-            text="Powered by advanced AI models"
+            text="Propulsé par des modèles d'IA avancés"
           />
           <FeatureItem
             icon={<Terminal className="h-4 w-4" />}
-            text="CLI-first developer experience"
+            text="Expérience développeur orientée CLI"
           />
         </div>
 
@@ -72,25 +72,25 @@ export function LoginCard() {
           {isLoading ? (
             <>
               <div className="border-primary-foreground mr-2 h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
-              Connecting...
+              Connexion...
             </>
           ) : (
             <>
               <Github className="mr-2 h-5 w-5" />
-              Continue with GitHub
+              Continuer avec GitHub
             </>
           )}
         </Button>
 
         {/* Footer */}
         <p className="text-muted-foreground mt-6 text-center text-xs">
-          By signing in, you agree to our{" "}
+          En vous connectant, vous acceptez nos{" "}
           <button className="hover:text-foreground underline transition-colors">
-            Terms of Service
+            Conditions d&apos;utilisation
           </button>{" "}
-          and{" "}
+          et notre{" "}
           <button className="hover:text-foreground underline transition-colors">
-            Privacy Policy
+            Politique de confidentialité
           </button>
         </p>
       </div>

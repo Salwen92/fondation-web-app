@@ -35,7 +35,7 @@ export const create = mutation({
     // Trigger Cloud Run service if URL is configured
     const cloudRunUrl = process.env.CLOUD_RUN_URL;
     if (cloudRunUrl) {
-      // Schedule the Cloud Run trigger as an action
+      // Trigger Cloud Run service
       await ctx.scheduler.runAfter(0, api.cloudRun.triggerDocGeneration, {
         jobId,
         repositoryUrl: `https://github.com/${repository.fullName}`,
@@ -73,6 +73,18 @@ export const getJob = query({
   },
 });
 
+export const getJobByRepository = query({
+  args: { repositoryId: v.id("repositories") },
+  handler: async (ctx, args) => {
+    const job = await ctx.db
+      .query("jobs")
+      .withIndex("by_repository", (q) => q.eq("repositoryId", args.repositoryId))
+      .order("desc")
+      .first();
+    return job;
+  },
+});
+
 export const updateStatus = mutation({
   args: {
     jobId: v.id("jobs"),
@@ -102,3 +114,4 @@ export const updateStatus = mutation({
     return { success: true };
   },
 });
+

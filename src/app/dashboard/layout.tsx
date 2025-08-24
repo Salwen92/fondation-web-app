@@ -46,11 +46,11 @@ export default async function DashboardLayout({
             <nav className="hidden md:flex items-center space-x-6">
               <Link href="/dashboard" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors">
                 <Home className="h-4 w-4" />
-                <span>Dashboard</span>
+                <span>Tableau de bord</span>
               </Link>
               <Link href="/dashboard/repositories" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors">
                 <FolderGit2 className="h-4 w-4" />
-                <span>Repositories</span>
+                <span>Dépôts</span>
               </Link>
               <Link href="/dashboard/docs" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors">
                 <FileText className="h-4 w-4" />
@@ -58,7 +58,7 @@ export default async function DashboardLayout({
               </Link>
               <Link href="/dashboard/settings" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors">
                 <Settings className="h-4 w-4" />
-                <span>Settings</span>
+                <span>Paramètres</span>
               </Link>
             </nav>
           </div>
