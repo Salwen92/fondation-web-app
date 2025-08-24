@@ -8,6 +8,9 @@ const execAsync = promisify(exec);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// Track active processes for cancellation
+const activeProcesses = new Map();
+
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -20,6 +23,47 @@ app.get('/', (req, res) => {
     version: '2.0.0',
     mode: 'analyze-command'
   });
+});
+
+// Cancel endpoint
+app.post('/cancel/:jobId', async (req, res) => {
+  const { jobId } = req.params;
+  
+  console.log(`[Cancel Request] Received for job ${jobId}`);
+  
+  const process = activeProcesses.get(jobId);
+  if (!process) {
+    return res.status(404).json({ 
+      error: 'Job not found or already completed',
+      jobId 
+    });
+  }
+  
+  try {
+    // Kill the process tree (including all child processes)
+    if (process.pid) {
+      // Use pkill to kill the entire process tree
+      await execAsync(`pkill -TERM -P ${process.pid}`).catch(() => {});
+      process.kill('SIGTERM');
+    }
+    
+    // Remove from active processes
+    activeProcesses.delete(jobId);
+    
+    console.log(`[Cancel] Successfully cancelled job ${jobId}`);
+    
+    res.json({ 
+      status: 'cancelled',
+      jobId,
+      message: 'Job cancelled successfully' 
+    });
+  } catch (error) {
+    console.error(`[Cancel] Failed to cancel job ${jobId}:`, error);
+    res.status(500).json({ 
+      error: 'Failed to cancel job',
+      details: error.message 
+    });
+  }
 });
 
 // Main analyze endpoint
@@ -116,7 +160,20 @@ async function processAnalyzeJob({ jobId, repositoryUrl, branch, callbackUrl, ca
 
     // Step 2: Run analyze command
     const startTime = Date.now();
-    const analyzeCommand = `cd /fondation && bun run src/analyze-all.ts ${repoPath}`;
+    // Use Docker path when running in container, host path otherwise
+    const fondationPath = process.env.RUNNING_IN_DOCKER === 'true' ? '/fondation' : '/Users/salwen/Documents/Cyberscaling/fondation';
+    
+    // Prefer bundled CLI when present, fallback to Bun
+    const cliBundled = path.join(fondationPath, 'cli.bundled.cjs');
+    let analyzeCommand;
+    try {
+      await fs.access(cliBundled);
+      analyzeCommand = `cd ${fondationPath} && node cli.bundled.cjs analyze ${repoPath}`;
+      console.log('Using bundled CLI for analyze command');
+    } catch {
+      analyzeCommand = `cd ${fondationPath} && bun run src/analyze-all.ts ${repoPath}`;
+      console.log('Using Bun fallback for analyze command');
+    }
     
     console.log(`Running analyze command: ${analyzeCommand}`);
     
@@ -130,10 +187,30 @@ async function processAnalyzeJob({ jobId, repositoryUrl, branch, callbackUrl, ca
         CLAUDE_OUTPUT_DIR: outputDir
       }
     });
+    
+    // Track this process for potential cancellation
+    activeProcesses.set(jobId, analyzeProcess);
 
-    // Step 3: Monitor progress via file detection
+    // Step 3: Monitor progress via file detection and check for cancellation
     const progressMonitor = setInterval(async () => {
       try {
+        // Check if job was cancelled
+        const checkCancelUrl = `${callbackUrl.replace('/webhook/job-callback', '')}/api/jobs/${jobId}/status`;
+        try {
+          const cancelCheckResponse = await fetch(checkCancelUrl);
+          if (cancelCheckResponse.ok) {
+            const jobStatus = await cancelCheckResponse.json();
+            if (jobStatus.cancelRequested) {
+              console.log(`Job ${jobId} cancellation requested, killing process`);
+              analyzeProcess.kill('SIGTERM');
+              clearInterval(progressMonitor);
+              return;
+            }
+          }
+        } catch (e) {
+          // Ignore cancel check errors
+        }
+        
         const progress = await checkProgress(outputDir);
         if (progress) {
           await sendCallback(callbackUrl, callbackToken, {
@@ -162,9 +239,14 @@ async function processAnalyzeJob({ jobId, repositoryUrl, branch, callbackUrl, ca
         console.error(`[${jobId}] stderr:`, data.toString());
       });
       
-      analyzeProcess.on('exit', (code) => {
+      analyzeProcess.on('exit', (code, signal) => {
         clearInterval(progressMonitor);
-        if (code === 0) {
+        activeProcesses.delete(jobId); // Clean up tracking
+        
+        if (signal === 'SIGTERM' || signal === 'SIGKILL') {
+          // Process was cancelled
+          reject(new Error('Job was cancelled by user'));
+        } else if (code === 0) {
           resolve(output);
         } else {
           reject(new Error(`Process exited with code ${code}\n${output.stderr}`));
@@ -173,6 +255,7 @@ async function processAnalyzeJob({ jobId, repositoryUrl, branch, callbackUrl, ca
       
       analyzeProcess.on('error', (error) => {
         clearInterval(progressMonitor);
+        activeProcesses.delete(jobId); // Clean up tracking
         reject(error);
       });
     });
@@ -318,7 +401,17 @@ async function gatherOutputFiles(outputDir) {
 // Send callback to Convex
 async function sendCallback(url, token, data) {
   try {
-    const response = await fetch(url, {
+    // For local development in Docker, replace localhost with host.docker.internal
+    // Only do this if we're actually running inside a Docker container
+    let callbackUrl = url;
+    if (process.env.NODE_ENV !== 'production' && 
+        process.env.RUNNING_IN_DOCKER === 'true' && 
+        url.includes('localhost')) {
+      callbackUrl = url.replace('localhost', 'host.docker.internal');
+      console.log(`Rewriting callback URL from ${url} to ${callbackUrl}`);
+    }
+    
+    const response = await fetch(callbackUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

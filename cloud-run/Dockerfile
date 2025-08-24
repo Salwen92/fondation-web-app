@@ -4,9 +4,14 @@ FROM node:20-alpine
 # Install git and other dependencies
 RUN apk add --no-cache git bash curl
 
-# Install bun for TypeScript execution
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:$PATH"
+# Install bun globally for all users
+RUN curl -fsSL https://bun.sh/install | bash && \
+    mv /root/.bun /opt/bun && \
+    chmod -R 755 /opt/bun
+ENV PATH="/opt/bun/bin:$PATH"
+
+# Install Claude Code CLI globally
+RUN npm install -g @anthropic-ai/claude-code
 
 # Copy Fondation source code (will be provided during build)
 WORKDIR /fondation
@@ -34,8 +39,8 @@ RUN mkdir -p /tmp/repos /tmp/outputs
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Set ownership
-RUN chown -R nodejs:nodejs /app /fondation /tmp/repos /tmp/outputs
+# Set ownership (including bun directory)
+RUN chown -R nodejs:nodejs /app /fondation /tmp/repos /tmp/outputs /opt/bun
 
 # Switch to non-root user
 USER nodejs

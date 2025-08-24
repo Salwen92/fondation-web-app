@@ -1,0 +1,115 @@
+- name: |
+    Next.js App Router with Route Groups
+  description: |
+    The main architectural pattern organizing the frontend into public and protected areas. It's like having different security zones in a building - guests can access the lobby (auth routes) but need a badge to reach office floors (dashboard routes). The (auth) and (dashboard) folders create logical groupings without affecting URLs, enabling different layouts and middleware rules.
+  file_paths:
+    - src/app/(auth)/layout.tsx
+    - src/app/(auth)/login/page.tsx
+    - src/app/(dashboard)/layout.tsx
+    - src/app/(dashboard)/page.tsx
+    - src/app/layout.tsx
+
+- name: |
+    Convex Real-time Backend
+  description: |
+    The serverless backend that handles data storage, real-time subscriptions, and business logic. It's like having a smart assistant that not only stores your information but also instantly notifies you when anything changes. Convex functions are type-safe and automatically generate TypeScript definitions, creating a seamless bridge between frontend and backend.
+  file_paths:
+    - convex/schema.ts
+    - convex/_generated/api.d.ts
+    - convex/_generated/dataModel.d.ts
+    - src/components/providers.tsx
+
+- name: |
+    GitHub OAuth Authentication Flow
+  description: |
+    The authentication system that allows users to sign in with their GitHub accounts and grants access to their repositories. It's like having a security guard who not only checks IDs but also gets permission to access specific rooms (repositories). The system stores GitHub tokens to interact with the GitHub API on behalf of users.
+  file_paths:
+    - src/server/auth/config.ts
+    - src/server/auth/index.ts
+    - src/app/api/auth/[...nextauth]/route.ts
+    - src/components/auth/login-button.tsx
+    - src/components/auth/user-menu.tsx
+
+- name: |
+    Database Schema with Relationships
+  description: |
+    The data structure defining how users, repositories, and jobs are stored and connected. It's like a filing system where each file type has specific folders and cross-references - users have repositories, repositories can have multiple documentation jobs, and everything is linked with unique identifiers and indexes for fast lookup.
+  file_paths:
+    - convex/schema.ts
+    - convex/users.ts
+    - convex/repositories.ts
+    - convex/jobs.ts
+
+- name: |
+    Job Processing Pipeline
+  description: |
+    The asynchronous workflow that handles documentation generation requests from creation to completion. It's like a factory assembly line where each job moves through stations (pending → cloning → analyzing → gathering → completed), with real-time status updates sent back to users through webhooks and callbacks.
+  file_paths:
+    - convex/jobs.ts
+    - cloud-run/server.js
+    - src/app/api/webhook/job-callback/route.ts
+    - src/app/api/analyze-proxy/route.ts
+
+- name: |
+    Repository Integration System
+  description: |
+    The bridge between GitHub's API and the application's data layer. It's like a librarian who catalogs books (repositories) from an external collection, keeping track of what's available, updating information when books change, and managing access permissions while respecting rate limits.
+  file_paths:
+    - convex/repositories.ts
+    - src/components/repos/repository-list.tsx
+    - src/components/repos/repo-card.tsx
+
+- name: |
+    Cloud Run Documentation Engine
+  description: |
+    The external service that performs the heavy computational work of analyzing codebases and generating documentation. It's like a specialized research lab that you send samples to - it clones repositories, runs AI analysis tools, monitors progress through multiple phases, and returns comprehensive documentation files.
+  file_paths:
+    - cloud-run/server.js
+    - cloud-run/Dockerfile
+    - cloud-run/package.json
+
+- name: |
+    React Component Architecture
+  description: |
+    The modular UI system built with reusable components and hooks. It's like having a box of LEGO blocks where each piece (component) has a specific purpose, and you can combine them to build complex interfaces. Client components handle interactivity while server components optimize performance by rendering on the server.
+  file_paths:
+    - src/components/ui/button.tsx
+    - src/components/ui/card.tsx
+    - src/components/dashboard/dashboard-content.tsx
+    - src/components/repos/repository-list.tsx
+
+- name: |
+    Type-Safe Environment Configuration
+  description: |
+    The validation system that ensures all required environment variables are properly configured before the application starts. It's like a checklist that inspects all the settings and credentials needed to run the application, preventing runtime errors from missing configuration and providing clear error messages during development.
+  file_paths:
+    - src/env.js
+    - next.config.js
+
+- name: |
+    Provider Pattern for Global State
+  description: |
+    The system that wraps the entire application with necessary context providers for authentication, theme management, and data synchronization. It's like the foundation and utility systems of a building - providing electricity (Convex), security (NextAuth), and climate control (theme) to every room in the house.
+  file_paths:
+    - src/components/providers.tsx
+    - src/app/layout.tsx
+
+- name: |
+    Real-time Data Synchronization
+  description: |
+    The system that keeps the UI automatically updated when data changes in the backend. It's like having a live news feed where any update in the database instantly appears on users' screens without needing to refresh. This includes repository lists, job statuses, and progress updates.
+  file_paths:
+    - src/components/repos/repository-list.tsx
+    - src/components/repos/repo-card.tsx
+    - convex/repositories.ts
+    - convex/jobs.ts
+
+- name: |
+    Multi-Phase Documentation Generation
+  description: |
+    The structured approach to creating comprehensive documentation by breaking the process into distinct phases. It's like a cookbook where each recipe (codebase) goes through the same steps - first identifying ingredients (abstractions), then understanding relationships, planning the meal structure, cooking each course, and finally presentation.
+  file_paths:
+    - cloud-run/server.js
+    - cloud-run/prompts/1-abstractions.md
+    - cloud-run/prompts/2-analyze-relationshipt.md
+    - cloud-run/prompts/3-order-chapters.md

@@ -1,0 +1,21 @@
+(node:49351) ExperimentalWarning: CommonJS module /opt/homebrew/lib/node_modules/npm/node_modules/debug/src/node.js is loading ES Module /opt/homebrew/lib/node_modules/npm/node_modules/supports-color/index.js using require().
+Support for loading ES Module in require() is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Found multiple CONVEX_URL environment variables in .env.local so cannot update automatically.
+✔ Provisioned a dev deployment and saved its name as CONVEX_DEPLOYMENT to .env.local
+
+Write your Convex functions in convex/
+Give us feedback at https://convex.dev/community or support@convex.dev
+View the Convex dashboard at https://dashboard.convex.dev/d/basic-stoat-666
+
+- Preparing Convex functions...
+
+✔ 16:34:08 Convex functions ready! (2.3s)
+8/24/2025, 4:37:42 PM [CONVEX M(repositories:triggerAnalyze)] Could not find public function for 'repositories:triggerAnalyze'. Did you forget to run `npx convex dev` or `npx convex deploy`?
+
+- Preparing Convex functions...
+
+✔ 17:18:14 Convex functions ready! (4.09s)
+- Preparing Convex functions...
+
+✔ 17:18:35 Convex functions ready! (3.55s)

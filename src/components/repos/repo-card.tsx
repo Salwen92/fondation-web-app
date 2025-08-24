@@ -1,18 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { 
   GitBranch, 
@@ -23,11 +12,9 @@ import {
   Sparkles,
   ExternalLink,
   FileText,
-  Clock,
-  Mail,
-  Cpu,
   CheckCircle,
-  Loader2
+  Loader2,
+  X
 } from "lucide-react";
 import { type Id } from "../../../convex/_generated/dataModel";
 import { motion } from "framer-motion";
@@ -47,36 +34,56 @@ interface RepoCardProps {
 }
 
 export function RepoCard({ repo, userId }: RepoCardProps) {
-  const [showWarning, setShowWarning] = useState(false);
   const generateCourse = useMutation(api.jobs.create);
+  const cancelJob = useMutation(api.jobs.cancelJob);
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId: repo._id });
   
+  // Get actual docs count from latest completed job
+  const docsCount = latestJob?.status === "completed" ? latestJob.docsCount || 0 : 0;
+  
+  // TODO: Get real language and stats data from GitHub API
   const languages = ["TypeScript", "React", "Node.js"]; // Mock data - should come from GitHub API
-  const stats = {
-    stars: Math.floor(Math.random() * 1000),
-    forks: Math.floor(Math.random() * 100),
-    docs: Math.floor(Math.random() * 10)
-  };
 
-  const handleGenerate = () => {
-    setShowWarning(true);
-  };
-
-  const confirmGenerate = async () => {
+  const handleGenerate = async () => {
     try {
+      // First create the job in Convex
       const result = await generateCourse({
         userId,
         repositoryId: repo._id,
+        prompt: `Generate comprehensive course documentation for ${repo.name}`,
       });
+      
+      // Then trigger the local Cloud Run service directly from the browser
+      if (result.jobId) {
+        const response = await fetch("/api/analyze-proxy", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            jobId: result.jobId,
+            repositoryUrl: `https://github.com/${repo.fullName}`,
+            branch: repo.defaultBranch,
+            callbackUrl: `http://localhost:3000/api/webhook/job-callback`,
+            callbackToken: result.callbackToken,
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to start analysis");
+        }
+        
+        const cloudRunResult = await response.json();
+        console.log("Cloud Run triggered:", cloudRunResult);
+      }
       
       toast.success(
         "Génération du cours démarrée!",
         {
-          description: `Temps estimé: ${result.estimatedMinutes} minutes. Vous recevrez un email à la fin.`,
+          description: `Job ID: ${result.jobId}. Vous recevrez un email à la fin.`,
           duration: 8000,
         }
       );
-      setShowWarning(false);
     } catch (error) {
       toast.error("Échec du démarrage de la génération", {
         description: error instanceof Error ? error.message : "Unknown error occurred",
@@ -84,9 +91,34 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
     }
   };
 
-  const isProcessing = latestJob && ["pending", "cloning", "analyzing", "gathering"].includes(latestJob.status);
+  const handleCancel = async () => {
+    if (!latestJob) return;
+    
+    try {
+      // Call the cancel API endpoint
+      const response = await fetch(`/api/jobs/${latestJob._id}/cancel`, {
+        method: "POST",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Cancel failed");
+      }
+      
+      toast.success("Génération annulée", {
+        description: "La génération du cours a été annulée.",
+      });
+    } catch (error) {
+      toast.error("Échec de l'annulation", {
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+      });
+    }
+  };
+
+  const isProcessing = latestJob && ["pending", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
   const isCompleted = latestJob?.status === "completed";
   const isFailed = latestJob?.status === "failed";
+  const isCanceled = latestJob?.status === "canceled";
 
   const getStatusBadge = () => {
     if (!latestJob) return null;
@@ -117,12 +149,20 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
       );
     }
     
+    if (isCanceled) {
+      return (
+        <Badge variant="secondary" className="bg-orange-500/10 text-orange-500">
+          <X className="mr-1 h-3 w-3" />
+          Annulé
+        </Badge>
+      );
+    }
+    
     return null;
   };
 
   return (
-    <>
-      <motion.div
+    <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2 }}
       >
@@ -157,10 +197,13 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
 
             {/* Description */}
             {repo.description && (
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-grow">
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                 {repo.description}
               </p>
             )}
+
+            {/* Flexible spacer to push actions to bottom */}
+            <div className="flex-grow" />
 
             {/* Languages */}
             <div className="flex flex-wrap gap-1 mb-4">
@@ -177,18 +220,23 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
             {/* Stats */}
             <div className="flex items-center justify-between mb-4 text-sm text-muted-foreground">
               <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-1">
-                  <Star className="h-3.5 w-3.5" />
-                  <span>{stats.stars}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <GitFork className="h-3.5 w-3.5" />
-                  <span>{stats.forks}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <FileText className="h-3.5 w-3.5" />
-                  <span>{stats.docs}</span>
-                </div>
+                {docsCount > 0 && (
+                  <div className="flex items-center space-x-1">
+                    <FileText className="h-3.5 w-3.5" />
+                    <span>{docsCount} docs</span>
+                  </div>
+                )}
+                {latestJob && (
+                  <div className="flex items-center space-x-1">
+                    <span className="text-xs">
+                      {latestJob.status === "completed" ? "✅" : 
+                       latestJob.status === "failed" ? "❌" : 
+                       latestJob.status === "canceled" ? "🚫" :
+                       "⏳"}
+                    </span>
+                    <span className="capitalize">{latestJob.status}</span>
+                  </div>
+                )}
               </div>
               <div className="flex items-center space-x-1">
                 <GitBranch className="h-3.5 w-3.5" />
@@ -219,8 +267,10 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                   className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
                   size="sm"
                   onClick={() => {
-                    // Navigate to course viewer
-                    window.location.href = `/jobs/${latestJob._id}`;
+                    // Extract owner and repo name from fullName (e.g. "owner/repo")
+                    const [owner, repoName] = repo.fullName.split('/');
+                    // Navigate to course viewer using latest alias
+                    window.location.href = `/course/${owner}/${repoName}/latest`;
                   }}
                 >
                   <Book className="mr-2 h-4 w-4" />
@@ -238,7 +288,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Génération...
                     </>
-                  ) : isFailed ? (
+                  ) : (isFailed || isCanceled) ? (
                     <>
                       <Sparkles className="mr-2 h-4 w-4" />
                       Réessayer
@@ -251,71 +301,29 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                   )}
                 </Button>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="glass"
-              >
-                <Code2 className="h-4 w-4" />
-              </Button>
+              
+              {/* Cancel button for processing jobs */}
+              {isProcessing ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancel}
+                  className="glass border-red-200 hover:bg-red-50 hover:border-red-300"
+                >
+                  <X className="h-4 w-4 text-red-500" />
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="glass"
+                >
+                  <Code2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </Card>
       </motion.div>
-
-      <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Générer un Cours Complet?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cela analysera l&apos;ensemble de votre code et générera un cours tutoriel complet en utilisant l&apos;IA avancée.
-              
-              <div className="mt-4 space-y-3">
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="font-medium">Temps estimé: 30-60 minutes</p>
-                    <p className="text-sm text-muted-foreground">Les dépôts plus importants peuvent prendre plus de temps</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="font-medium">Notification par email à la fin</p>
-                    <p className="text-sm text-muted-foreground">Vous pouvez fermer cet onglet et revenir plus tard</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Cpu className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="font-medium">Analyse par IA</p>
-                    <p className="text-sm text-muted-foreground">Utilise des ressources IA importantes (coûts de tokens appliqués)</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Book className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="font-medium">Génération de cours complet</p>
-                    <p className="text-sm text-muted-foreground">Inclut des tutoriels, exemples et contenu interactif</p>
-                  </div>
-                </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmGenerate}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-            >
-              Démarrer la Génération
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
   );
 }

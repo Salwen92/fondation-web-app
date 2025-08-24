@@ -1,0 +1,1607 @@
+$ next dev --turbo
+   ▲ Next.js 15.5.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.162:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 727ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 2.7s
+ GET /dashboard [?25h
+3101ms
+ ✓ Compiled /api/auth/[...nextauth] in 450ms
+ GET /api/auth/session 200 in 1279ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 237ms
+ ✓ Compiled /course/[owner]/[repo]/latest in 156ms
+ GET /course/Salwen92/test/latest 302 in 1811ms
+ ○ Compiling /course/[owner]/[repo]/[jobId] ...
+ ✓ Compiled /course/[owner]/[repo]/[jobId] in 1518ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 2056ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 229ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 478ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 149ms
+ GET /api/auth/session 200 in 245ms
+ GET /api/auth/session 200 in 243ms
+ GET /api/auth/session 200 in 232ms
+ ✓ Compiled in 227ms
+ GET /course/Salwen92/test/latest 302 in 1382ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 355ms
+ GET /api/auth/session 200 in 252ms
+ GET /api/auth/session 200 in 308ms
+ GET /api/auth/session 200 in 249ms
+ GET /dashboard 200 in 190ms
+ GET /api/auth/session 200 in 240ms
+ GET /api/auth/session 200 in 265ms
+ GET /api/auth/session 200 in 236ms
+ GET /course/Salwen92/test/latest 302 in 1455ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 138ms
+ GET /api/auth/session 200 in 242ms
+ GET /api/auth/session 200 in 231ms
+ GET /api/auth/session 200 in 228ms
+ GET /dashboard 200 in 123ms
+ GET /api/auth/session 200 in 242ms
+ GET /api/auth/session 200 in 239ms
+ GET /api/auth/session 200 in 233ms
+ GET /course/Salwen92/test/latest 302 in 1172ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 109ms
+ GET /api/auth/session 200 in 238ms
+ GET /api/auth/session 200 in 234ms
+ GET /api/auth/session 200 in 228ms
+ GET /course/Salwen92/test/latest 302 in 1227ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 132ms
+ GET /api/auth/session 200 in 268ms
+ GET /api/auth/session 200 in 267ms
+ GET /api/auth/session 200 in 237ms
+ GET /dashboard 200 in 164ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 238ms
+ GET /api/auth/session 200 in 248ms
+ GET /course/Salwen92/test/latest 302 in 1181ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 124ms
+ GET /api/auth/session 200 in 245ms
+ GET /api/auth/session 200 in 235ms
+ GET /api/auth/session 200 in 254ms
+ GET /dashboard 200 in 129ms
+ GET /api/auth/session 200 in 240ms
+ GET /api/auth/session 200 in 245ms
+ GET /api/auth/session 200 in 236ms
+ ✓ Compiled /_not-found/page in 236ms
+ GET /dashboard/repositories 404 in 357ms
+ GET /api/auth/session 200 in 234ms
+ GET /api/auth/session 200 in 336ms
+ GET /api/auth/session 200 in 233ms
+ GET /dashboard 200 in 118ms
+ GET /api/auth/session 200 in 238ms
+ GET /api/auth/session 200 in 233ms
+ GET /api/auth/session 200 in 240ms
+ POST /api/webhook 404 in 116ms
+ POST /api/webhook 404 in 55ms
+ POST /api/webhook 404 in 76ms
+ ✓ Compiled /api/webhook/job-callback in 254ms
+[Job Callback Webhook] Received: {
+  jobId: 'real_gen_006',
+  type: 'progress',
+  status: 'cloning',
+  timestamp: '2025-08-24T14:54:08.358Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: [Error: [Request ID: 78ecea6f3c6831d4] Server Error
+ArgumentValidationError: Value does not match validator.
+Path: .jobId
+Value: "real_gen_006"
+Validator: v.id("jobs")
+
+]
+ POST /api/webhook/job-callback 500 in 1108ms
+[Job Callback Webhook] Received: {
+  jobId: 'real_gen_006',
+  type: 'error',
+  status: 'failed',
+  timestamp: '2025-08-24T14:54:09.849Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: [Error: [Request ID: 68eb45cdc6f9adca] Server Error
+ArgumentValidationError: Value does not match validator.
+Path: .jobId
+Value: "real_gen_006"
+Validator: v.id("jobs")
+
+]
+ POST /api/webhook/job-callback 500 in 408ms
+[Job Callback Webhook] Received: {
+  jobId: 'real_gen_006',
+  type: 'error',
+  status: undefined,
+  timestamp: '2025-08-24T14:54:10.267Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: [Error: [Request ID: 8330f19750351e01] Server Error
+ArgumentValidationError: Value does not match validator.
+Path: .jobId
+Value: "real_gen_006"
+Validator: v.id("jobs")
+
+]
+ POST /api/webhook/job-callback 500 in 400ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'cloning',
+  timestamp: '2025-08-24T14:58:07.563Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 8a96b418f823b702] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 764ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T14:58:09.046Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 5d857e8ae0c55c72] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 481ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T14:59:29.602Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: da49fc3df5ab308f] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 802ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T14:59:39.610Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: b38cdfd8b5b07d43] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 751ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T14:59:49.621Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 34078cf9b9acd6c8] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 701ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T14:59:59.626Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 7825dd161a223c52] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 1068ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:00:09.632Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 95e506cdda2bb43b] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 694ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:00:19.641Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: c9e01ea14860c531] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 717ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:00:29.647Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 6635323b5868a0e0] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 664ms
+ GET /dashboard 200 in 154ms
+ GET /api/auth/session 200 in 238ms
+ GET /api/auth/session 200 in 248ms
+ GET /api/auth/session 200 in 249ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:00:39.658Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 57ed5206f9455e1f] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 782ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:00:49.665Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: d62006cceb785111] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 807ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:00:59.675Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 508562f090f393ce] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 751ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:01:09.680Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 19ed95b4e74fb051] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 703ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:01:19.686Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 83f879181c278095] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 650ms
+ GET /course/Salwen92/test/latest 302 in 874ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 120ms
+ GET /api/auth/session 200 in 250ms
+ GET /api/auth/session 200 in 234ms
+ GET /api/auth/session 200 in 231ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:01:29.692Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 0a94f72fc288f422] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 685ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:01:39.700Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 334d0b3eeaa655ca] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 711ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:01:49.706Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: f0264cc241bf5521] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 664ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:01:59.713Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 708fb9a29e946930] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 699ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:02:09.721Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: e3b50afa19a669e2] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 718ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:02:19.728Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 452765e0d813dbac] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 733ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:02:29.730Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: cc8a89a3dbf6cfe1] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 795ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:02:39.741Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 2e887a1d934d2e83] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 749ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:02:49.750Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 5c5c96ab823fa2e4] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 694ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'analyzing',
+  timestamp: '2025-08-24T15:02:59.756Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 02198377ddd1166f] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 716ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'progress',
+  status: 'gathering',
+  timestamp: '2025-08-24T15:03:03.282Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Error: Error: [Request ID: 73c317fcfd61dba1] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 396ms
+[Job Callback Webhook] Received: {
+  jobId: 'j97fyyddahsmv0spsjspmjk4yn7p84ce',
+  type: 'complete',
+  status: 'success',
+  timestamp: '2025-08-24T15:03:03.686Z',
+  callbackToken: '***PRESENT***'
+}
+[Job Callback Webhook] Processing 6 files for completion
+[Job Callback Webhook] Persisted 6 docs (2 chapters, 1 tutorials)
+[Job Callback Webhook] Error: Error: [Request ID: 267d88ff2352923d] Server Error
+Uncaught Error: Invalid callback token
+    at handler (../convex/jobs.ts:128:4)
+
+    at handler (../convex/jobs.ts:128:4)
+ POST /api/webhook/job-callback 500 in 1310ms
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ✓ Compiled in 182ms
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ✓ Compiled in 199ms
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ✓ Compiled in 177ms
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ✓ Compiled in 77ms
+ ⨯ ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx:15:1
+Module not found: Can't resolve '@/components/ui/use-toast'
+[0m [90m 13 |[39m [36mimport[39m [32m'highlight.js/styles/github-dark.css'[39m[33m;[39m
+ [90m 14 |[39m [36mimport[39m { [33mRefreshCw[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mClock[39m[33m,[39m [33mXCircle[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m'@/components/ui/use-toast'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36minterface[39m [33mCourseContentProps[39m {
+ [90m 18 |[39m   owner[33m:[39m string[33m;[39m[0m
+
+Import map: aliased to relative './src/components/ui/use-toast' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./src/app/course/[owner]/[repo]/[jobId]/course-content.tsx
+    ./src/app/course/[owner]/[repo]/[jobId]/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 936ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 500 in 1188ms
+ ✓ Compiled in 97ms
+ ✓ Compiled /course/[owner]/[repo]/[jobId] in 25ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 409ms
+ GET /api/auth/session 200 in 248ms
+ GET /api/auth/session 200 in 239ms
+ GET /api/auth/session 200 in 230ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 108ms
+ GET /api/auth/session 200 in 244ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 228ms
+ ○ Compiling / ...
+ ✓ Compiled / in 556ms
+ GET / 200 in 699ms
+ GET /api/auth/session 200 in 237ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 232ms
+ ✓ Compiled /login in 326ms
+ GET /login 200 in 373ms
+ GET /api/auth/providers 200 in 247ms
+ GET /api/auth/csrf 200 in 244ms
+ POST /api/auth/signin/github? 200 in 242ms
+ GET /api/auth/callback/github?code=2fe2136e719ef3dba59d 302 in 1631ms
+ GET /dashboard 200 in 173ms
+ GET /api/auth/session 200 in 250ms
+ GET /api/auth/session 200 in 350ms
+ GET /api/auth/session 200 in 232ms
+ GET /course/Salwen92/test/latest 302 in 1222ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 133ms
+ GET /api/auth/session 200 in 240ms
+ GET /api/auth/session 200 in 233ms
+ GET /api/auth/session 200 in 228ms
+ GET /dashboard 200 in 195ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 249ms
+ GET /api/auth/session 200 in 236ms
+ GET /course/Salwen92/test/latest 302 in 1025ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 125ms
+ GET /api/auth/session 200 in 243ms
+ GET /api/auth/session 200 in 238ms
+ GET /api/auth/session 200 in 255ms
+ GET / 200 in 150ms
+ GET /api/auth/session 200 in 330ms
+ GET /api/auth/session 200 in 261ms
+ GET /login 200 in 68ms
+ GET /api/auth/providers 200 in 295ms
+ GET /api/auth/csrf 200 in 253ms
+ POST /api/auth/signin/github? 200 in 233ms
+ GET /api/auth/callback/github?code=08a020f1481cea77ad2e 302 in 1655ms
+ GET /dashboard 200 in 285ms
+ GET /api/auth/session 200 in 247ms
+ GET /api/auth/session 200 in 237ms
+ GET /course/Salwen92/test/latest 302 in 1368ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 150ms
+ GET /api/auth/session 200 in 245ms
+ GET /api/auth/session 200 in 229ms
+ GET /dashboard 200 in 160ms
+ GET /api/auth/session 200 in 245ms
+ GET /api/auth/session 200 in 274ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 144ms
+ GET /api/auth/session 200 in 239ms
+ GET /api/auth/session 200 in 237ms
+ GET /dashboard 200 in 618ms
+ GET /api/auth/session 200 in 408ms
+ GET /api/auth/session 200 in 359ms
+ GET /course/Salwen92/test/latest 302 in 1455ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 478ms
+ GET /api/auth/session 200 in 454ms
+ GET /api/auth/session 200 in 321ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 112ms
+ GET /dashboard 200 in 165ms
+ GET /api/auth/session 200 in 243ms
+ GET /api/auth/session 200 in 239ms
+ GET / 200 in 171ms
+ GET /api/auth/session 200 in 272ms
+ GET /api/auth/session 200 in 243ms
+ GET /dashboard 200 in 149ms
+ GET /api/auth/session 200 in 344ms
+ GET /api/auth/session 200 in 253ms
+ GET /course/Salwen92/test/latest 302 in 1675ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 163ms
+ GET /api/auth/session 200 in 244ms
+ GET /api/auth/session 200 in 244ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 128ms
+ GET /api/auth/session 200 in 243ms
+ GET /api/auth/session 200 in 234ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 107ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 412ms
+ GET /api/auth/session 200 in 244ms
+ GET /api/auth/session 200 in 248ms
+[?25h

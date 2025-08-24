@@ -152,3 +152,56 @@ export const listUserRepositories = query({
       .collect();
   },
 });
+
+export const getByFullName = query({
+  args: { 
+    fullName: v.string()
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("repositories")
+      .filter((q) => q.eq(q.field("fullName"), args.fullName))
+      .collect();
+  },
+});
+
+export const triggerAnalyze = mutation({
+  args: {
+    repositoryId: v.id("repositories"),
+  },
+  handler: async (ctx, args) => {
+    // Get repository details
+    const repository = await ctx.db.get(args.repositoryId);
+    if (!repository) {
+      throw new Error("Repository not found");
+    }
+
+    // Get the user who owns this repository
+    const user = await ctx.db.get(repository.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Generate a callback token using Math.random (crypto is not available in Convex)
+    const callbackToken = Math.random().toString(36).substr(2, 9) + Math.random().toString(36).substr(2, 9);
+
+    // Create a new job for regeneration
+    const newJobId = await ctx.db.insert("jobs", {
+      userId: repository.userId,
+      repositoryId: args.repositoryId,
+      status: "pending",
+      prompt: "Regenerate course documentation",
+      callbackToken,
+      createdAt: Date.now(),
+      currentStep: 0,
+      totalSteps: 7,
+      progress: "Initializing regeneration...",
+    });
+
+    // Note: The client will trigger the Cloud Run service directly
+    // to avoid localhost restrictions in development
+    console.log("Regeneration job created, client will trigger Cloud Run service");
+
+    return newJobId;
+  },
+});

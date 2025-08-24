@@ -1,0 +1,62 @@
+$ next dev --turbo
+   ▲ Next.js 15.5.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.162:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 844ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.5s
+ GET / 200 in 2850ms
+ ✓ Compiled /api/auth/[...nextauth] in 497ms
+ GET /api/auth/session 200 in 1320ms
+ GET /api/auth/session 200 in 239ms
+ ✓ Compiled /login in 254ms
+ GET /login 200 in 299ms
+ GET /api/auth/providers 200 in 249ms
+ GET /api/auth/csrf 200 in 241ms
+ POST /api/auth/signin/github? 200 in 235ms
+ GET /api/auth/callback/github?code=4436d44d0f9fcbcb8450 302 in 1678ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 591ms
+ GET /dashboard 200 in 813ms
+ GET /api/auth/session 200 in 236ms
+ GET /api/auth/session 200 in 254ms
+ ✓ Compiled /course/[owner]/[repo]/latest in 197ms
+ GET /course/Salwen92/test/latest 302 in 1946ms
+ ○ Compiling /course/[owner]/[repo]/[jobId] ...
+ ✓ Compiled /course/[owner]/[repo]/[jobId] in 721ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 1180ms
+ GET /api/auth/session 200 in 242ms
+ GET /api/auth/session 200 in 239ms
+ GET / 200 in 56ms
+ GET /dashboard 200 in 142ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 251ms
+ GET /course/Salwen92/test/latest 302 in 1273ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 110ms
+ GET /api/auth/session 200 in 241ms
+ GET /api/auth/session 200 in 231ms
+ GET / 200 in 157ms
+ GET /api/auth/session 200 in 282ms
+ GET /api/auth/session 200 in 393ms
+ GET /login 200 in 150ms
+ GET /api/auth/providers 200 in 260ms
+ GET /api/auth/csrf 200 in 260ms
+ POST /api/auth/signin/github? 200 in 321ms
+ GET / 200 in 201ms
+ GET /api/auth/session 200 in 284ms
+ GET /api/auth/session 200 in 337ms
+ GET /login 200 in 267ms
+ GET /api/auth/providers 200 in 264ms
+ GET /api/auth/csrf 200 in 248ms
+ POST /api/auth/signin/github? 200 in 259ms
+ GET /api/auth/callback/github?code=5542223052e641bad3e1 302 in 1463ms
+ GET /dashboard 200 in 172ms
+ GET /api/auth/session 200 in 268ms
+ GET /api/auth/session 200 in 245ms
+ GET /course/Salwen92/test/latest 302 in 1096ms
+ GET /course/Salwen92/test/j97fyyddahsmv0spsjspmjk4yn7p84ce 200 in 377ms
+ GET /api/auth/session 200 in 287ms
+ GET /api/auth/session 200 in 248ms

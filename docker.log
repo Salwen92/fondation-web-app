@@ -1,0 +1,26 @@
+Fondation Analyze Runner listening on port 8080
+Environment: development
+Mode: Full analyze command (30-60 minutes per job)
+Starting analyze job j9778q47pnetwzt063zherdn2d7p9p5c for repository https://github.com/Salwen92/test
+Rewriting callback URL from http://localhost:3000/api/webhook/job-callback to http://host.docker.internal:3000/api/webhook/job-callback
+Callback sent for job j9778q47pnetwzt063zherdn2d7p9p5c: progress - Cloning repository...
+Cloning repository to /tmp/repos/j9778q47pnetwzt063zherdn2d7p9p5c
+Rewriting callback URL from http://localhost:3000/api/webhook/job-callback to http://host.docker.internal:3000/api/webhook/job-callback
+Callback sent for job j9778q47pnetwzt063zherdn2d7p9p5c: progress - Repository cloned. Starting AI analysis...
+Running analyze command: cd /fondation && bun run src/analyze-all.ts /tmp/repos/j9778q47pnetwzt063zherdn2d7p9p5c
+Job j9778q47pnetwzt063zherdn2d7p9p5c failed: Error: Process exited with code 1
+
+    at ChildProcess.<anonymous> (/app/server.js:170:18)
+    at ChildProcess.emit (node:events:524:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+Rewriting callback URL from http://localhost:3000/api/webhook/job-callback to http://host.docker.internal:3000/api/webhook/job-callback
+Callback sent for job j9778q47pnetwzt063zherdn2d7p9p5c: error - 
+Cleaned up job j9778q47pnetwzt063zherdn2d7p9p5c
+Job j9778q47pnetwzt063zherdn2d7p9p5c failed: Error: Process exited with code 1
+
+    at ChildProcess.<anonymous> (/app/server.js:170:18)
+    at ChildProcess.emit (node:events:524:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+Rewriting callback URL from http://localhost:3000/api/webhook/job-callback to http://host.docker.internal:3000/api/webhook/job-callback
+Callback sent for job j9778q47pnetwzt063zherdn2d7p9p5c: error - 
+SIGTERM received, shutting down gracefully...

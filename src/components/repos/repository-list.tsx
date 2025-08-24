@@ -51,9 +51,11 @@ export function RepositoryList({ userId }: RepositoryListProps) {
   const handleGenerateDocs = async (repositoryId: Id<"repositories">) => {
     setIsGenerating(repositoryId);
     try {
+      const repo = repositories?.find(r => r._id === repositoryId);
       const result = await createJob({
         userId,
         repositoryId,
+        prompt: `Generate comprehensive course documentation for ${repo?.name || 'this repository'}`,
       });
 
       toast.success("Génération de la documentation démarrée");

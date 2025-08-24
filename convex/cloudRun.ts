@@ -8,14 +8,27 @@ export const updateJobStatus = internalMutation({
     jobId: v.id("jobs"),
     status: v.union(
       v.literal("pending"),
+      v.literal("cloning"),
+      v.literal("analyzing"),
+      v.literal("gathering"),
       v.literal("running"),
       v.literal("completed"),
       v.literal("failed")
     ),
+    progress: v.optional(v.string()),
+    currentStep: v.optional(v.number()),
+    totalSteps: v.optional(v.number()),
+    result: v.optional(v.any()),
+    error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.jobId, {
       status: args.status,
+      ...(args.progress && { progress: args.progress }),
+      ...(args.currentStep !== undefined && { currentStep: args.currentStep }),
+      ...(args.totalSteps !== undefined && { totalSteps: args.totalSteps }),
+      ...(args.result && { result: args.result }),
+      ...(args.error && { error: args.error }),
     });
   },
 });
@@ -44,12 +57,20 @@ export const triggerDocGeneration = action({
     }
 
     try {
-      // Get the callback URL for this deployment
-      const convexUrl = process.env.CONVEX_URL || "https://your-deployment.convex.cloud";
-      const callbackUrl = `${convexUrl}/api/webhook/job-callback`;
+      // For local development, use the Next.js webhook endpoint
+      const callbackUrl = process.env.NODE_ENV === "production"
+        ? `${process.env.CONVEX_URL}/api/webhook/job-callback`
+        : "http://localhost:3000/api/webhook/job-callback";
+
+      // Use proxy for localhost URLs  
+      const targetUrl = cloudRunUrl.includes("localhost") 
+        ? "http://localhost:3000/api/analyze-proxy"
+        : `${cloudRunUrl}/analyze`;
+
+      console.log("Triggering Cloud Run at:", targetUrl);
 
       // Trigger Cloud Run service
-      const response = await fetch(`${cloudRunUrl}/analyze`, {
+      const response = await fetch(targetUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
