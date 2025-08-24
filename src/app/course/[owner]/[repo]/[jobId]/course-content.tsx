@@ -129,8 +129,8 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
     } catch (error) {
       console.error('Failed to regenerate:', error);
       toast({
-        title: "Regeneration Failed",
-        description: "Failed to start regeneration. Please try again.",
+        title: "Échec de la régénération",
+        description: "Échec du démarrage de la régénération. Veuillez réessayer.",
         variant: "destructive"
       });
     } finally {
@@ -157,7 +157,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
   if (docs === undefined) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading course...</div>
+        <div className="text-lg text-muted-foreground">Chargement du cours...</div>
       </div>
     );
   }
@@ -169,21 +169,21 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
       const StatusIcon = statusDisplay.icon;
       
       return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="glass backdrop-blur-xl rounded-xl shadow-lg p-8 max-w-md w-full border border-border/40">
             <div className="flex flex-col items-center text-center">
               <StatusIcon className={`w-12 h-12 ${statusDisplay.color} mb-4`} />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Course Generation in Progress</h2>
-              <p className="text-gray-600 mb-4">
-                Your course for {owner}/{repo} is being generated. This process typically takes 30-60 minutes.
+              <h2 className="text-2xl font-bold text-foreground mb-2">Génération du cours en cours</h2>
+              <p className="text-muted-foreground mb-4">
+                Votre cours pour {owner}/{repo} est en cours de génération. Ce processus prend généralement 30 à 60 minutes.
               </p>
               
               {job?.currentStep && (
                 <div className="w-full mb-6">
-                  <div className="text-sm text-gray-500 mb-2">
-                    Step {job.currentStep} of {job.totalSteps}: {job.statusMessage}
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Étape {job.currentStep} sur {job.totalSteps}: {job.statusMessage}
                   </div>
-                  <div className="w-full h-3 bg-gray-200 rounded-full">
+                  <div className="w-full h-3 bg-muted rounded-full">
                     <div 
                       className="h-full bg-purple-600 rounded-full transition-all duration-500"
                       style={{ width: `${(job.currentStep / job.totalSteps) * 100}%` }}
@@ -194,16 +194,16 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               
               <div className="flex gap-3">
                 <button
-                  onClick={() => router.push('/')}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                  onClick={() => router.push('/dashboard')}
+                  className="px-4 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors"
                 >
-                  Back to Dashboard
+                  Retour au tableau de bord
                 </button>
                 <button
                   onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                 >
-                  Refresh Status
+                  Actualiser le statut
                 </button>
               </div>
             </div>
@@ -300,17 +300,17 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
   const StatusIcon = statusDisplay.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 glass backdrop-blur-xl rounded-xl shadow-lg border border-border/40 p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 Course: {owner}/{repo}
               </h1>
               <div className="flex items-center gap-4 mb-2">
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   {chapters.length} chapters • {tutorials.length} tutorials
                 </p>
                 {job && (
@@ -328,10 +328,10 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               </div>
               {job?.status === 'running' && job.currentStep && (
                 <div className="mt-2">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     Step {job.currentStep} of {job.totalSteps}: {job.statusMessage}
                   </div>
-                  <div className="w-64 h-2 bg-gray-200 rounded-full mt-1">
+                  <div className="w-64 h-2 bg-muted rounded-full mt-1">
                     <div 
                       className="h-full bg-blue-500 rounded-full transition-all duration-300"
                       style={{ width: `${(job.currentStep / job.totalSteps) * 100}%` }}
@@ -346,28 +346,28 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               <button
                 onClick={handleRegenerate}
                 disabled={isRegenerating || job?.status === 'running'}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
-                {isRegenerating ? 'Starting...' : 'Regenerate Course'}
+                {isRegenerating ? 'Démarrage...' : 'Régénérer le cours'}
               </button>
               
               <button
-                onClick={() => router.push('/')}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                onClick={() => router.push('/dashboard')}
+                className="px-4 py-2 bg-muted/50 backdrop-blur-sm text-foreground rounded-lg hover:bg-muted/70 transition-all duration-300 border border-border/40"
               >
-                Back to Dashboard
+                Retour au tableau de bord
               </button>
             </div>
           </div>
           
           {job?.status === 'failed' && job.error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg backdrop-blur-sm">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-red-800">Generation Failed</p>
-                  <p className="text-sm text-red-700 mt-1">{job.error}</p>
+                  <p className="text-sm font-medium text-destructive">Échec de la génération</p>
+                  <p className="text-sm text-destructive/80 mt-1">{job.error}</p>
                 </div>
               </div>
             </div>
@@ -377,22 +377,22 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
         <div className="flex gap-8">
           {/* Sidebar - Table of Contents */}
           <div className="w-80 flex-shrink-0">
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6 sticky top-8">
-              <h2 className="text-lg font-semibold mb-4">Course Content</h2>
+            <div className="glass glass-hover backdrop-blur-xl rounded-xl shadow-lg border border-border/40 p-6 sticky top-8 transition-all duration-300 hover:scale-[1.01]">
+              <h2 className="text-lg font-semibold text-foreground mb-4">Contenu du cours</h2>
               
               {/* Chapters */}
               {chapters.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Chapters</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Chapitres</h3>
                   <div className="space-y-2">
                     {chapters.map((doc) => (
                       <button
                         key={doc._id}
                         onClick={() => setSelectedSlug(doc.slug)}
-                        className={`w-full text-left p-3 rounded-md text-sm transition-colors ${
+                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${
                           selectedSlug === doc.slug
-                            ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-500'
-                            : 'hover:bg-gray-50 text-gray-700'
+                            ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-foreground border-l-2 border-purple-500 pl-5'
+                            : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground hover:translate-x-1'
                         }`}
                       >
                         <div className="font-medium">{doc.chapterIndex}. {doc.title}</div>
@@ -405,16 +405,16 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               {/* Tutorials */}
               {tutorials.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Tutorials</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Tutoriels</h3>
                   <div className="space-y-2">
                     {tutorials.map((doc) => (
                       <button
                         key={doc._id}
                         onClick={() => setSelectedSlug(doc.slug)}
-                        className={`w-full text-left p-3 rounded-md text-sm transition-colors ${
+                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${
                           selectedSlug === doc.slug
-                            ? 'bg-green-50 text-green-700 border-l-2 border-green-500'
-                            : 'hover:bg-gray-50 text-gray-700'
+                            ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-foreground border-l-2 border-blue-500 pl-5'
+                            : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground hover:translate-x-1'
                         }`}
                       >
                         <div className="font-medium">🎯 {doc.title}</div>
@@ -427,16 +427,16 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               {/* Configuration Files */}
               {(yamls.length > 0 || tocs.length > 0) && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">References</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Références</h3>
                   <div className="space-y-2">
                     {[...yamls, ...tocs].map((doc) => (
                       <button
                         key={doc._id}
                         onClick={() => setSelectedSlug(doc.slug)}
-                        className={`w-full text-left p-3 rounded-md text-sm transition-colors ${
+                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${
                           selectedSlug === doc.slug
-                            ? 'bg-gray-100 text-gray-800 border-l-2 border-gray-400'
-                            : 'hover:bg-gray-50 text-gray-600'
+                            ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-foreground border-l-2 border-green-500 pl-5'
+                            : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground hover:translate-x-1'
                         }`}
                       >
                         <div className="font-medium">📄 {doc.title}</div>
@@ -451,46 +451,46 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
           {/* Main Content */}
           <div className="flex-1">
             {selectedDoc === undefined && selectedSlug ? (
-              <div className="bg-white rounded-lg shadow-sm border p-8">
-                <div className="text-center text-gray-500">Loading content...</div>
+              <div className="glass backdrop-blur-xl rounded-xl shadow-lg border border-border/40 p-8">
+                <div className="text-center text-muted-foreground">Chargement du contenu...</div>
               </div>
             ) : selectedDoc && selectedSlug ? (
-              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 overflow-hidden">
-                <div className="p-6 border-b bg-gradient-to-r from-purple-50 to-blue-50">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-3">{selectedDoc.title}</h1>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
-                      selectedDoc.kind === 'chapter' ? 'bg-blue-500 text-white' :
-                      selectedDoc.kind === 'tutorial' ? 'bg-green-500 text-white' :
-                      'bg-gray-500 text-white'
+              <div className="glass backdrop-blur-xl rounded-xl shadow-lg border border-border/40 overflow-hidden">
+                <div className="p-6 border-b border-border/40 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-xl">
+                  <h1 className="text-3xl font-bold text-foreground mb-3">{selectedDoc.title}</h1>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm ${
+                      selectedDoc.kind === 'chapter' ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 border border-purple-500/30' :
+                      selectedDoc.kind === 'tutorial' ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-400 border border-blue-500/30' :
+                      'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border border-green-500/30'
                     }`}>
-                      {selectedDoc.kind === 'chapter' ? '📚 Chapter' :
-                       selectedDoc.kind === 'tutorial' ? '🎯 Tutorial' :
-                       selectedDoc.kind === 'yaml' ? '⚙️ Config' : '📄 Document'}
+                      {selectedDoc.kind === 'chapter' ? '📚 Chapitre' :
+                       selectedDoc.kind === 'tutorial' ? '🎯 Tutoriel' :
+                       selectedDoc.kind === 'yaml' ? '⚙️ Configuration' : '📄 Document'}
                     </span>
                     {selectedDoc.kind === 'chapter' && (
                       <span className="font-medium">#{selectedDoc.chapterIndex}</span>
                     )}
                   </div>
                 </div>
-                <div className="p-8">
-                  <article className="prose prose-slate dark:prose-invert max-w-none
+                <div className="p-8 bg-background/50">
+                  <article className="prose prose-gray dark:prose-invert max-w-none
                     prose-headings:font-bold prose-headings:tracking-tight
                     prose-h1:text-3xl prose-h1:mb-8 prose-h1:mt-8 prose-h1:border-b prose-h1:pb-4
                     prose-h2:text-2xl prose-h2:mb-6 prose-h2:mt-8
                     prose-h3:text-xl prose-h3:mb-4 prose-h3:mt-6
-                    prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-p:mb-4
-                    prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-0 prose-pre:rounded-lg prose-pre:overflow-x-auto
-                    prose-code:bg-purple-100 dark:prose-code:bg-purple-900/30 prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-sm prose-code:before:content-[''] prose-code:after:content-['']
+                    prose-p:leading-relaxed prose-p:mb-4
+                    prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950 prose-pre:text-gray-100 prose-pre:p-0 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:border prose-pre:border-border/20
+                    prose-code:bg-purple-100 dark:prose-code:bg-purple-500/10 prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-sm prose-code:before:content-[''] prose-code:after:content-['']
                     prose-ul:my-4 prose-ul:space-y-2
-                    prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-li:leading-relaxed
+                    prose-li:leading-relaxed
                     prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
-                    prose-blockquote:border-l-4 prose-blockquote:border-purple-400 prose-blockquote:pl-4 prose-blockquote:italic
+                    prose-blockquote:border-l-4 prose-blockquote:border-purple-500/50 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:bg-muted/30 prose-blockquote:py-2 prose-blockquote:rounded-r-lg
                     prose-img:rounded-lg prose-img:shadow-md
                     prose-table:w-full prose-table:border-collapse
-                    prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:p-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800
-                    prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:p-2
-                    [&_pre]:!bg-gray-900 [&_pre]:!text-gray-100
+                    prose-th:border prose-th:border-border/50 prose-th:p-2 prose-th:bg-muted/50
+                    prose-td:border prose-td:border-border/50 prose-td:p-2
+                    [&_pre]:!bg-gray-900 dark:[&_pre]:!bg-gray-950 [&_pre]:!text-gray-100
                     [&_[data-line]]:px-4 [&_[data-line]]:py-0.5
                     [&_[data-highlighted-line]]:bg-gray-800/50 [&_[data-highlighted-line]]:border-l-2 [&_[data-highlighted-line]]:border-purple-500
                     [&_[data-line-numbers]_[data-line]]:before:content-[attr(data-line-number)] [&_[data-line-numbers]_[data-line]]:before:text-gray-500 [&_[data-line-numbers]_[data-line]]:before:mr-4
@@ -508,14 +508,14 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                       </ReactMarkdown>
                     ) : (
                       <div className="p-8 text-center">
-                        <div className="text-gray-500 italic mb-4">
-                          <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                          No content available for this document
+                        <div className="text-muted-foreground italic mb-4">
+                          <AlertCircle className="w-8 h-8 mx-auto mb-2 text-muted" />
+                          Contenu indisponible pour ce document
                         </div>
-                        <div className="text-sm text-gray-400">
-                          This appears to be a data integrity issue. The document exists but has no content.
+                        <div className="text-sm text-muted-foreground">
+                          Problème de données. Le document existe mais n'a pas de contenu.
                         </div>
-                        <div className="text-xs text-gray-400 mt-2">
+                        <div className="text-xs text-muted-foreground mt-2">
                           Document ID: {selectedDoc._id}
                         </div>
                       </div>
@@ -524,16 +524,16 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm border p-8">
+              <div className="glass backdrop-blur-xl rounded-xl shadow-lg border border-border/40 p-8">
                 <div className="text-center">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                    Welcome to your course
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent mb-4">
+                    Bienvenue dans votre cours
                   </h2>
-                  <p className="text-gray-600 mb-4">
-                    Select a chapter or tutorial from the sidebar to begin learning.
+                  <p className="text-muted-foreground mb-6 text-lg">
+                    Sélectionnez un chapitre ou tutoriel dans la barre latérale pour commencer l'apprentissage.
                   </p>
-                  <div className="text-sm text-gray-500">
-                    This course was generated from the {owner}/{repo} repository.
+                  <div className="text-sm text-muted-foreground/80">
+                    Ce cours a été généré à partir du dépôt {owner}/{repo}.
                   </div>
                 </div>
               </div>
