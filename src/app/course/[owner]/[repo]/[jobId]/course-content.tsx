@@ -94,7 +94,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
     
     setIsRegenerating(true);
     try {
-      const newJobId = await triggerAnalyze({ 
+      const result = await triggerAnalyze({ 
         repositoryId: repository._id 
       });
       
@@ -103,8 +103,8 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
         description: "Your course is being regenerated. This may take 30-60 minutes.",
       });
 
-      // Navigate to new job
-      router.push(`/course/${owner}/${repo}/${newJobId}`);
+      // Navigate to new job - use result.jobId not the entire result object
+      router.push(`/course/${owner}/${repo}/${result.jobId}`);
     } catch (error) {
       console.error('Failed to regenerate:', error);
       toast({
