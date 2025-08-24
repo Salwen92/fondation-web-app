@@ -44,3 +44,13 @@ yarn-error.log*
 
 # idea files
 .idea
+# V7 Runtime Artifacts
+dom-dumps*/
+text-dumps*/
+screenshots*/
+manifests/
+*-extract*.js
+extract*.js
+save-*.js
+*.har
+nextjs-v*.log
