@@ -4,6 +4,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../../../convex/_generated/api';
 import type { Id } from '../../../../../../convex/_generated/dataModel';
 import { notFound, useRouter } from 'next/navigation';
+import { env } from '@/env';
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -115,7 +116,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
             jobId: result.jobId,
             repositoryUrl: `https://github.com/${repository.fullName}`,
             branch: repository.defaultBranch || "main",
-            callbackUrl: `http://localhost:3000/api/webhook/job-callback`,
+            callbackUrl: `${env.NEXT_PUBLIC_APP_URL}/api/webhook/job-callback`,
             callbackToken: result.callbackToken,
           }),
         });

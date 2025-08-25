@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { env } from "@/env";
 import { 
   GitBranch, 
   Book, 
@@ -103,7 +104,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
             jobId: result.jobId,
             repositoryUrl: `https://github.com/${repo.fullName}`,
             branch: repo.defaultBranch,
-            callbackUrl: `http://localhost:3000/api/webhook/job-callback`,
+            callbackUrl: `${env.NEXT_PUBLIC_APP_URL}/api/webhook/job-callback`,
             callbackToken: result.callbackToken,
           }),
         });
@@ -113,6 +114,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
         }
         
         const gatewayResult = await response.json() as unknown;
+        // TODO: Replace with structured logging
         console.log("Scaleway Gateway triggered:", gatewayResult);
       }
       

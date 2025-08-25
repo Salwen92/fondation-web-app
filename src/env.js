@@ -36,6 +36,10 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string().url()
         : z.string().url().optional(),
+    NEXT_PUBLIC_APP_URL:
+      process.env.NODE_ENV === "production"
+        ? z.string().url()
+        : z.string().url().default("http://localhost:3000"),
   },
 
   /**
@@ -50,6 +54,7 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
