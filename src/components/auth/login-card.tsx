@@ -33,7 +33,7 @@ export function LoginCard() {
           <h1 className="mb-2 text-3xl font-bold tracking-tight">
             <span className="text-gradient">Fondation</span>
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground" id="login-description">
             Génération de Documentation par IA
           </p>
         </div>
@@ -68,15 +68,24 @@ export function LoginCard() {
             "glow-primary-hover",
             "disabled:cursor-not-allowed disabled:opacity-50",
           )}
+          aria-label={
+            isLoading 
+              ? "Connexion en cours avec GitHub, veuillez patienter"
+              : "Se connecter avec GitHub pour accéder à Fondation"
+          }
+          aria-describedby="login-description"
         >
           {isLoading ? (
             <>
-              <div className="border-primary-foreground mr-2 h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
+              <div 
+                className="border-primary-foreground mr-2 h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" 
+                aria-hidden="true"
+              />
               Connexion...
             </>
           ) : (
             <>
-              <Github className="mr-2 h-5 w-5" />
+              <Github className="mr-2 h-5 w-5" aria-hidden="true" />
               Continuer avec GitHub
             </>
           )}
@@ -85,11 +94,17 @@ export function LoginCard() {
         {/* Footer */}
         <p className="text-muted-foreground mt-6 text-center text-xs">
           En vous connectant, vous acceptez nos{" "}
-          <button className="hover:text-foreground underline transition-colors">
+          <button 
+            className="hover:text-foreground underline transition-colors"
+            aria-label="Lire les conditions d'utilisation"
+          >
             Conditions d&apos;utilisation
           </button>{" "}
           et notre{" "}
-          <button className="hover:text-foreground underline transition-colors">
+          <button 
+            className="hover:text-foreground underline transition-colors"
+            aria-label="Lire la politique de confidentialité"
+          >
             Politique de confidentialité
           </button>
         </p>

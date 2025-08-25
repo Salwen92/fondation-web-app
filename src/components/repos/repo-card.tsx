@@ -286,12 +286,19 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
 
             {/* Progress Bar for active jobs */}
             {isProcessing && latestJob && (
-              <div className="mb-4">
+              <div className="mb-4" id={`progress-${repo._id}`}>
                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
                   <span>Étape {latestJob.currentStep ?? 0} sur {latestJob.totalSteps ?? 7}</span>
                   <span>{Math.round(((latestJob.currentStep ?? 0) / (latestJob.totalSteps ?? 7)) * 100)}%</span>
                 </div>
-                <div className="w-full bg-muted rounded-full h-2">
+                <div 
+                  className="w-full bg-muted rounded-full h-2"
+                  role="progressbar"
+                  aria-valuenow={latestJob.currentStep ?? 0}
+                  aria-valuemin={0}
+                  aria-valuemax={latestJob.totalSteps ?? 7}
+                  aria-label={`Progression de génération: étape ${latestJob.currentStep ?? 0} sur ${latestJob.totalSteps ?? 7}`}
+                >
                   <div 
                     className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${((latestJob.currentStep ?? 0) / (latestJob.totalSteps ?? 7)) * 100}%` }}
@@ -312,8 +319,9 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                     // Navigate to course viewer using latest alias
                     window.location.href = `/course/${owner}/${repoName}/latest`;
                   }}
+                  aria-label={`Voir le cours généré pour le dépôt ${repo.name}`}
                 >
-                  <Book className="mr-2 h-4 w-4" />
+                  <Book className="mr-2 h-4 w-4" aria-hidden="true" />
                   Voir le Cours
                 </Button>
               ) : (
@@ -322,20 +330,28 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                   disabled={!!isProcessing}
                   className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
                   size="sm"
+                  aria-label={
+                    isProcessing 
+                      ? `Génération en cours pour ${repo.name}. Veuillez patienter.`
+                      : (isFailed || isCanceled) 
+                        ? `Réessayer la génération du cours pour ${repo.name}`
+                        : `Générer le cours de documentation pour ${repo.name}`
+                  }
+                  aria-describedby={isProcessing ? `progress-${repo._id}` : undefined}
                 >
                   {isProcessing ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                       Génération...
                     </>
                   ) : (isFailed || isCanceled) ? (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" />
+                      <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
                       Réessayer
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" />
+                      <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
                       Générer le Cours
                     </>
                   )}
@@ -349,16 +365,19 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                   size="sm"
                   onClick={handleCancel}
                   className="glass border-red-200 hover:bg-red-50 hover:border-red-300"
+                  aria-label={`Annuler la génération en cours pour ${repo.name}`}
                 >
-                  <X className="h-4 w-4 text-red-500" />
+                  <X className="h-4 w-4 text-red-500" aria-hidden="true" />
                 </Button>
               ) : (
                 <Button
                   variant="outline"
                   size="sm"
                   className="glass"
+                  aria-label={`Voir le code source du dépôt ${repo.name} sur GitHub`}
+                  onClick={() => window.open(`https://github.com/${repo.fullName}`, '_blank')}
                 >
-                  <Code2 className="h-4 w-4" />
+                  <Code2 className="h-4 w-4" aria-hidden="true" />
                 </Button>
               )}
             </div>

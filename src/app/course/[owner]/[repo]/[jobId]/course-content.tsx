@@ -361,14 +361,22 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                 onClick={handleRegenerate}
                 disabled={isRegenerating || job?.status === 'running'}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={
+                  isRegenerating 
+                    ? `Régénération en cours pour ${owner}/${repo}. Veuillez patienter.`
+                    : job?.status === 'running'
+                      ? 'Impossible de régénérer: génération en cours'
+                      : `Régénérer le cours pour ${owner}/${repo}`
+                }
               >
-                <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} aria-hidden="true" />
                 {isRegenerating ? 'Démarrage...' : 'Régénérer le cours'}
               </button>
               
               <button
                 onClick={() => router.push('/dashboard')}
                 className="px-4 py-2 bg-muted/50 backdrop-blur-sm text-foreground rounded-lg hover:bg-muted/70 transition-all duration-300 border border-border/40"
+                aria-label="Retourner au tableau de bord principal"
               >
                 Retour au tableau de bord
               </button>
@@ -390,7 +398,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
 
         <div className="flex gap-8">
           {/* Sidebar - Table of Contents */}
-          <div className="w-80 flex-shrink-0">
+          <nav className="w-80 flex-shrink-0" aria-label="Navigation du cours">
             <div className="glass glass-hover backdrop-blur-xl rounded-xl shadow-lg border border-border/40 p-6 sticky top-8 transition-all duration-300 hover:scale-[1.01]">
               <h2 className="text-lg font-semibold text-foreground mb-4">Contenu du cours</h2>
               
@@ -460,10 +468,10 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                 </div>
               )}
             </div>
-          </div>
+          </nav>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <main className="flex-1" aria-label="Contenu principal du cours">
             {selectedDoc === undefined && selectedSlug ? (
               <div className="glass backdrop-blur-xl rounded-xl shadow-lg border border-border/40 p-8">
                 <div className="text-center text-muted-foreground">Chargement du contenu...</div>
@@ -627,7 +635,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                 </div>
               </div>
             )}
-          </div>
+          </main>
         </div>
       </div>
     </div>
