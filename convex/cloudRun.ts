@@ -18,21 +18,29 @@ export const updateJobStatus = internalMutation({
     progress: v.optional(v.string()),
     currentStep: v.optional(v.number()),
     totalSteps: v.optional(v.number()),
-    result: v.optional(v.any()),
+    result: v.optional(v.object({
+      files: v.array(v.object({
+        path: v.string(),
+        content: v.string(),
+        type: v.union(v.literal("yaml"), v.literal("markdown")),
+        size: v.number()
+      })),
+      duration: v.optional(v.number()),
+      filesCount: v.number(),
+      status: v.optional(v.string()),
+      timestamp: v.optional(v.string())
+    })),
     error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const updateData: any = {
+    await ctx.db.patch(args.jobId, {
       status: args.status,
-    };
-    
-    if (args.progress) updateData.progress = args.progress;
-    if (args.currentStep !== undefined) updateData.currentStep = args.currentStep;
-    if (args.totalSteps !== undefined) updateData.totalSteps = args.totalSteps;
-    if (args.result) updateData.result = args.result;
-    if (args.error) updateData.error = args.error;
-    
-    await ctx.db.patch(args.jobId, updateData);
+      ...(args.progress && { progress: args.progress }),
+      ...(args.currentStep !== undefined && { currentStep: args.currentStep }),
+      ...(args.totalSteps !== undefined && { totalSteps: args.totalSteps }),
+      ...(args.result && { result: args.result }),
+      ...(args.error && { error: args.error }),
+    });
   },
 });
 

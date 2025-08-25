@@ -119,7 +119,18 @@ export const updateStatus = mutation({
     progress: v.optional(v.string()),
     currentStep: v.optional(v.number()),
     totalSteps: v.optional(v.number()),
-    result: v.optional(v.any()),
+    result: v.optional(v.object({
+      files: v.array(v.object({
+        path: v.string(),
+        content: v.string(),
+        type: v.union(v.literal("yaml"), v.literal("markdown")),
+        size: v.number()
+      })),
+      duration: v.optional(v.number()),
+      filesCount: v.number(),
+      status: v.optional(v.string()),
+      timestamp: v.optional(v.string())
+    })),
     error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
