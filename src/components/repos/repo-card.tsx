@@ -49,6 +49,30 @@ function translateProgress(progress: string | undefined): string {
   return progress || "Traitement";
 }
 
+// Helper function to translate status to French
+function translateStatus(status: string | undefined): string {
+  switch (status) {
+    case "completed":
+      return "Terminé";
+    case "failed":
+      return "Échoué";
+    case "canceled":
+      return "Annulé";
+    case "pending":
+      return "En attente";
+    case "running":
+      return "En cours";
+    case "cloning":
+      return "Clonage";
+    case "analyzing":
+      return "Analyse";
+    case "gathering":
+      return "Collecte";
+    default:
+      return status || "Inconnu";
+  }
+}
+
 export function RepoCard({ repo, userId }: RepoCardProps) {
   const generateCourse = useMutation(api.jobs.create);
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId: repo._id });
@@ -249,7 +273,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                        latestJob.status === "canceled" ? "🚫" :
                        "⏳"}
                     </span>
-                    <span className="capitalize">{latestJob.status}</span>
+                    <span className="capitalize">{translateStatus(latestJob.status)}</span>
                   </div>
                 )}
               </div>

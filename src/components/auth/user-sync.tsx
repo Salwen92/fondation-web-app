@@ -21,7 +21,7 @@ export function UserSync() {
             avatarUrl: session.user.image ?? undefined,
           });
         } catch (error) {
-          toast.error("Failed to sync user data");
+          toast.error("Échec de la synchronisation des données utilisateur");
           console.error("User sync error:", error);
         }
       }
