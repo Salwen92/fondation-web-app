@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { getJobCallbackUrl } from "@/lib/config";
 
 interface RepoCardProps {
   repo: {
@@ -103,7 +104,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
             jobId: result.jobId,
             repositoryUrl: `https://github.com/${repo.fullName}`,
             branch: repo.defaultBranch,
-            callbackUrl: `http://localhost:3000/api/webhook/job-callback`,
+            callbackUrl: getJobCallbackUrl(),
             callbackToken: result.callbackToken,
           }),
         });

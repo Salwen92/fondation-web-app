@@ -14,6 +14,7 @@ import 'highlight.js/styles/github-dark.css';
 import { RefreshCw, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import dynamic from 'next/dynamic';
+import { getJobCallbackUrl } from '@/lib/config';
 
 const MermaidRenderer = dynamic(
   () => import('@/components/markdown/mermaid-renderer').then(mod => mod.MermaidRenderer),
@@ -115,7 +116,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
             jobId: result.jobId,
             repositoryUrl: `https://github.com/${repository.fullName}`,
             branch: repository.defaultBranch || "main",
-            callbackUrl: `http://localhost:3000/api/webhook/job-callback`,
+            callbackUrl: getJobCallbackUrl(),
             callbackToken: result.callbackToken,
           }),
         });
