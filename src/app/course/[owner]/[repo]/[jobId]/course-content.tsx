@@ -15,6 +15,7 @@ import 'highlight.js/styles/github-dark.css';
 import { RefreshCw, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import dynamic from 'next/dynamic';
+import { logger } from '@/lib/logger';
 
 const MermaidRenderer = dynamic(
   () => import('@/components/markdown/mermaid-renderer').then(mod => mod.MermaidRenderer),
@@ -67,7 +68,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
   useEffect(() => {
     if (selectedDoc && selectedSlug) {
       if (!selectedDoc.content || selectedDoc.content.length === 0) {
-        console.warn('[Empty Content] Document has no content:', {
+        logger.warn('[Empty Content] Document has no content', {
           id: selectedDoc._id,
           slug: selectedDoc.slug,
           title: selectedDoc.title
@@ -83,7 +84,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
           );
           
           if (canonical) {
-            console.info('[Fallback] Switching to canonical document with content:', {
+            logger.info('[Fallback] Switching to canonical document with content', {
               from: selectedDoc._id,
               to: canonical._id,
               slug: canonical.slug
@@ -134,7 +135,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
       // Navigate to new job - use result.jobId not the entire result object
       router.push(`/course/${owner}/${repo}/${result.jobId}`);
     } catch (error) {
-      console.error('Failed to regenerate:', error);
+      logger.error('Failed to regenerate', error instanceof Error ? error : new Error(String(error)));
       toast({
         title: "Échec de la régénération",
         description: "Échec du démarrage de la régénération. Veuillez réessayer.",
@@ -282,7 +283,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
           });
         }
         
-        console.info('[De-duplication] Duplicate detected:', {
+        logger.info('[De-duplication] Duplicate detected', {
           kept: keepExisting ? existing._id : doc._id,
           suppressed: keepExisting ? doc._id : existing._id,
           title: doc.title,
@@ -294,7 +295,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
     }
     
     if (duplicates.length > 0) {
-      console.warn('[Data Issue] Duplicates found and suppressed:', duplicates);
+      logger.warn('[Data Issue] Duplicates found and suppressed', { duplicates });
     }
     
     return Array.from(seen.values());

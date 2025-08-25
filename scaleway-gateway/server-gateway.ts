@@ -10,7 +10,7 @@
 
 import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { spawn, ChildProcess } from 'child_process';
-import path from 'path';
+import * as path from 'path';
 
 // Type definitions
 interface JobParams {
@@ -55,28 +55,112 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/', (_req: Request, res: Response) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const scalewayConfigured = !!(
+    process.env.SCW_ACCESS_KEY && 
+    process.env.SCW_SECRET_KEY && 
+    process.env.SCW_DEFAULT_PROJECT_ID && 
+    process.env.SCW_JOB_DEFINITION_ID
+  );
+  
   res.json({ 
     status: 'healthy', 
     service: 'scaleway-api-gateway',
-    version: '1.0.0',
-    mode: process.env.NODE_ENV === 'development' ? 'local-development' : 'production',
+    version: '1.0.1',
+    mode: isProduction ? 'production' : 'local-development',
     environment: {
       nodeEnv: process.env.NODE_ENV,
-      scalewayConfigured: !!(process.env.SCW_ACCESS_KEY && process.env.SCW_SECRET_KEY)
+      scalewayConfigured,
+      scalewayZone: process.env.SCW_DEFAULT_ZONE ?? 'fr-par-1',
+      canTriggerJobs: isProduction ? scalewayConfigured : true,
+      missingScalewayEnvVars: isProduction && !scalewayConfigured ? [
+        ...(!process.env.SCW_ACCESS_KEY ? ['SCW_ACCESS_KEY'] : []),
+        ...(!process.env.SCW_SECRET_KEY ? ['SCW_SECRET_KEY'] : []),
+        ...(!process.env.SCW_DEFAULT_PROJECT_ID ? ['SCW_DEFAULT_PROJECT_ID'] : []),
+        ...(!process.env.SCW_JOB_DEFINITION_ID ? ['SCW_JOB_DEFINITION_ID'] : [])
+      ] : []
     }
   });
 });
 
 /**
  * Trigger a Scaleway Job in production
- * This will be implemented when deploying to Scaleway
+ * Uses Scaleway Jobs API to create and run serverless jobs
  */
-async function triggerScalewayJob(_jobParams: JobParams): Promise<JobResult> {
-  // TODO: Implement Scaleway SDK integration
-  // const { JobsApi } = require('@scaleway/sdk');
-  // const jobsApi = new JobsApi({ ... });
+async function triggerScalewayJob(jobParams: JobParams): Promise<JobResult> {
+  const { jobId, repositoryUrl, branch, callbackUrl, callbackToken, githubToken } = jobParams;
   
-  throw new Error('Scaleway production mode not yet implemented. Use NODE_ENV=development for local testing.');
+  // Get Scaleway configuration from environment
+  const scwAccessKey = process.env.SCW_ACCESS_KEY;
+  const scwSecretKey = process.env.SCW_SECRET_KEY;
+  const scwProjectId = process.env.SCW_DEFAULT_PROJECT_ID;
+  const scwZone = process.env.SCW_DEFAULT_ZONE ?? 'fr-par-1';
+  const scwJobDefinitionId = process.env.SCW_JOB_DEFINITION_ID;
+  
+  if (!scwAccessKey || !scwSecretKey || !scwProjectId || !scwJobDefinitionId) {
+    throw new Error('Missing required Scaleway configuration: SCW_ACCESS_KEY, SCW_SECRET_KEY, SCW_DEFAULT_PROJECT_ID, and SCW_JOB_DEFINITION_ID must be set');
+  }
+  
+  console.log(`[Production Mode] Creating Scaleway job for ${jobId}`);
+  
+  // Prepare job environment variables
+  const jobEnvVars = {
+    JOB_ID: jobId,
+    REPOSITORY_URL: repositoryUrl,
+    BRANCH: branch,
+    CALLBACK_URL: callbackUrl,
+    CALLBACK_TOKEN: callbackToken,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
+    ...(githubToken && { GITHUB_TOKEN: githubToken })
+  };
+  
+  // Convert environment variables to Scaleway format
+  const environmentVariables = Object.entries(jobEnvVars).map(([key, value]) => ({
+    key,
+    value: value || ''
+  }));
+  
+  try {
+    // Create job run using Scaleway API
+    const response = await fetch(`https://api.scaleway.com/jobs/v1alpha1/zones/${scwZone}/job-runs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': scwSecretKey,
+        'X-Auth-User': scwAccessKey
+      },
+      body: JSON.stringify({
+        job_definition_id: scwJobDefinitionId,
+        environment_variables: environmentVariables,
+        name: `fondation-analysis-${jobId}`,
+        timeout: '3600s' // 1 hour timeout
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Scaleway API error (${response.status}): ${errorText}`);
+    }
+    
+    const jobRun = await response.json() as { id: string; status: string };
+    
+    console.log(`[Production Mode] Scaleway job created with ID: ${jobRun.id}`);
+    
+    return {
+      status: 'started',
+      scwJobId: jobRun.id
+    };
+    
+  } catch (error) {
+    console.error(`[Production Mode] Failed to create Scaleway job:`, error);
+    
+    // If it's a network error, provide more context
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Failed to connect to Scaleway API. Check network connectivity and API endpoint.');
+    }
+    
+    throw error;
+  }
 }
 
 /**

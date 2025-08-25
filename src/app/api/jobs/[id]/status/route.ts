@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
+import { logger } from "@/lib/logger";
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "http://localhost:3210";
 const client = new ConvexHttpClient(convexUrl);
@@ -35,7 +36,7 @@ export async function GET(
     });
     
   } catch (error) {
-    console.error("Error getting job status:", error);
+    logger.error("Error getting job status", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: "Failed to get job status" },
       { status: 500 }

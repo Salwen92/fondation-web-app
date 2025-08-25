@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { type Id } from "./_generated/dataModel";
 
 // Helper function to normalize markdown content
 function normalizeMarkdown(content: string): string {
@@ -345,7 +346,7 @@ export const cleanupDuplicates = mutation({
     
     if (!args.dryRun && toDelete.length > 0) {
       for (const docId of toDelete) {
-        await ctx.db.delete(docId as any);
+        await ctx.db.delete(docId as Id<"docs">);
         stats.deleted++;
       }
     }

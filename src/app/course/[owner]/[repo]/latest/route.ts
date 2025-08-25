@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../../../../convex/_generated/api';
+import { logger } from '@/lib/logger';
 
 const convexClient = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -42,7 +43,7 @@ export async function GET(
       302
     );
   } catch (error) {
-    console.error('Error finding latest course:', error);
+    logger.error('Error finding latest course', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to find latest course' },
       { status: 500 }

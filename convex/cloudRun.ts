@@ -18,11 +18,19 @@ export const updateJobStatus = internalMutation({
     progress: v.optional(v.string()),
     currentStep: v.optional(v.number()),
     totalSteps: v.optional(v.number()),
-    result: v.optional(v.any()),
+    result: v.optional(v.union(
+      v.object({
+        success: v.boolean(),
+        message: v.optional(v.string()),
+        data: v.optional(v.string()),
+      }),
+      v.string(),
+      v.null()
+    )),
     error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status: args.status,
     };
     
@@ -51,10 +59,11 @@ export const triggerDocGeneration = action({
     const cloudRunToken = process.env.CLOUD_RUN_TOKEN;
 
     if (!cloudRunUrl) {
-      console.error("CLOUD_RUN_URL not configured");
+      // Note: Cannot use external logger in Convex actions
       await ctx.runMutation(internal.cloudRun.updateJobStatus, {
         jobId: args.jobId,
         status: "failed",
+        error: "CLOUD_RUN_URL not configured",
       });
       return { success: false, error: "Service not configured" };
     }
@@ -70,7 +79,7 @@ export const triggerDocGeneration = action({
         ? "http://localhost:3000/api/analyze-proxy"
         : `${cloudRunUrl}/analyze`;
 
-      console.log("Triggering Cloud Run at:", targetUrl);
+      // Triggering Cloud Run service
 
       // Trigger Cloud Run service
       const response = await fetch(targetUrl, {
@@ -105,11 +114,12 @@ export const triggerDocGeneration = action({
 
       return { success: true, cloudRunResponse: result };
     } catch (error) {
-      console.error("Failed to trigger Cloud Run:", error);
+      // Failed to trigger Cloud Run service
       
       await ctx.runMutation(internal.cloudRun.updateJobStatus, {
         jobId: args.jobId,
         status: "failed",
+        error: error instanceof Error ? error.message : "Failed to trigger Cloud Run",
       });
 
       return { 

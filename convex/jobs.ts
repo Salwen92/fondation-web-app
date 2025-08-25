@@ -119,7 +119,15 @@ export const updateStatus = mutation({
     progress: v.optional(v.string()),
     currentStep: v.optional(v.number()),
     totalSteps: v.optional(v.number()),
-    result: v.optional(v.any()),
+    result: v.optional(v.union(
+      v.object({
+        success: v.boolean(),
+        message: v.optional(v.string()),
+        data: v.optional(v.string()),
+      }),
+      v.string(),
+      v.null()
+    )),
     error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {

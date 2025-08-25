@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export function LoginCard() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -16,7 +17,7 @@ export function LoginCard() {
       await signIn("github", { callbackUrl: "/dashboard" });
     } catch (error) {
       toast.error("Échec de la connexion. Veuillez réessayer.");
-      console.error("Sign in error:", error);
+      logger.error("Sign in error", error instanceof Error ? error : new Error(String(error)));
       setIsLoading(false);
     }
   };

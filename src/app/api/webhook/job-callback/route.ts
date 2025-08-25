@@ -2,6 +2,9 @@ import { type NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
+import { logger } from "@/lib/logger";
+import { jobCallbackSchema } from "@/lib/validation";
+import { withValidation } from "@/lib/middleware/validation";
 
 interface CallbackBody {
   jobId?: string;
@@ -22,13 +25,13 @@ interface CallbackBody {
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "http://localhost:3210";
 const client = new ConvexHttpClient(convexUrl);
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json() as CallbackBody;
-    const callbackToken = req.headers.get('X-Job-Token');
+export const POST = withValidation(
+  jobCallbackSchema,
+  async (req: NextRequest, body: CallbackBody) => {
+    try {
+      const callbackToken = req.headers.get('X-Job-Token');
     
-    console.log("[Job Callback Webhook] Received:", {
-      jobId: body.jobId ?? "unknown",
+    logger.logJob("Webhook received", body.jobId ?? "unknown", {
       type: body.type ?? "unknown",
       status: body.status ?? "unknown",
       timestamp: body.timestamp ?? "unknown",
@@ -39,7 +42,7 @@ export async function POST(req: NextRequest) {
     const { jobId, type, status, progress, step, totalSteps, error, files } = body;
 
     if (!jobId) {
-      console.error("[Job Callback Webhook] Missing jobId");
+      logger.error("Job callback webhook missing jobId");
       return NextResponse.json(
         { error: "Missing jobId" },
         { status: 400 }
@@ -47,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!callbackToken) {
-      console.error("[Job Callback Webhook] Missing callbackToken");
+      logger.error("Job callback webhook missing callbackToken");
       return NextResponse.json(
         { error: "Missing callbackToken" },
         { status: 400 }
@@ -74,7 +77,7 @@ export async function POST(req: NextRequest) {
 
     // Handle completion with docs persistence
     if (type === "complete" && files && Array.isArray(files)) {
-      console.log(`[Job Callback Webhook] Processing ${files.length} files for completion`);
+      logger.info(`Processing ${files.length} files for job completion`, { jobId });
       
       // Get job to extract repositoryId
       const job = await client.query(api.jobs.getJob, { jobId: jobId as Id<"jobs"> });
@@ -128,7 +131,12 @@ export async function POST(req: NextRequest) {
         }
       });
 
-      console.log(`[Job Callback Webhook] Persisted ${docsFiles.length} docs (${chaptersCount} chapters, ${tutorialsCount} tutorials)`);
+      logger.info(`Persisted docs for job`, { 
+        jobId,
+        totalDocs: docsFiles.length,
+        chaptersCount,
+        tutorialsCount
+      });
     }
 
     // Call the Convex updateStatus mutation
@@ -142,8 +150,7 @@ export async function POST(req: NextRequest) {
       ...(error && { error }),
     });
 
-    console.log("[Job Callback Webhook] Updated Convex job status:", {
-      jobId,
+    logger.logJob("Status updated", jobId, {
       status: convexStatus,
       progress,
       step,
@@ -151,11 +158,12 @@ export async function POST(req: NextRequest) {
     });
     
     return NextResponse.json({ success: true, received: body.type });
-  } catch (error) {
-    console.error("[Job Callback Webhook] Error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Webhook error" },
-      { status: 500 }
-    );
+    } catch (error) {
+      logger.error("Job callback webhook error", error instanceof Error ? error : new Error(String(error)));
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Webhook error" },
+        { status: 500 }
+      );
+    }
   }
-}
+);

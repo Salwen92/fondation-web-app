@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { Toaster } from "sonner";
+import { ErrorBoundaryWrapper } from "@/components/error-boundary";
 
 export const metadata: Metadata = {
   title: "Fondation - Génération de Documentation par IA",
@@ -31,7 +32,9 @@ export default function RootLayout({
     <html lang="fr" className={`${geist.variable}`} suppressHydrationWarning>
       <body className="min-h-screen" suppressHydrationWarning>
         <div className="bg-gradient-mesh pointer-events-none fixed inset-0" />
-        <Providers>{children}</Providers>
+        <ErrorBoundaryWrapper>
+          <Providers>{children}</Providers>
+        </ErrorBoundaryWrapper>
         <Toaster position="bottom-right" richColors closeButton />
       </body>
     </html>
