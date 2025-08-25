@@ -22,36 +22,6 @@ interface DashboardContentProps {
   userName?: string | null;
 }
 
-const stats = [
-  {
-    title: "Total des Dépôts",
-    value: "12",
-    change: "+2 cette semaine",
-    icon: <GitBranch className="h-5 w-5" />,
-    gradient: "from-purple-500 to-pink-500"
-  },
-  {
-    title: "Docs Générés",
-    value: "8",
-    change: "+5 ce mois",
-    icon: <FileText className="h-5 w-5" />,
-    gradient: "from-blue-500 to-cyan-500"
-  },
-  {
-    title: "Tâches Actives",
-    value: "3",
-    change: "En cours",
-    icon: <Activity className="h-5 w-5" />,
-    gradient: "from-green-500 to-emerald-500"
-  },
-  {
-    title: "Taux de Réussite",
-    value: "99,8%",
-    change: "+0,3%",
-    icon: <TrendingUp className="h-5 w-5" />,
-    gradient: "from-orange-500 to-red-500"
-  }
-];
 
 export function DashboardContent({
   githubId,
@@ -59,6 +29,10 @@ export function DashboardContent({
 }: DashboardContentProps) {
   const user = useQuery(api.users.getUserByGithubId, { githubId });
   const createUser = useMutation(api.users.createOrUpdateUser);
+  const dashboardStats = useQuery(
+    api.users.getDashboardStats, 
+    user ? { userId: user._id } : "skip"
+  );
   
   // Create user if it doesn't exist
   React.useEffect(() => {
@@ -72,20 +46,24 @@ export function DashboardContent({
     }
   }, [user, githubId, userName, createUser]);
 
-  if (!user) {
+  if (!user || !dashboardStats) {
     return (
       <div className="space-y-8">
         <div>
           <h2 className="mb-2 text-4xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
             Bon retour, {userName}!
           </h2>
-          <p className="text-muted-foreground">Configuration de votre tableau de bord...</p>
+          <p className="text-muted-foreground">
+            {!user ? "Configuration de votre tableau de bord..." : "Chargement des statistiques..."}
+          </p>
         </div>
         <Card className="glass p-8 backdrop-blur-xl">
           <div className="flex items-center space-x-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500" />
             <div>
-              <h3 className="text-lg font-semibold">Initialisation de votre espace de travail</h3>
+              <h3 className="text-lg font-semibold">
+                {!user ? "Initialisation de votre espace de travail" : "Chargement des données"}
+              </h3>
               <p className="text-muted-foreground">Cela ne prendra qu&apos;un instant...</p>
             </div>
           </div>
@@ -93,6 +71,46 @@ export function DashboardContent({
       </div>
     );
   }
+
+  const stats = [
+    {
+      title: "Total des Dépôts",
+      value: dashboardStats.totalRepositories.toString(),
+      change: dashboardStats.recentRepositories > 0 
+        ? `+${dashboardStats.recentRepositories} cette semaine` 
+        : "Aucun nouveau dépôt",
+      icon: <GitBranch className="h-5 w-5" />,
+      gradient: "from-purple-500 to-pink-500",
+      hasIncrease: dashboardStats.recentRepositories > 0
+    },
+    {
+      title: "Docs Générés",
+      value: dashboardStats.totalDocsGenerated.toString(),
+      change: dashboardStats.recentDocs > 0 
+        ? `+${dashboardStats.recentDocs} ce mois` 
+        : "Aucun nouveau doc",
+      icon: <FileText className="h-5 w-5" />,
+      gradient: "from-blue-500 to-cyan-500",
+      hasIncrease: dashboardStats.recentDocs > 0
+    },
+    {
+      title: "Tâches Actives",
+      value: dashboardStats.activeJobs.toString(),
+      change: dashboardStats.activeJobs > 0 ? "En cours" : "Aucune tâche",
+      icon: <Activity className="h-5 w-5" />,
+      gradient: "from-green-500 to-emerald-500",
+      hasIncrease: false,
+      isActive: dashboardStats.activeJobs > 0
+    },
+    {
+      title: "Taux de Réussite",
+      value: `${dashboardStats.successRate}%`,
+      change: dashboardStats.successRate >= 95 ? "Excellent" : dashboardStats.successRate >= 80 ? "Bon" : "À améliorer",
+      icon: <TrendingUp className="h-5 w-5" />,
+      gradient: "from-orange-500 to-red-500",
+      hasIncrease: dashboardStats.successRate >= 95
+    }
+  ];
 
   return (
     <div className="space-y-8">
@@ -128,8 +146,10 @@ export function DashboardContent({
                   <p className="text-sm text-muted-foreground">{stat.title}</p>
                   <p className="text-3xl font-bold">{stat.value}</p>
                   <p className="text-xs text-muted-foreground flex items-center">
-                    {stat.change.includes('+') ? (
+                    {stat.hasIncrease ? (
                       <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
+                    ) : stat.isActive ? (
+                      <Clock className="h-3 w-3 mr-1 animate-pulse text-yellow-500" />
                     ) : stat.change === "En cours" ? (
                       <Clock className="h-3 w-3 mr-1 animate-pulse text-yellow-500" />
                     ) : null}
