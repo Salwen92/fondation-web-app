@@ -48,35 +48,44 @@
 
 **Quality Assurance:** ✅ TypeScript passes, ✅ ESLint passes
 
-### F-14: Database Schema Type Safety (CRITICAL)
+### F-14: Database Schema Type Safety (CRITICAL) ✅ COMPLETED
 **Files:** `convex/schema.ts:42`, `convex/jobs.ts:122`, `convex/cloudRun.ts:21`  
 **Issue:** `v.any()` usage allows invalid data structures  
-**Status:** ❌ Pending  
-**Estimate:** 45 minutes  
+**Status:** ✅ Fixed in commit `f3f1909`  
+**Actual Time:** 40 minutes
 
-**Implementation Plan:**
-1. Define strongly typed interfaces for job results
-2. Replace `v.any()` with proper schema definitions
-3. Update all mutation handlers to use typed schemas
+**Implementation Completed:**
+1. ✅ Analyzed worker output structure to design proper schema
+2. ✅ Replaced all `v.any()` with strongly typed JobResult interface
+3. ✅ Fixed implicit any in cloudRun.ts dynamic object construction (F-18 bonus)
 
 **Progress Tracking:**
-- [ ] Read all affected Convex files completely
-- [ ] Design JobResult interface based on worker output
-- [ ] Update schema.ts with typed result schema
-- [ ] Update jobs.ts mutation handlers
-- [ ] Update cloudRun.ts mutation handlers
-- [ ] Test schema migrations work correctly
-- [ ] Commit atomic change with descriptive message
+- [x] Read all affected Convex files completely
+- [x] Design JobResult interface based on worker output
+- [x] Update schema.ts with typed result schema
+- [x] Update jobs.ts mutation handlers
+- [x] Update cloudRun.ts mutation handlers
+- [x] Test schema migrations work correctly
+- [x] Commit atomic change with descriptive message
+
+**Quality Assurance:** ✅ TypeScript passes, ✅ ESLint passes
 
 ---
 
 ## ⚠️ Priority 1 Fixes (High Impact)
 
-### F-15: Unsafe Database Casting
+### F-15: Unsafe Database Casting ✅ COMPLETED  
 **Files:** `convex/docs.ts:348`  
 **Issue:** `docId as any` bypasses Convex type safety  
-**Status:** ❌ Pending  
-**Estimate:** 15 minutes  
+**Status:** ✅ Fixed in commit `b9f92c2`  
+**Actual Time:** 15 minutes
+
+**Implementation Completed:**
+1. ✅ Fixed toDelete array typing from string[] to Id<"docs">[]  
+2. ✅ Added proper Id type import from _generated/dataModel
+3. ✅ Removed unsafe 'as any' type assertion completely
+
+**Quality Assurance:** ✅ TypeScript passes, ✅ ESLint passes  
 
 ### F-20: Accessibility Support  
 **Files:** Throughout UI components  
@@ -122,9 +131,22 @@
   "activeWorktree": "/Users/salwen/Documents/Cyberscaling/fondation-claude-fixes",
   "currentBranch": "audit/claude-fixes", 
   "baseCommit": "0bf4e7c",
-  "filesModified": [],
-  "lastCheckpoint": "Enhancement tracker created",
-  "nextTask": "F-19: Fix production URL hardcoding"
+  "filesModified": [
+    "src/lib/config.ts (created)",
+    "src/components/repos/repo-card.tsx",
+    "src/app/course/[owner]/[repo]/[jobId]/course-content.tsx",
+    "convex/schema.ts",
+    "convex/jobs.ts", 
+    "convex/cloudRun.ts",
+    "convex/docs.ts"
+  ],
+  "commitsCreated": [
+    "090ec2b: Production URL fix (F-19)",
+    "f3f1909: Database schema type safety (F-14, F-18)", 
+    "b9f92c2: Unsafe database casting fix (F-15)"
+  ],
+  "lastCheckpoint": "P0 and critical P1 fixes completed",
+  "nextTask": "F-20: Basic accessibility support"
 }
 ```
 
