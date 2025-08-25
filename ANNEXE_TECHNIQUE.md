@@ -97,13 +97,12 @@ Auth:      NextAuth.js v5 + GitHub OAuth
 - Interface responsive mobile/desktop
 - Localisation française complète
 
-### 6. PLANNING PRÉVISIONNEL
+### 6. PHASES DE RÉALISATION
 
-**Phase 1:** Infrastructure Cloud Run + Convex (2 semaines)
-**Phase 2:** Intégration Fondation CLI (1 semaine)
-**Phase 3:** Interface utilisateur + Dashboard (2 semaines)
-**Phase 4:** Tests et optimisations (1 semaine)
+**Phase 1:** Infrastructure Cloud Run + Convex
+**Phase 2:** Intégration Fondation CLI
+**Phase 3:** Interface utilisateur + Dashboard
+**Phase 4:** Tests et optimisations
 
 ---
 *Annexe au contrat n°: [REF-CONTRAT]*
-*Date: 25/01/2025*

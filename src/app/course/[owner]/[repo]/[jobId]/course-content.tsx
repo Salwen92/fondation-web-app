@@ -151,6 +151,12 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
         return { icon: CheckCircle, color: 'text-green-500', label: 'Terminé' };
       case 'running':
         return { icon: Clock, color: 'text-blue-500', label: 'Génération...' };
+      case 'cloning':
+        return { icon: Clock, color: 'text-blue-500', label: 'Clonage du dépôt...' };
+      case 'analyzing':
+        return { icon: Clock, color: 'text-blue-500', label: 'Analyse en cours...' };
+      case 'gathering':
+        return { icon: Clock, color: 'text-blue-500', label: 'Collecte des données...' };
       case 'failed':
         return { icon: XCircle, color: 'text-red-500', label: 'Échoué' };
       case 'pending':
@@ -170,7 +176,8 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
 
   if (!docs || docs.length === 0) {
     // If job is still running, show generating state
-    if (job?.status === 'running' || job?.status === 'pending') {
+    const activeStatuses = ['pending', 'cloning', 'analyzing', 'gathering', 'running'];
+    if (job?.status && activeStatuses.includes(job.status)) {
       const statusDisplay = getStatusDisplay(job?.status);
       const StatusIcon = statusDisplay.icon;
       
