@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getJobCallbackUrl } from "@/lib/config";
+import { translateProgress, translateStatus, uiTranslations } from "@/lib/i18n";
 
 interface RepoCardProps {
   repo: {
@@ -32,47 +33,7 @@ interface RepoCardProps {
   userId: Id<"users">;
 }
 
-// Helper function to translate progress messages to French
-function translateProgress(progress: string | undefined): string {
-  if (!progress) return "Traitement";
-  
-  const lowerProgress = progress.toLowerCase();
-  
-  if (lowerProgress.includes("initializing")) return "Initialisation...";
-  if (lowerProgress.includes("cloning")) return "Clonage du dépôt...";
-  if (lowerProgress.includes("analyzing") || lowerProgress.includes("analysis")) return "Analyse en cours...";
-  if (lowerProgress.includes("gathering")) return "Collecte des informations...";
-  if (lowerProgress.includes("generating")) return "Génération du cours...";
-  if (lowerProgress.includes("processing")) return "Traitement...";
-  if (lowerProgress.includes("running")) return "En cours d'exécution...";
-  
-  // If no match, return the original or default
-  return progress || "Traitement";
-}
-
-// Helper function to translate status to French
-function translateStatus(status: string | undefined): string {
-  switch (status) {
-    case "completed":
-      return "Terminé";
-    case "failed":
-      return "Échoué";
-    case "canceled":
-      return "Annulé";
-    case "pending":
-      return "En attente";
-    case "running":
-      return "En cours";
-    case "cloning":
-      return "Clonage";
-    case "analyzing":
-      return "Analyse";
-    case "gathering":
-      return "Collecte";
-    default:
-      return status ?? "Inconnu";
-  }
-}
+// Translation functions now imported from centralized i18n service
 
 export function RepoCard({ repo, userId }: RepoCardProps) {
   const generateCourse = useMutation(api.jobs.create);
@@ -297,7 +258,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                   aria-valuenow={latestJob.currentStep ?? 0}
                   aria-valuemin={0}
                   aria-valuemax={latestJob.totalSteps ?? 7}
-                  aria-label={`Progression de génération: étape ${latestJob.currentStep ?? 0} sur ${latestJob.totalSteps ?? 7}`}
+                  aria-label={uiTranslations.progressDescription(latestJob.currentStep ?? 0, latestJob.totalSteps ?? 7)}
                 >
                   <div 
                     className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
@@ -319,10 +280,10 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                     // Navigate to course viewer using latest alias
                     window.location.href = `/course/${owner}/${repoName}/latest`;
                   }}
-                  aria-label={`Voir le cours généré pour le dépôt ${repo.name}`}
+                  aria-label={uiTranslations.viewCourseFor(repo.name)}
                 >
                   <Book className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Voir le Cours
+                  {uiTranslations.viewCourse}
                 </Button>
               ) : (
                 <Button
@@ -332,27 +293,27 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                   size="sm"
                   aria-label={
                     isProcessing 
-                      ? `Génération en cours pour ${repo.name}. Veuillez patienter.`
+                      ? uiTranslations.generationInProgress(repo.name)
                       : (isFailed || isCanceled) 
-                        ? `Réessayer la génération du cours pour ${repo.name}`
-                        : `Générer le cours de documentation pour ${repo.name}`
+                        ? uiTranslations.retryGeneration(repo.name)
+                        : uiTranslations.generateCourseFor(repo.name)
                   }
                   aria-describedby={isProcessing ? `progress-${repo._id}` : undefined}
                 >
                   {isProcessing ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                      Génération...
+                      {uiTranslations.generation}
                     </>
                   ) : (isFailed || isCanceled) ? (
                     <>
                       <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
-                      Réessayer
+                      {uiTranslations.retry}
                     </>
                   ) : (
                     <>
                       <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
-                      Générer le Cours
+                      {uiTranslations.generateCourse}
                     </>
                   )}
                 </Button>
@@ -365,7 +326,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                   size="sm"
                   onClick={handleCancel}
                   className="glass border-red-200 hover:bg-red-50 hover:border-red-300"
-                  aria-label={`Annuler la génération en cours pour ${repo.name}`}
+                  aria-label={uiTranslations.cancelGenerationFor(repo.name)}
                 >
                   <X className="h-4 w-4 text-red-500" aria-hidden="true" />
                 </Button>
@@ -374,7 +335,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                   variant="outline"
                   size="sm"
                   className="glass"
-                  aria-label={`Voir le code source du dépôt ${repo.name} sur GitHub`}
+                  aria-label={uiTranslations.viewSourceFor(repo.name)}
                   onClick={() => window.open(`https://github.com/${repo.fullName}`, '_blank')}
                 >
                   <Code2 className="h-4 w-4" aria-hidden="true" />
