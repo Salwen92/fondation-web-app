@@ -7,7 +7,8 @@ export default defineSchema({
     username: v.string(),
     email: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
-    githubAccessToken: v.optional(v.string()),
+    githubAccessToken: v.optional(v.string()), // Encrypted token
+    tokenEncrypted: v.optional(v.boolean()), // Track if token is encrypted
     createdAt: v.number(),
   }).index("by_github_id", ["githubId"]),
 

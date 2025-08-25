@@ -69,14 +69,78 @@ app.get('/', (_req: Request, res: Response) => {
 
 /**
  * Trigger a Scaleway Job in production
- * This will be implemented when deploying to Scaleway
+ * Uses Scaleway Serverless Jobs API to run long-running tasks
  */
-async function triggerScalewayJob(_jobParams: JobParams): Promise<JobResult> {
-  // TODO: Implement Scaleway SDK integration
-  // const { JobsApi } = require('@scaleway/sdk');
-  // const jobsApi = new JobsApi({ ... });
+async function triggerScalewayJob(jobParams: JobParams): Promise<JobResult> {
+  const { jobId, repositoryUrl, branch, callbackUrl, callbackToken, githubToken } = jobParams;
   
-  throw new Error('Scaleway production mode not yet implemented. Use NODE_ENV=development for local testing.');
+  // Scaleway configuration from environment
+  const SCALEWAY_API_URL = process.env.SCALEWAY_API_URL || 'https://api.scaleway.com';
+  const SCALEWAY_PROJECT_ID = process.env.SCALEWAY_PROJECT_ID;
+  const SCALEWAY_SECRET_KEY = process.env.SCALEWAY_SECRET_KEY;
+  const SCALEWAY_REGION = process.env.SCALEWAY_REGION || 'fr-par';
+  const SCALEWAY_JOB_DEFINITION_ID = process.env.SCALEWAY_JOB_DEFINITION_ID;
+  
+  if (!SCALEWAY_PROJECT_ID || !SCALEWAY_SECRET_KEY || !SCALEWAY_JOB_DEFINITION_ID) {
+    throw new Error('Missing Scaleway configuration. Please set SCALEWAY_PROJECT_ID, SCALEWAY_SECRET_KEY, and SCALEWAY_JOB_DEFINITION_ID');
+  }
+  
+  try {
+    // Create job run via Scaleway API
+    const response = await fetch(
+      `${SCALEWAY_API_URL}/jobs/v1alpha1/regions/${SCALEWAY_REGION}/job-runs`,
+      {
+        method: 'POST',
+        headers: {
+          'X-Auth-Token': SCALEWAY_SECRET_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          job_definition_id: SCALEWAY_JOB_DEFINITION_ID,
+          project_id: SCALEWAY_PROJECT_ID,
+          name: `fondation-job-${jobId}`,
+          environment_variables: {
+            JOB_ID: jobId,
+            REPOSITORY_URL: repositoryUrl,
+            BRANCH: branch,
+            CALLBACK_URL: callbackUrl,
+            CALLBACK_TOKEN: callbackToken,
+            ...(githubToken && { GITHUB_TOKEN: githubToken }),
+            ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
+            RUNNING_IN_DOCKER: 'true',
+            FONDATION_PATH: '/fondation',
+          },
+          cpu_limit: 2000, // 2 vCPUs
+          memory_limit: 4096, // 4GB RAM
+          max_duration_seconds: 3600, // 1 hour timeout
+          timeout_seconds: 3600,
+        }),
+      }
+    );
+    
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Scaleway API error: ${response.status} - ${error}`);
+    }
+    
+    const jobRun = await response.json() as {
+      id: string;
+      state: string;
+      created_at: string;
+    };
+    
+    console.log(`[Production] Scaleway job run created: ${jobRun.id} for job ${jobId}`);
+    
+    return {
+      success: true,
+      jobId,
+      scalewayjobRunId: jobRun.id,
+      message: 'Job successfully triggered on Scaleway',
+    };
+  } catch (error) {
+    console.error('Failed to trigger Scaleway job:', error);
+    throw error;
+  }
 }
 
 /**
