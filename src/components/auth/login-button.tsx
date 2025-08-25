@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Github } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 export function LoginButton() {
   const handleSignIn = async () => {
@@ -11,7 +12,7 @@ export function LoginButton() {
       await signIn("github", { callbackUrl: "/" });
     } catch (error) {
       toast.error("Échec de la connexion. Veuillez réessayer.");
-      console.error("Sign in error:", error);
+      logger.error("Sign in error", error instanceof Error ? error : new Error(String(error)));
     }
   };
 

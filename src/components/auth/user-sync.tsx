@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 export function UserSync() {
   const { data: session } = useSession();
@@ -22,7 +23,7 @@ export function UserSync() {
           });
         } catch (error) {
           toast.error("Échec de la synchronisation des données utilisateur");
-          console.error("User sync error:", error);
+          logger.error("User sync error", error instanceof Error ? error : new Error(String(error)));
         }
       }
     };

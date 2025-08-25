@@ -1,24 +1,21 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { 
   GitBranch, 
   Book, 
-  Code2, 
-  Sparkles,
   ExternalLink,
   FileText,
-  CheckCircle,
-  Loader2,
-  X
 } from "lucide-react";
 import { type Id } from "../../../convex/_generated/dataModel";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
-import { useMutation, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { JobStatusBadge } from "./job-status-badge";
+import { ProgressBar } from "./progress-bar";
+import { JobActions } from "./job-actions";
+import { useJobManagement } from "@/hooks/use-job-management";
+import { translateStatus, getStatusEmoji } from "@/lib/translations";
 
 interface RepoCardProps {
   repo: {
@@ -31,50 +28,11 @@ interface RepoCardProps {
   userId: Id<"users">;
 }
 
-// Helper function to translate progress messages to French
-function translateProgress(progress: string | undefined): string {
-  if (!progress) return "Traitement";
-  
-  const lowerProgress = progress.toLowerCase();
-  
-  if (lowerProgress.includes("initializing")) return "Initialisation...";
-  if (lowerProgress.includes("cloning")) return "Clonage du dépôt...";
-  if (lowerProgress.includes("analyzing") || lowerProgress.includes("analysis")) return "Analyse en cours...";
-  if (lowerProgress.includes("gathering")) return "Collecte des informations...";
-  if (lowerProgress.includes("generating")) return "Génération du cours...";
-  if (lowerProgress.includes("processing")) return "Traitement...";
-  if (lowerProgress.includes("running")) return "En cours d'exécution...";
-  
-  // If no match, return the original or default
-  return progress || "Traitement";
-}
-
-// Helper function to translate status to French
-function translateStatus(status: string | undefined): string {
-  switch (status) {
-    case "completed":
-      return "Terminé";
-    case "failed":
-      return "Échoué";
-    case "canceled":
-      return "Annulé";
-    case "pending":
-      return "En attente";
-    case "running":
-      return "En cours";
-    case "cloning":
-      return "Clonage";
-    case "analyzing":
-      return "Analyse";
-    case "gathering":
-      return "Collecte";
-    default:
-      return status ?? "Inconnu";
-  }
-}
-
+/**
+ * Repository card component
+ * Displays repository information and job management controls
+ */
 export function RepoCard({ repo, userId }: RepoCardProps) {
-  const generateCourse = useMutation(api.jobs.create);
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId: repo._id });
   
   // Get actual docs count from latest completed job
@@ -83,122 +41,21 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
   // TODO: Get real language and stats data from GitHub API
   const languages = ["TypeScript", "React", "Node.js"]; // Mock data - should come from GitHub API
 
-  const handleGenerate = async () => {
-    try {
-      // First create the job in Convex
-      const result = await generateCourse({
-        userId,
-        repositoryId: repo._id,
-        prompt: `Generate comprehensive course documentation for ${repo.name}`,
-      });
-      
-      // Then trigger the Scaleway Gateway service directly from the browser
-      if (result.jobId) {
-        const response = await fetch("/api/analyze-proxy", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            jobId: result.jobId,
-            repositoryUrl: `https://github.com/${repo.fullName}`,
-            branch: repo.defaultBranch,
-            callbackUrl: `http://localhost:3000/api/webhook/job-callback`,
-            callbackToken: result.callbackToken,
-          }),
-        });
-        
-        if (!response.ok) {
-          throw new Error("Échec du démarrage de l'analyse");
-        }
-        
-        const gatewayResult = await response.json() as unknown;
-        console.log("Scaleway Gateway triggered:", gatewayResult);
-      }
-      
-      toast.success(
-        "Génération du cours démarrée!",
-        {
-          description: `Job ID: ${result.jobId}. Vous recevrez un email à la fin.`,
-          duration: 8000,
-        }
-      );
-    } catch (error) {
-      toast.error("Échec du démarrage de la génération", {
-        description: error instanceof Error ? error.message : "Une erreur inconnue s'est produite",
-      });
-    }
-  };
+  // Use the job management hook
+  const { handleGenerate, handleCancel, handleViewCourse } = useJobManagement({
+    userId,
+    repositoryId: repo._id,
+    repositoryFullName: repo.fullName,
+    repositoryName: repo.name,
+    defaultBranch: repo.defaultBranch,
+    latestJobId: latestJob?._id,
+  });
 
-  const handleCancel = async () => {
-    if (!latestJob) return;
-    
-    try {
-      // Call the cancel API endpoint
-      const response = await fetch(`/api/jobs/${latestJob._id}/cancel`, {
-        method: "POST",
-      });
-      
-      if (!response.ok) {
-        const error = await response.json() as { error?: string };
-        throw new Error(error.error ?? "Échec de l'annulation");
-      }
-      
-      toast.success("Génération annulée", {
-        description: "La génération du cours a été annulée.",
-      });
-    } catch (error) {
-      toast.error("Échec de l'annulation", {
-        description: error instanceof Error ? error.message : "Une erreur inconnue s'est produite",
-      });
-    }
-  };
-
+  // Job status calculations
   const isProcessing = latestJob && ["pending", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
   const isCompleted = latestJob?.status === "completed";
   const isFailed = latestJob?.status === "failed";
   const isCanceled = latestJob?.status === "canceled";
-
-  const getStatusBadge = () => {
-    if (!latestJob) return null;
-    
-    if (isProcessing) {
-      return (
-        <Badge variant="default" className="animate-pulse">
-          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-          {translateProgress(latestJob.progress)}
-        </Badge>
-      );
-    }
-    
-    if (isCompleted) {
-      return (
-        <Badge variant="secondary" className="bg-green-500/10 text-green-500">
-          <CheckCircle className="mr-1 h-3 w-3" />
-          Cours Prêt
-        </Badge>
-      );
-    }
-    
-    if (isFailed) {
-      return (
-        <Badge variant="destructive">
-          Génération Échouée
-        </Badge>
-      );
-    }
-    
-    if (isCanceled) {
-      return (
-        <Badge variant="secondary" className="bg-orange-500/10 text-orange-500">
-          <X className="mr-1 h-3 w-3" />
-          Annulé
-        </Badge>
-      );
-    }
-    
-    return null;
-  };
 
   return (
     <motion.div
@@ -231,7 +88,10 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                   <ExternalLink className="h-4 w-4 text-muted-foreground" />
                 </a>
               </div>
-              {getStatusBadge()}
+              <JobStatusBadge 
+                status={latestJob?.status} 
+                progress={latestJob?.progress} 
+              />
             </div>
 
             {/* Description */}
@@ -268,10 +128,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                 {latestJob && (
                   <div className="flex items-center space-x-1">
                     <span className="text-xs">
-                      {latestJob.status === "completed" ? "✅" : 
-                       latestJob.status === "failed" ? "❌" : 
-                       latestJob.status === "canceled" ? "🚫" :
-                       "⏳"}
+                      {getStatusEmoji(latestJob.status)}
                     </span>
                     <span className="capitalize">{translateStatus(latestJob.status)}</span>
                   </div>
@@ -285,82 +142,24 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
 
             {/* Progress Bar for active jobs */}
             {isProcessing && latestJob && (
-              <div className="mb-4">
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Étape {latestJob.currentStep ?? 0} sur {latestJob.totalSteps ?? 7}</span>
-                  <span>{Math.round(((latestJob.currentStep ?? 0) / (latestJob.totalSteps ?? 7)) * 100)}%</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${((latestJob.currentStep ?? 0) / (latestJob.totalSteps ?? 7)) * 100}%` }}
-                  />
-                </div>
-              </div>
+              <ProgressBar 
+                currentStep={latestJob.currentStep ?? 0}
+                totalSteps={latestJob.totalSteps ?? 7}
+                className="mb-4"
+              />
             )}
 
             {/* Actions */}
-            <div className="flex gap-2">
-              {isCompleted ? (
-                <Button
-                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
-                  size="sm"
-                  onClick={() => {
-                    // Extract owner and repo name from fullName (e.g. "owner/repo")
-                    const [owner, repoName] = repo.fullName.split('/');
-                    // Navigate to course viewer using latest alias
-                    window.location.href = `/course/${owner}/${repoName}/latest`;
-                  }}
-                >
-                  <Book className="mr-2 h-4 w-4" />
-                  Voir le Cours
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleGenerate}
-                  disabled={!!isProcessing}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-                  size="sm"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Génération...
-                    </>
-                  ) : (isFailed || isCanceled) ? (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Réessayer
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Générer le Cours
-                    </>
-                  )}
-                </Button>
-              )}
-              
-              {/* Cancel button for processing jobs */}
-              {isProcessing ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCancel}
-                  className="glass border-red-200 hover:bg-red-50 hover:border-red-300"
-                >
-                  <X className="h-4 w-4 text-red-500" />
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="glass"
-                >
-                  <Code2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+            <JobActions
+              status={latestJob?.status}
+              isProcessing={!!isProcessing}
+              isCompleted={!!isCompleted}
+              isFailed={!!isFailed}
+              isCanceled={!!isCanceled}
+              onGenerate={handleGenerate}
+              onCancel={handleCancel}
+              onViewCourse={handleViewCourse}
+            />
           </div>
         </Card>
       </motion.div>

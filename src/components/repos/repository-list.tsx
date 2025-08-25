@@ -9,6 +9,9 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { type Id } from "../../../convex/_generated/dataModel";
+import { logger } from "@/lib/logger";
+import { withRetry } from "@/lib/retry";
+import { getUserFriendlyError } from "@/lib/error-messages";
 
 interface RepositoryListProps {
   userId: Id<"users">;
@@ -31,14 +34,28 @@ export function RepositoryList({ userId }: RepositoryListProps) {
 
     setIsFetching(true);
     try {
-      await fetchRepositories({
-        accessToken: session.accessToken,
-        userId,
-      });
+      await withRetry(
+        async () => {
+          if (!session.accessToken) {
+            throw new Error("No access token available");
+          }
+          await fetchRepositories({
+            accessToken: session.accessToken,
+            userId,
+          });
+        },
+        {
+          maxAttempts: 3,
+          onRetry: (_error, attempt) => {
+            toast.info(`Nouvelle tentative (${attempt}/3)...`);
+          }
+        }
+      );
       toast.success("Dépôts récupérés avec succès");
     } catch (error) {
-      console.error("Error fetching repositories:", error);
-      toast.error("Échec de la récupération des dépôts");
+      logger.error("Error fetching repositories", error instanceof Error ? error : new Error(String(error)));
+      const friendlyMessage = getUserFriendlyError(error);
+      toast.error(friendlyMessage);
     } finally {
       setIsFetching(false);
     }

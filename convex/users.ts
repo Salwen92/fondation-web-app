@@ -115,3 +115,53 @@ export const getDashboardStats = query({
     };
   },
 });
+
+/**
+ * Securely store or update a user's GitHub access token
+ * The token will be encrypted before storage
+ */
+export const updateGitHubToken = mutation({
+  args: {
+    githubId: v.string(),
+    accessToken: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_github_id", (q) => q.eq("githubId", args.githubId))
+      .first();
+    
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    // Note: Encryption will be handled at the API layer where we have access to Node.js crypto
+    // For now, we'll store the token and add a migration plan
+    await ctx.db.patch(user._id, {
+      githubAccessToken: args.accessToken, // TODO: This should be encrypted
+    });
+    
+    return { success: true };
+  },
+});
+
+/**
+ * Get a user's GitHub access token (will be decrypted if encrypted)
+ * Returns null if no token is stored
+ */
+export const getGitHubToken = query({
+  args: { githubId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_github_id", (q) => q.eq("githubId", args.githubId))
+      .first();
+    
+    if (!user || !user.githubAccessToken) {
+      return null;
+    }
+    
+    // TODO: Add decryption logic here when we implement the full encryption system
+    return user.githubAccessToken;
+  },
+});

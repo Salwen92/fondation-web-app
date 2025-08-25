@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
+import { logger } from "@/lib/logger";
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "http://localhost:3210";
 const client = new ConvexHttpClient(convexUrl);
@@ -37,12 +38,12 @@ export async function POST(
       });
       
       if (!response.ok) {
-        console.error(`Worker cancel failed: ${response.status}`);
+        logger.error(`Worker cancel failed: ${response.status}`);
       } else {
-        console.log(`Worker process cancelled for job ${jobId}`);
+        logger.info(`Worker process cancelled for job ${jobId}`);
       }
     } catch (error) {
-      console.error("Failed to call worker cancel endpoint:", error);
+      logger.error("Failed to call worker cancel endpoint", error instanceof Error ? error : new Error(String(error)));
       // Continue even if worker cancel fails
     }
     
@@ -62,7 +63,7 @@ export async function POST(
     });
     
   } catch (error) {
-    console.error("[Cancel API] Error:", error);
+    logger.error("[Cancel API] Error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Cancel failed" },
       { status: 500 }
