@@ -6,8 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { 
   GitBranch, 
   Book, 
-  Star, 
-  GitFork, 
   Code2, 
   Sparkles,
   ExternalLink,
@@ -35,11 +33,10 @@ interface RepoCardProps {
 
 export function RepoCard({ repo, userId }: RepoCardProps) {
   const generateCourse = useMutation(api.jobs.create);
-  const cancelJob = useMutation(api.jobs.cancelJob);
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId: repo._id });
   
   // Get actual docs count from latest completed job
-  const docsCount = latestJob?.status === "completed" ? latestJob.docsCount || 0 : 0;
+  const docsCount = latestJob?.status === "completed" ? latestJob.docsCount ?? 0 : 0;
   
   // TODO: Get real language and stats data from GitHub API
   const languages = ["TypeScript", "React", "Node.js"]; // Mock data - should come from GitHub API
@@ -70,10 +67,10 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
         });
         
         if (!response.ok) {
-          throw new Error("Failed to start analysis");
+          throw new Error("Échec du démarrage de l'analyse");
         }
         
-        const cloudRunResult = await response.json();
+        const cloudRunResult = await response.json() as unknown;
         console.log("Cloud Run triggered:", cloudRunResult);
       }
       
@@ -86,7 +83,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
       );
     } catch (error) {
       toast.error("Échec du démarrage de la génération", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: error instanceof Error ? error.message : "Une erreur inconnue s'est produite",
       });
     }
   };
@@ -101,8 +98,8 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
       });
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Cancel failed");
+        const error = await response.json() as { error?: string };
+        throw new Error(error.error ?? "Échec de l'annulation");
       }
       
       toast.success("Génération annulée", {
@@ -110,7 +107,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
       });
     } catch (error) {
       toast.error("Échec de l'annulation", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: error instanceof Error ? error.message : "Une erreur inconnue s'est produite",
       });
     }
   };

@@ -22,14 +22,17 @@ export const updateJobStatus = internalMutation({
     error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.jobId, {
+    const updateData: any = {
       status: args.status,
-      ...(args.progress && { progress: args.progress }),
-      ...(args.currentStep !== undefined && { currentStep: args.currentStep }),
-      ...(args.totalSteps !== undefined && { totalSteps: args.totalSteps }),
-      ...(args.result && { result: args.result }),
-      ...(args.error && { error: args.error }),
-    });
+    };
+    
+    if (args.progress) updateData.progress = args.progress;
+    if (args.currentStep !== undefined) updateData.currentStep = args.currentStep;
+    if (args.totalSteps !== undefined) updateData.totalSteps = args.totalSteps;
+    if (args.result) updateData.result = args.result;
+    if (args.error) updateData.error = args.error;
+    
+    await ctx.db.patch(args.jobId, updateData);
   },
 });
 

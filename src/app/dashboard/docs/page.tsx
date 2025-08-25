@@ -2,6 +2,7 @@
 
 import { useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
+import { type Id } from '../../../../convex/_generated/dataModel';
 import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,10 +24,15 @@ export default function DocsPage() {
   
   // Get all completed jobs for the user
   const jobs = useQuery(api.jobs.listUserJobs, 
-    session?.user?.id ? { userId: session.user.id as any } : 'skip'
+    session?.user?.id ? { userId: session.user.id as Id<"users"> } : 'skip'
   );
   
-  const completedJobs = jobs?.filter(job => job.status === 'completed') || [];
+  // Get repository details for each job - moved to top level to fix hook rules
+  const repositories = useQuery(api.repositories.listUserRepositories,
+    session?.user?.id ? { userId: session.user.id as Id<"users"> } : 'skip'
+  );
+  
+  const completedJobs = jobs?.filter(job => job.status === 'completed') ?? [];
   
   if (!session?.user?.id) {
     return (
@@ -70,12 +76,7 @@ export default function DocsPage() {
     );
   }
   
-  // Get repository details for each job
-  const repositories = useQuery(api.repositories.listUserRepositories,
-    session?.user?.id ? { userId: session.user.id as any } : 'skip'
-  );
-  
-  const repoMap = new Map(repositories?.map(r => [r._id, r]) || []);
+  const repoMap = new Map(repositories?.map(r => [r._id, r]) ?? []);
   
   return (
     <div className="space-y-6">
@@ -126,7 +127,7 @@ export default function DocsPage() {
                     
                     <Badge variant="secondary" className="bg-green-500/10 text-green-500">
                       <FileText className="mr-1 h-3 w-3" />
-                      {job.docsCount || 0} documents
+                      {job.docsCount ?? 0} documents
                     </Badge>
                   </div>
                   

@@ -4,8 +4,8 @@ import { AnimatedBackground } from "@/components/ui/animated-background";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 
 export const metadata: Metadata = {
-  title: "Login | Fondation",
-  description: "Sign in to Fondation with your GitHub account",
+  title: "Connexion | Fondation",
+  description: "Connectez-vous à Fondation avec votre compte GitHub",
 };
 
 export default function LoginPage() {

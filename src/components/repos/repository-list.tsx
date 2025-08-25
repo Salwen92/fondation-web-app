@@ -16,16 +16,12 @@ interface RepositoryListProps {
 
 export function RepositoryList({ userId }: RepositoryListProps) {
   const { data: session } = useSession();
-  const [isGenerating, setIsGenerating] = useState<Id<"repositories"> | null>(
-    null,
-  );
   const [isFetching, setIsFetching] = useState(false);
 
   const repositories = useQuery(api.repositories.listUserRepositories, {
     userId,
   });
   const fetchRepositories = useAction(api.repositories.fetchGitHubRepositories);
-  const createJob = useMutation(api.jobs.create);
 
   const handleFetchRepositories = async () => {
     if (!session?.accessToken) {
@@ -48,25 +44,6 @@ export function RepositoryList({ userId }: RepositoryListProps) {
     }
   };
 
-  const handleGenerateDocs = async (repositoryId: Id<"repositories">) => {
-    setIsGenerating(repositoryId);
-    try {
-      const repo = repositories?.find(r => r._id === repositoryId);
-      const result = await createJob({
-        userId,
-        repositoryId,
-        prompt: `Generate comprehensive course documentation for ${repo?.name || 'this repository'}`,
-      });
-
-      toast.success("Génération de la documentation démarrée");
-      console.log("Job created:", result);
-    } catch (error) {
-      console.error("Error creating job:", error);
-      toast.error("Échec du démarrage de la génération de documentation");
-    } finally {
-      setIsGenerating(null);
-    }
-  };
 
   useEffect(() => {
     if (repositories?.length === 0 && session?.accessToken) {

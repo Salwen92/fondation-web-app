@@ -10,7 +10,7 @@ function normalizeMarkdown(content: string): string {
   let normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   
   // Auto-close dangling code fences
-  const backtickMatches = (normalized.match(/```/g) || []).length;
+  const backtickMatches = (normalized.match(/```/g) ?? []).length;
   if (backtickMatches % 2 !== 0) {
     // Odd number of code fences means one is unclosed
     normalized += '\n```\n';
@@ -120,7 +120,7 @@ export const upsertFromJob = mutation({
             existing.chapterIndex !== (file.chapterIndex || 0)) {
           await ctx.db.patch(existing._id, {
             content: normalizedContent,
-            chapterIndex: file.chapterIndex || 0,
+            chapterIndex: file.chapterIndex ?? 0,
             slug: file.slug, // Update slug in case prefix changed
             updatedAt: Date.now(),
             runId: args.runId
@@ -316,11 +316,13 @@ export const cleanupDuplicates = mutation({
         
         // Keep the first (best) one
         const keep = duplicates[0];
+        if (!keep) continue; // Skip if no documents found
         stats.kept++;
         
         // Mark others for deletion
         for (let i = 1; i < duplicates.length; i++) {
           const doc = duplicates[i];
+          if (!doc) continue; // Skip if document is undefined
           toDelete.push(doc._id);
           if (!doc.content || doc.content.trim().length === 0) {
             stats.emptyDeleted++;

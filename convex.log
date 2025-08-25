@@ -304,3 +304,72 @@ Validator: v.id("jobs")
 
 
 8/24/2025, 11:50:00 PM [CONVEX M(repositories:triggerAnalyze)] [LOG] 'Regeneration job created, client will trigger Cloud Run service'
+8/24/2025, 11:59:09 PM [CONVEX M(jobs:create)] Uncaught Error: A job is already running for this repository. Please wait for it to complete or cancel it first.
+    at handler (../convex/jobs.ts:40:18)
+
+8/25/2025, 12:01:28 AM [CONVEX M(jobs:clearAllStuckJobsForRepo)] ArgumentValidationError: Object is missing the required field `repositoryFullName`. Consider wrapping the field validator in `v.optional(...)` if this is expected.
+
+Object: {repositoryId: "jd79bxznpbfxmp1a0c63j8k9xx7p5gjp"}
+Validator: v.object({repositoryFullName: v.string()})
+
+
+8/25/2025, 12:02:03 AM [CONVEX M(jobs:create)] [LOG] 'Job created, client will trigger Cloud Run service'
+8/25/2025, 12:06:31 AM [CONVEX M(jobs:create)] [LOG] 'Job created, client will trigger Cloud Run service'
+8/25/2025, 12:07:07 AM [CONVEX M(jobs:create)] [LOG] 'Job created, client will trigger Cloud Run service'
+8/25/2025, 12:11:33 AM [CONVEX M(docs:upsertFromJob)] [WARN] '[V7] Duplicate in batch:' 'jd79bxznpbfxmp1a0c63j8k9xx7p5gjp:chapter_0_simple_file_structure.md:chapter_0_simple_file_structure'
+8/25/2025, 12:11:33 AM [CONVEX M(docs:upsertFromJob)] [LOG] '[V7] Regeneration complete:' {
+  inserted: 5,
+  updated: 0,
+  skipped: 1,
+  rejected: 0,
+  deleted: 0
+}
+- Preparing Convex functions...
+
+✔ 00:17:46 Convex functions ready! (3.66s)
+- Preparing Convex functions...
+
+✖ TypeScript typecheck via `tsc` failed.
+To ignore failing typecheck, use `--typecheck=disable`.
+- Collecting TypeScript errors
+
+[96mconvex/docs.ts[0m:[93m170[0m:[93m53[0m - [91merror[0m[90m TS2304: [0mCannot find name 'internal'.
+
+[7m170[0m         const cleanupResult = await ctx.runMutation(internal.docs.cleanupOldGenerations, {
+[7m   [0m [91m                                                    ~~~~~~~~[0m
+
+Found 1 error in convex/docs.ts[90m:170[0m
+- Preparing Convex functions...
+
+✖ TypeScript typecheck via `tsc` failed.
+To ignore failing typecheck, use `--typecheck=disable`.
+- Collecting TypeScript errors
+
+[96mconvex/docs.ts[0m:[93m171[0m:[93m62[0m - [91merror[0m[90m TS2339: [0mProperty 'docs' does not exist on type '{ repositories: { getByGithubId: FunctionReference<"query", "internal", { userId: Id<"users">; githubRepoId: string; }, { _id: Id<"repositories">; _creationTime: number; description?: string | undefined; ... 4 more ...; defaultBranch: string; } | null, string | undefined>; create: FunctionReference<...>; update: Fun...'.
+
+[7m171[0m         const cleanupResult = await ctx.runMutation(internal.docs.cleanupOldGenerations, {
+[7m   [0m [91m                                                             ~~~~[0m
+
+Found 1 error in convex/docs.ts[90m:171[0m
+- Preparing Convex functions...
+
+✔ 00:18:26 Convex functions ready! (3.42s)
+8/25/2025, 12:18:41 AM [CONVEX M(docs:cleanupOldGenerations)] [LOG] '[Cleanup] Deleted 7 documents from 2 old jobs for repository jd79bxznpbfxmp1a0c63j8k9xx7p5gjp'
+- Preparing Convex functions...
+
+✔ 00:54:04 Convex functions ready! (3.77s)
+- Preparing Convex functions...
+
+✔ 00:59:40 Convex functions ready! (3.58s)
+- Preparing Convex functions...
+
+✔ 01:00:39 Convex functions ready! (2.78s)
+- Preparing Convex functions...
+
+✔ 01:03:14 Convex functions ready! (3.97s)
+- Preparing Convex functions...
+
+✔ 01:04:16 Convex functions ready! (3.64s)
+- Preparing Convex functions...
+
+✔ 01:07:50 Convex functions ready! (6.27s)

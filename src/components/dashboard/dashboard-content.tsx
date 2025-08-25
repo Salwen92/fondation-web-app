@@ -63,9 +63,9 @@ export function DashboardContent({
   // Create user if it doesn't exist
   React.useEffect(() => {
     if (!user && githubId && userName) {
-      createUser({
+      void createUser({
         githubId,
-        username: userName || "user",
+        username: userName ?? "user",
         email: "", // We don't have email in session
         avatarUrl: `https://github.com/${userName}.png`,
       });

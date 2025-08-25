@@ -13,6 +13,12 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import { RefreshCw, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import dynamic from 'next/dynamic';
+
+const MermaidRenderer = dynamic(
+  () => import('@/components/markdown/mermaid-renderer').then(mod => mod.MermaidRenderer),
+  { ssr: false }
+);
 
 interface CourseContentProps {
   owner: string;
@@ -115,13 +121,13 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
         });
         
         if (!response.ok) {
-          throw new Error("Failed to start analysis service");
+          throw new Error("Échec du démarrage du service d'analyse");
         }
       }
       
       toast({
-        title: "Regeneration Started",
-        description: "Your course is being regenerated. This may take 30-60 minutes.",
+        title: "Régénération démarrée",
+        description: "Votre cours est en cours de régénération. Cela peut prendre 30 à 60 minutes.",
       });
 
       // Navigate to new job - use result.jobId not the entire result object
@@ -142,15 +148,15 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
   const getStatusDisplay = (status?: string) => {
     switch (status) {
       case 'completed':
-        return { icon: CheckCircle, color: 'text-green-500', label: 'Completed' };
+        return { icon: CheckCircle, color: 'text-green-500', label: 'Terminé' };
       case 'running':
-        return { icon: Clock, color: 'text-blue-500', label: 'Generating...' };
+        return { icon: Clock, color: 'text-blue-500', label: 'Génération...' };
       case 'failed':
-        return { icon: XCircle, color: 'text-red-500', label: 'Failed' };
+        return { icon: XCircle, color: 'text-red-500', label: 'Échoué' };
       case 'pending':
-        return { icon: Clock, color: 'text-yellow-500', label: 'Pending' };
+        return { icon: Clock, color: 'text-yellow-500', label: 'En attente' };
       default:
-        return { icon: AlertCircle, color: 'text-gray-500', label: 'Unknown' };
+        return { icon: AlertCircle, color: 'text-gray-500', label: 'Inconnu' };
     }
   };
 
@@ -181,12 +187,12 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               {job?.currentStep && (
                 <div className="w-full mb-6">
                   <div className="text-sm text-muted-foreground mb-2">
-                    Étape {job.currentStep} sur {job.totalSteps}: {job.statusMessage}
+                    Étape {job.currentStep} sur {job.totalSteps ?? 7}: {job.progress ?? 'En cours'}
                   </div>
                   <div className="w-full h-3 bg-muted rounded-full">
                     <div 
                       className="h-full bg-purple-600 rounded-full transition-all duration-500"
-                      style={{ width: `${(job.currentStep / job.totalSteps) * 100}%` }}
+                      style={{ width: `${(job.currentStep / (job.totalSteps ?? 7)) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -307,11 +313,11 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
-                Course: {owner}/{repo}
+                Cours: {owner}/{repo}
               </h1>
               <div className="flex items-center gap-4 mb-2">
                 <p className="text-muted-foreground">
-                  {chapters.length} chapters • {tutorials.length} tutorials
+                  {chapters.length} chapitres • {tutorials.length} tutoriels
                 </p>
                 {job && (
                   <div className={`flex items-center gap-2 ${statusDisplay.color}`}>
@@ -322,19 +328,19 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                 {hasDuplicates && (
                   <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-md text-xs">
                     <AlertCircle className="w-3 h-3" />
-                    <span>Data issue detected</span>
+                    <span>Problème de données détecté</span>
                   </div>
                 )}
               </div>
               {job?.status === 'running' && job.currentStep && (
                 <div className="mt-2">
                   <div className="text-sm text-muted-foreground">
-                    Step {job.currentStep} of {job.totalSteps}: {job.statusMessage}
+                    Étape {job.currentStep} sur {job.totalSteps ?? 7}: {job.progress ?? 'En cours'}
                   </div>
                   <div className="w-64 h-2 bg-muted rounded-full mt-1">
                     <div 
                       className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                      style={{ width: `${(job.currentStep / job.totalSteps) * 100}%` }}
+                      style={{ width: `${(job.currentStep / (job.totalSteps ?? 7)) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -503,6 +509,75 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                           [rehypeAutolinkHeadings, { behavior: 'wrap' }],
                           rehypeHighlight
                         ]}
+                        components={{
+                          // Handle code blocks with mermaid
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          code({ inline, className, children, ...props }: any) {
+                            const match = /language-(\w+)/.exec(className ?? '');
+                            const codeString = String(children).replace(/\n$/, '');
+                            
+                            // Check if it's a mermaid diagram
+                            if (!inline && match && match[1] === 'mermaid') {
+                              return <MermaidRenderer chart={codeString} />;
+                            }
+                            
+                            // Check if it looks like a graph/flowchart
+                            if (!inline && (codeString.includes('graph TD') || codeString.includes('graph LR'))) {
+                              return <MermaidRenderer chart={codeString} />;
+                            }
+                            
+                            // Regular code block
+                            return (
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            );
+                          },
+                          // Better heading rendering
+                          h1: ({ children }) => (
+                            <h1 className="text-4xl font-bold text-foreground mb-6 mt-8 pb-4 border-b border-border/30">
+                              {children}
+                            </h1>
+                          ),
+                          h2: ({ children }) => (
+                            <h2 className="text-3xl font-semibold text-foreground mb-4 mt-6">
+                              {children}
+                            </h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="text-2xl font-semibold text-foreground mb-3 mt-4">
+                              {children}
+                            </h3>
+                          ),
+                          // Better list rendering
+                          ul: ({ children }) => (
+                            <ul className="list-disc list-inside space-y-2 my-4 text-muted-foreground">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal list-inside space-y-2 my-4 text-muted-foreground">
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="ml-4">
+                              {children}
+                            </li>
+                          ),
+                          // Better paragraph spacing
+                          p: ({ children }) => (
+                            <p className="mb-4 leading-relaxed text-foreground/90">
+                              {children}
+                            </p>
+                          ),
+                          // Better blockquote styling
+                          blockquote: ({ children }) => (
+                            <blockquote className="border-l-4 border-purple-500/50 pl-4 py-2 my-4 italic bg-muted/30 rounded-r-lg">
+                              {children}
+                            </blockquote>
+                          ),
+                        }}
                       >
                         {selectedDoc.content}
                       </ReactMarkdown>
@@ -513,7 +588,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                           Contenu indisponible pour ce document
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          Problème de données. Le document existe mais n'a pas de contenu.
+                          Problème de données. Le document existe mais n&apos;a pas de contenu.
                         </div>
                         <div className="text-xs text-muted-foreground mt-2">
                           Document ID: {selectedDoc._id}
@@ -530,7 +605,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                     Bienvenue dans votre cours
                   </h2>
                   <p className="text-muted-foreground mb-6 text-lg">
-                    Sélectionnez un chapitre ou tutoriel dans la barre latérale pour commencer l'apprentissage.
+                    Sélectionnez un chapitre ou tutoriel dans la barre latérale pour commencer l&apos;apprentissage.
                   </p>
                   <div className="text-sm text-muted-foreground/80">
                     Ce cours a été généré à partir du dépôt {owner}/{repo}.

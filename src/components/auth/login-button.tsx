@@ -10,7 +10,7 @@ export function LoginButton() {
     try {
       await signIn("github", { callbackUrl: "/" });
     } catch (error) {
-      toast.error("Failed to sign in. Please try again.");
+      toast.error("Échec de la connexion. Veuillez réessayer.");
       console.error("Sign in error:", error);
     }
   };
@@ -18,7 +18,7 @@ export function LoginButton() {
   return (
     <Button onClick={handleSignIn} size="lg">
       <Github className="mr-2 h-5 w-5" />
-      Sign in with GitHub
+      Se connecter avec GitHub
     </Button>
   );
 }
