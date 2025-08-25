@@ -1,0 +1,17 @@
+{
+  "name": "scaleway-worker",
+  "version": "1.0.0",
+  "description": "Long-running worker for Fondation CLI analyze jobs - Runs as Scaleway Serverless Job",
+  "main": "worker.js",
+  "scripts": {
+    "start": "node worker.js",
+    "docker:build": "docker build -t scaleway-worker .",
+    "test": "JOB_ID=test-123 REPOSITORY_URL=https://github.com/example/repo CALLBACK_URL=http://localhost:3000/webhook CALLBACK_TOKEN=test-token ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY node worker.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "author": "Fondation Team",
+  "license": "MIT"
+}

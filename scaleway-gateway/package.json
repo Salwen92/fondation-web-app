@@ -1,0 +1,28 @@
+{
+  "name": "scaleway-gateway",
+  "version": "1.0.0",
+  "description": "API Gateway for Scaleway Serverless Jobs - Triggers long-running Fondation CLI tasks",
+  "main": "dist/server-gateway.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server-gateway.js",
+    "dev": "NODE_ENV=development tsx server-gateway.ts",
+    "docker:build": "docker build -t scaleway-gateway .",
+    "docker:run": "docker run -p 8081:8081 -e NODE_ENV=development scaleway-gateway"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@scaleway/sdk": "^1.0.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "author": "Fondation Team",
+  "license": "MIT"
+}

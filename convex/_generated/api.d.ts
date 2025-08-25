@@ -17,6 +17,7 @@ import type * as cloudRun from "../cloudRun.js";
 import type * as docs from "../docs.js";
 import type * as jobs from "../jobs.js";
 import type * as repositories from "../repositories.js";
+import type * as scalewayWorker from "../scalewayWorker.js";
 import type * as users from "../users.js";
 
 /**
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   docs: typeof docs;
   jobs: typeof jobs;
   repositories: typeof repositories;
+  scalewayWorker: typeof scalewayWorker;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
