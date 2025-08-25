@@ -54,9 +54,9 @@ export const create = mutation({
     const user = await ctx.db.get(args.userId);
     const githubToken = user?.githubAccessToken;
     
-    // Don't trigger Cloud Run from here in development
+    // Don't trigger Scaleway Gateway from here in development
     // The client will trigger it directly to avoid localhost restrictions
-    console.log("Job created, client will trigger Cloud Run service");
+    console.log("Job created, client will trigger Scaleway Gateway service");
 
     return {
       jobId,

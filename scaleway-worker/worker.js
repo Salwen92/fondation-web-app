@@ -25,7 +25,7 @@ const {
 
 // Validate required environment variables
 function validateEnvironment() {
-  const required = ['JOB_ID', 'REPOSITORY_URL', 'CALLBACK_URL', 'CALLBACK_TOKEN', 'ANTHROPIC_API_KEY'];
+  const required = ['JOB_ID', 'REPOSITORY_URL', 'CALLBACK_URL', 'CALLBACK_TOKEN'];
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
@@ -146,6 +146,7 @@ async function gatherOutputFiles(outputDir) {
 // Main job processing function
 async function processAnalyzeJob() {
   console.log(`Starting analyze job ${JOB_ID} for repository ${REPOSITORY_URL}`);
+  let hasError = false;
   
   const repoPath = `/tmp/repos/${JOB_ID}`;
   const outputDir = `/tmp/outputs/${JOB_ID}`;
@@ -218,7 +219,6 @@ async function processAnalyzeJob() {
       maxBuffer: 50 * 1024 * 1024, // 50MB buffer
       env: {
         ...process.env,
-        ANTHROPIC_API_KEY,
         CLAUDE_OUTPUT_DIR: outputDir
       }
     });
@@ -300,10 +300,10 @@ async function processAnalyzeJob() {
     });
 
     console.log(`Job ${JOB_ID} completed successfully with ${files.length} files`);
-    process.exit(0);
 
   } catch (error) {
     console.error(`Job ${JOB_ID} failed:`, error);
+    hasError = true;
     
     await sendCallback({
       jobId: JOB_ID,
@@ -312,8 +312,17 @@ async function processAnalyzeJob() {
       error: error.message,
       timestamp: new Date().toISOString()
     });
+  } finally {
+    // Cleanup temporary directories
+    try {
+      await execAsync(`rm -rf ${repoPath} ${outputDir}`);
+      console.log(`Cleaned up temporary directories for job ${JOB_ID}`);
+    } catch (cleanupError) {
+      console.error(`Cleanup failed for job ${JOB_ID}:`, cleanupError);
+    }
     
-    process.exit(1);
+    // Exit with appropriate code
+    process.exit(hasError ? 1 : 0);
   }
 }
 

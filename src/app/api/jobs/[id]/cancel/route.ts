@@ -3,7 +3,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL || "http://localhost:3210";
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "http://localhost:3210";
 const client = new ConvexHttpClient(convexUrl);
 
 export async function POST(
@@ -24,9 +24,9 @@ export async function POST(
       );
     }
     
-    // Call worker cancel endpoint
-    const workerUrl = process.env.CLOUD_RUN_URL || "http://localhost:8080";
-    const cancelUrl = `${workerUrl}/cancel/${jobId}`;
+    // Call Scaleway Gateway cancel endpoint
+    const gatewayUrl = process.env.SCALEWAY_GATEWAY_URL ?? "http://localhost:8081";
+    const cancelUrl = `${gatewayUrl}/cancel/${jobId}`;
     
     try {
       const response = await fetch(cancelUrl, {

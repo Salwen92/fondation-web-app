@@ -3,7 +3,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL || "http://localhost:3210";
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "http://localhost:3210";
 const client = new ConvexHttpClient(convexUrl);
 
 export async function GET(
@@ -28,7 +28,7 @@ export async function GET(
     return NextResponse.json({
       id: job._id,
       status: job.status,
-      cancelRequested: job.cancelRequested || false,
+      cancelRequested: job.cancelRequested ?? false,
       currentStep: job.currentStep,
       totalSteps: job.totalSteps,
       progress: job.progress

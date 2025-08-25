@@ -518,10 +518,16 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                         ]}
                         components={{
                           // Handle code blocks with mermaid
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          code({ inline, className, children, ...props }: any) {
+                          code: (props) => {
+                            const { children, className, ...rest } = props as { children?: React.ReactNode; className?: string; node?: unknown };
+                            const inline = !(rest as { node?: { position?: { start?: { line?: number } } } }).node?.position;
+                            
                             const match = /language-(\w+)/.exec(className ?? '');
-                            const codeString = String(children).replace(/\n$/, '');
+                            const codeString = typeof children === 'string' 
+                              ? children.replace(/\n$/, '') 
+                              : Array.isArray(children) 
+                              ? children.join('').replace(/\n$/, '')
+                              : '';
                             
                             // Check if it's a mermaid diagram
                             if (!inline && match && match[1] === 'mermaid') {
@@ -535,7 +541,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                             
                             // Regular code block
                             return (
-                              <code className={className} {...props}>
+                              <code className={className} {...rest}>
                                 {children}
                               </code>
                             );

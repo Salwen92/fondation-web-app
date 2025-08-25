@@ -1,9 +1,0 @@
-V7 POST-CLEAN INVENTORY
-=======================
-
-TRACKED FILES:
-No runtime artifacts tracked
-
-UNTRACKED FILES:
-reports/v7_postclean_inventory.txt
-reports/v7_postclean_precheck.txt

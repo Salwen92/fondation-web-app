@@ -1,0 +1,76 @@
+# Claude Code Rules for Fondation Web App
+
+## Code Style Guidelines
+
+### TypeScript Best Practices
+- Always use proper types, never use `any` without proper type narrowing
+- Prefer nullish coalescing (`??`) over logical OR (`||`)
+- Use type imports: `import type { ... }`
+- Cast to proper Convex Id types when needed: `as Id<"jobs">`
+- Handle undefined values explicitly
+
+### React & Next.js
+- Use server components by default
+- Add "use client" only when needed
+- Properly type component props
+- Use React.ReactNode for children types
+- Handle async components properly
+
+### Code Quality
+- NO eslint-disable comments allowed
+- Fix TypeScript errors properly, no workarounds
+- Run `bun run check` before committing
+- Keep functions small and focused
+- Use proper error handling
+
+### Convex Patterns
+- Always use typed API imports from _generated
+- Cast string IDs to proper Id types
+- Handle nullable fields with ?? operator
+- Use proper mutation/query/action patterns
+
+### Common Fixes
+
+#### For react-markdown components:
+```typescript
+code: (props) => {
+  const { children, className, ...rest } = props as { 
+    children?: React.ReactNode; 
+    className?: string; 
+    node?: unknown 
+  };
+  // implementation
+}
+```
+
+#### For API type safety:
+```typescript
+interface RequestBody {
+  field?: string;
+}
+const body = await req.json() as RequestBody;
+```
+
+#### For Convex IDs:
+```typescript
+import type { Id } from "../convex/_generated/dataModel";
+const jobId = someString as Id<"jobs">;
+```
+
+## Project Structure
+- Keep services separated (frontend, gateway, worker)
+- Use proper environment variables
+- Follow existing file organization patterns
+- Maintain French UI localization
+
+## Testing
+- Always run E2E tests after major changes
+- Test with real GitHub repositories
+- Verify progress tracking works
+- Check generated documentation quality
+
+## Git Workflow
+- Never commit without running checks
+- Write clear commit messages
+- Don't push broken code
+- Test locally before deploying

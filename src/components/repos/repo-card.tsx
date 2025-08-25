@@ -69,7 +69,7 @@ function translateStatus(status: string | undefined): string {
     case "gathering":
       return "Collecte";
     default:
-      return status || "Inconnu";
+      return status ?? "Inconnu";
   }
 }
 
@@ -92,7 +92,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
         prompt: `Generate comprehensive course documentation for ${repo.name}`,
       });
       
-      // Then trigger the local Cloud Run service directly from the browser
+      // Then trigger the Scaleway Gateway service directly from the browser
       if (result.jobId) {
         const response = await fetch("/api/analyze-proxy", {
           method: "POST",
@@ -112,8 +112,8 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
           throw new Error("Échec du démarrage de l'analyse");
         }
         
-        const cloudRunResult = await response.json() as unknown;
-        console.log("Cloud Run triggered:", cloudRunResult);
+        const gatewayResult = await response.json() as unknown;
+        console.log("Scaleway Gateway triggered:", gatewayResult);
       }
       
       toast.success(

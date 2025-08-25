@@ -4,15 +4,19 @@ import { api } from "../../../../convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+interface ClearJobsRequest {
+  repositoryFullName: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { repositoryFullName } = await req.json();
+    const { repositoryFullName } = await req.json() as ClearJobsRequest;
     
     console.log(`[Clear Stuck Jobs] Clearing jobs for repository: ${repositoryFullName}`);
     
     // Clear stuck jobs for all repositories with this fullName (simpler approach)
     const result = await convex.mutation(api.jobs.clearAllStuckJobsForRepo, {
-      repositoryFullName: repositoryFullName
+      repositoryFullName
     });
     
     console.log(`[Clear Stuck Jobs] Cleared ${result.clearedJobsCount} stuck jobs from ${result.repositoriesProcessed} repositories`);

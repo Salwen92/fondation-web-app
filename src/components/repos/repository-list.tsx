@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useCallback, useEffect, useState } from "react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { RepoCard } from "./repo-card";
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ export function RepositoryList({ userId }: RepositoryListProps) {
   });
   const fetchRepositories = useAction(api.repositories.fetchGitHubRepositories);
 
-  const handleFetchRepositories = async () => {
+  const handleFetchRepositories = useCallback(async () => {
     if (!session?.accessToken) {
       toast.error("Aucun jeton d'accès disponible");
       return;
@@ -42,15 +42,14 @@ export function RepositoryList({ userId }: RepositoryListProps) {
     } finally {
       setIsFetching(false);
     }
-  };
+  }, [session?.accessToken, userId, fetchRepositories]);
 
 
   useEffect(() => {
     if (repositories?.length === 0 && session?.accessToken) {
       void handleFetchRepositories();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repositories, session]);
+  }, [repositories, session?.accessToken, handleFetchRepositories]);
 
   if (!repositories) {
     return (

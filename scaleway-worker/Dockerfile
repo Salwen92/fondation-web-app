@@ -4,6 +4,9 @@
 # Use Node.js 20 Alpine for smaller image size
 FROM node:20-alpine
 
+# Accept ANTHROPIC_API_KEY as build argument to bake it into the image
+ARG ANTHROPIC_API_KEY
+
 # Install git, bash, curl, and build tools
 RUN apk add --no-cache git bash curl python3 make g++
 
@@ -47,6 +50,9 @@ USER nodejs
 
 # Set environment variable to indicate we're running in Docker
 ENV RUNNING_IN_DOCKER=true
+
+# Bake the ANTHROPIC_API_KEY into the image as environment variable
+ENV ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
 
 # The worker.js script will be executed by Scaleway Jobs
 # No need for EXPOSE or CMD as this is not a server

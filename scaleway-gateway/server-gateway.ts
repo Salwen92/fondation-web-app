@@ -88,7 +88,7 @@ async function triggerLocalWorker(jobParams: JobParams): Promise<JobResult> {
   console.log(`[Development Mode] Starting local worker for job ${jobId}`);
   
   // Path to the worker script
-  const workerPath = path.join(__dirname, '..', 'scaleway-worker', 'worker.js');
+  const workerPath = path.join(__dirname, '..', '..', 'scaleway-worker', 'worker.js');
   
   // Set up environment variables for the worker
   const workerEnv: NodeJS.ProcessEnv = {

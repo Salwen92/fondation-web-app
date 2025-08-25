@@ -1,20 +1,37 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../convex/_generated/api";
+import type { Id } from "../../../../../convex/_generated/dataModel";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL || "http://localhost:3210";
+interface CallbackBody {
+  jobId?: string;
+  type?: string;
+  status?: string;
+  timestamp?: string;
+  progress?: string;
+  step?: number;
+  totalSteps?: number;
+  error?: string;
+  files?: Array<{
+    path?: string;
+    type?: string;
+    content?: string;
+  }>;
+}
+
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "http://localhost:3210";
 const client = new ConvexHttpClient(convexUrl);
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = await req.json() as CallbackBody;
     const callbackToken = req.headers.get('X-Job-Token');
     
     console.log("[Job Callback Webhook] Received:", {
-      jobId: body.jobId,
-      type: body.type,
-      status: body.status,
-      timestamp: body.timestamp,
+      jobId: body.jobId ?? "unknown",
+      type: body.type ?? "unknown",
+      status: body.status ?? "unknown",
+      timestamp: body.timestamp ?? "unknown",
       callbackToken: callbackToken ? "***PRESENT***" : "MISSING",
     });
 
@@ -38,7 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Determine status based on callback type
-    let convexStatus = status;
+    let convexStatus = status ?? "running";
     if (type === "progress" && !status) {
       if (progress?.includes("Cloning")) {
         convexStatus = "cloning";
@@ -60,13 +77,13 @@ export async function POST(req: NextRequest) {
       console.log(`[Job Callback Webhook] Processing ${files.length} files for completion`);
       
       // Get job to extract repositoryId
-      const job = await client.query(api.jobs.getJob, { jobId });
+      const job = await client.query(api.jobs.getJob, { jobId: jobId as Id<"jobs"> });
       if (!job) {
         throw new Error("Job not found for docs persistence");
       }
 
       // Transform files to match docs schema
-      const docsFiles = files.map((file: any) => {
+      const docsFiles = files.map((file) => {
         // Determine kind based on file path
         let kind: "chapter" | "tutorial" | "toc" | "yaml" = "chapter";
         if (file.path?.includes("tutorial")) {
@@ -81,16 +98,16 @@ export async function POST(req: NextRequest) {
         let chapterIndex = 0;
         if (kind === "chapter") {
           const match = file.path?.match(/(\d+)/);
-          if (match) {
+          if (match?.[1]) {
             chapterIndex = parseInt(match[1], 10);
           }
         }
 
         return {
-          slug: file.path || `doc-${Date.now()}`,
-          title: file.path?.replace(/\.(md|yaml)$/, '').replace(/.*\//, '') || "Document",
+          slug: file.path ?? `doc-${Date.now()}`,
+          title: file.path?.replace(/\.(md|yaml)$/, '').replace(/.*\//, '') ?? "Document",
           chapterIndex,
-          content: file.content || "",
+          content: file.content ?? "",
           kind
         };
       });
@@ -101,7 +118,7 @@ export async function POST(req: NextRequest) {
 
       // Persist docs in Convex
       await client.mutation(api.docs.upsertFromJob, {
-        jobId,
+        jobId: jobId as Id<"jobs">,
         repositoryId: job.repositoryId,
         files: docsFiles,
         summary: {
@@ -116,9 +133,9 @@ export async function POST(req: NextRequest) {
 
     // Call the Convex updateStatus mutation
     await client.mutation(api.jobs.updateStatus, {
-      jobId,
-      status: convexStatus,
-      callbackToken,
+      jobId: jobId as Id<"jobs">,
+      status: convexStatus as "pending" | "cloning" | "analyzing" | "gathering" | "running" | "completed" | "failed" | "canceled",
+      callbackToken: callbackToken ?? "",
       ...(progress && { progress }),
       ...(step !== undefined && { currentStep: step }),
       ...(totalSteps !== undefined && { totalSteps }),

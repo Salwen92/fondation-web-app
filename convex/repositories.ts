@@ -198,9 +198,9 @@ export const triggerAnalyze = mutation({
       progress: "Initializing regeneration...",
     });
 
-    // Note: The client will trigger the Cloud Run service directly
+    // Note: The client will trigger the Scaleway Gateway service directly
     // to avoid localhost restrictions in development
-    console.log("Regeneration job created, client will trigger Cloud Run service");
+    console.log("Regeneration job created, client will trigger Scaleway Gateway service");
 
     return {
       jobId: newJobId,

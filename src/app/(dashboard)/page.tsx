@@ -10,8 +10,8 @@ export default async function DashboardPage() {
   }
 
   // Use the user ID from session (which comes from GitHub) as githubId
-  const githubId = session.user.githubId || session.user.id || "unknown";
-  const userName = session.user.name || "User";
+  const githubId = session.user.githubId ?? session.user.id ?? "unknown";
+  const userName = session.user.name ?? "User";
   
   console.log("Session data:", { githubId, userName, session });
 
