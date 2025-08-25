@@ -197,7 +197,7 @@ async function processAnalyzeJob() {
     // In local dev, it will be at the host path
     const fondationPath = process.env.RUNNING_IN_DOCKER === 'true' 
       ? '/fondation' 
-      : '/Users/salwen/Documents/Cyberscaling/fondation';
+      : process.env.FONDATION_PATH || '/tmp/fondation';
     
     // Prefer bundled CLI when present
     const cliBundled = path.join(fondationPath, 'cli.bundled.cjs');

@@ -13,7 +13,9 @@ export default async function DashboardPage() {
   const githubId = session.user.githubId ?? session.user.id ?? "unknown";
   const userName = session.user.name ?? "User";
   
-  console.log("Session data:", { githubId, userName, session });
+  if (process.env.NODE_ENV === "development") {
+    console.log("Session data:", { githubId, userName });
+  }
 
   return (
     <DashboardContent
