@@ -29,7 +29,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" className={`${geist.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen">
+      <body className="min-h-screen" suppressHydrationWarning>
         <div className="bg-gradient-mesh pointer-events-none fixed inset-0" />
         <Providers>{children}</Providers>
         <Toaster position="bottom-right" richColors closeButton />

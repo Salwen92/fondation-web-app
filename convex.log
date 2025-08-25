@@ -373,3 +373,8 @@ Found 1 error in convex/docs.ts[90m:171[0m
 - Preparing Convex functions...
 
 ✔ 01:07:50 Convex functions ready! (6.27s)
+8/25/2025, 7:36:21 AM [CONVEX M(jobs:create)] [LOG] 'Job created, client will trigger Cloud Run service'
+8/25/2025, 7:37:30 AM [CONVEX M(jobs:create)] [LOG] 'Job created, client will trigger Cloud Run service'
+- Preparing Convex functions...
+
+✔ 07:42:59 Convex functions ready! (4.9s)
