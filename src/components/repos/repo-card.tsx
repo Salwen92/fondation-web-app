@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useEffect } from "react";
 import { getJobCallbackUrl } from "@/lib/config";
 import { translateProgress, translateStatus, uiTranslations } from "@/lib/i18n";
 
@@ -29,6 +30,19 @@ interface RepoCardProps {
     fullName: string;
     description?: string;
     defaultBranch: string;
+    languages?: {
+      primary: string;
+      all: Array<{
+        name: string;
+        percentage: number;
+      }>;
+    };
+    stats?: {
+      stars: number;
+      forks: number;
+      issues: number;
+    };
+    lastFetched?: number;
   };
   userId: Id<"users">;
 }
@@ -37,13 +51,24 @@ interface RepoCardProps {
 
 export function RepoCard({ repo, userId }: RepoCardProps) {
   const generateCourse = useMutation(api.jobs.create);
+  const updateMetadata = useMutation(api.github.updateRepositoryMetadata);
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId: repo._id });
+  const repoWithMetadata = useQuery(api.github.getRepositoryWithMetadata, { repositoryId: repo._id });
   
   // Get actual docs count from latest completed job
   const docsCount = latestJob?.status === "completed" ? latestJob.docsCount ?? 0 : 0;
   
-  // TODO: Get real language and stats data from GitHub API
-  const languages = ["TypeScript", "React", "Node.js"]; // Mock data - should come from GitHub API
+  // Use real GitHub language data if available, otherwise show top 3
+  const languages: string[] = repoWithMetadata?.languages?.all
+    ?.slice(0, 3)
+    .map((lang) => lang.name) ?? [];
+  
+  // Refresh GitHub data if stale
+  useEffect(() => {
+    if (repoWithMetadata?.isStale) {
+      updateMetadata({ repositoryId: repo._id }).catch(console.error);
+    }
+  }, [repoWithMetadata?.isStale, repo._id, updateMetadata]);
 
   const handleGenerate = async () => {
     try {
@@ -207,16 +232,18 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
             <div className="flex-grow" />
 
             {/* Languages */}
-            <div className="flex flex-wrap gap-1 mb-4">
-              {languages.map((lang) => (
-                <span 
-                  key={lang}
-                  className="px-2 py-1 text-xs rounded-full bg-muted/50 text-muted-foreground"
-                >
-                  {lang}
-                </span>
-              ))}
-            </div>
+            {languages.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-4">
+                {languages.map((lang) => (
+                  <span 
+                    key={lang}
+                    className="px-2 py-1 text-xs rounded-full bg-muted/50 text-muted-foreground"
+                  >
+                    {lang}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Stats */}
             <div className="flex items-center justify-between mb-4 text-sm text-muted-foreground">
@@ -226,6 +253,16 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                     <FileText className="h-3.5 w-3.5" />
                     <span>{docsCount} docs</span>
                   </div>
+                )}
+                {repoWithMetadata?.stats && (
+                  <>
+                    <div className="flex items-center space-x-1">
+                      <span>⭐ {repoWithMetadata.stats.stars}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span>🍴 {repoWithMetadata.stats.forks}</span>
+                    </div>
+                  </>
                 )}
                 {latestJob && (
                   <div className="flex items-center space-x-1">

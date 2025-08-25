@@ -18,6 +18,19 @@ export default defineSchema({
     fullName: v.string(),
     description: v.optional(v.string()),
     defaultBranch: v.string(),
+    languages: v.optional(v.object({
+      primary: v.string(),
+      all: v.array(v.object({
+        name: v.string(),
+        percentage: v.number(),
+      })),
+    })),
+    stats: v.optional(v.object({
+      stars: v.number(),
+      forks: v.number(),
+      issues: v.number(),
+    })),
+    lastFetched: v.optional(v.number()),
   }).index("by_user", ["userId"]),
 
   jobs: defineTable({

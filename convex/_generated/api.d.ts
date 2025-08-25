@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as cloudRun from "../cloudRun.js";
 import type * as docs from "../docs.js";
+import type * as github from "../github.js";
 import type * as jobs from "../jobs.js";
 import type * as repositories from "../repositories.js";
 import type * as scalewayWorker from "../scalewayWorker.js";
@@ -31,6 +32,7 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   cloudRun: typeof cloudRun;
   docs: typeof docs;
+  github: typeof github;
   jobs: typeof jobs;
   repositories: typeof repositories;
   scalewayWorker: typeof scalewayWorker;
