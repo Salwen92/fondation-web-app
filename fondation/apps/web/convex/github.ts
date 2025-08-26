@@ -1,0 +1,110 @@
+import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
+
+// Fetch and update repository metadata from GitHub
+export const updateRepositoryMetadata = mutation({
+  args: {
+    repositoryId: v.id("repositories"),
+  },
+  handler: async (ctx, args) => {
+    const repository = await ctx.db.get(args.repositoryId);
+    if (!repository) {
+      throw new Error("Repository not found");
+    }
+
+    const user = await ctx.db.get(repository.userId);
+    if (!user?.githubAccessToken) {
+      console.error("No GitHub access token available");
+      return null;
+    }
+
+    try {
+      // Fetch repository languages
+      const languagesResponse = await fetch(
+        `https://api.github.com/repos/${repository.fullName}/languages`,
+        {
+          headers: {
+            Authorization: `token ${user.githubAccessToken}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        }
+      );
+
+      if (!languagesResponse.ok) {
+        throw new Error(`GitHub API error: ${languagesResponse.status}`);
+      }
+
+      const languagesData = await languagesResponse.json() as Record<string, number>;
+      
+      // Calculate total bytes and percentages
+      const totalBytes = Object.values(languagesData).reduce((sum, bytes) => sum + bytes, 0);
+      const languages = Object.entries(languagesData)
+        .map(([name, bytes]) => ({
+          name,
+          percentage: totalBytes > 0 ? Math.round((bytes / totalBytes) * 100) : 0,
+        }))
+        .sort((a, b) => b.percentage - a.percentage);
+
+      // Fetch repository stats
+      const repoResponse = await fetch(
+        `https://api.github.com/repos/${repository.fullName}`,
+        {
+          headers: {
+            Authorization: `token ${user.githubAccessToken}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        }
+      );
+
+      if (!repoResponse.ok) {
+        throw new Error(`GitHub API error: ${repoResponse.status}`);
+      }
+
+      const repoData = await repoResponse.json() as {
+        stargazers_count: number;
+        forks_count: number;
+        open_issues_count: number;
+      };
+
+      // Update repository with fetched data
+      await ctx.db.patch(args.repositoryId, {
+        languages: {
+          primary: languages[0]?.name ?? "Unknown",
+          all: languages,
+        },
+        stats: {
+          stars: repoData.stargazers_count,
+          forks: repoData.forks_count,
+          issues: repoData.open_issues_count,
+        },
+        lastFetched: Date.now(),
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to fetch GitHub metadata:", error);
+      // Don't throw - gracefully degrade
+      return null;
+    }
+  },
+});
+
+// Get repository with fresh metadata (fetches if stale)
+export const getRepositoryWithMetadata = query({
+  args: {
+    repositoryId: v.id("repositories"),
+  },
+  handler: async (ctx, args) => {
+    const repository = await ctx.db.get(args.repositoryId);
+    if (!repository) return null;
+
+    // Check if data is stale (older than 1 hour)
+    const oneHourAgo = Date.now() - 60 * 60 * 1000;
+    const isStale = !repository.lastFetched || repository.lastFetched < oneHourAgo;
+
+    return {
+      ...repository,
+      isStale,
+    };
+  },
+});

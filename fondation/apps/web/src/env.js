@@ -25,8 +25,24 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string().length(64) // 32 bytes in hex = 64 characters
         : z.string().optional(),
-    // Convex URL for server-side operations
-    CONVEX_URL: z.string().url().optional(),
+    // Scaleway configuration for production job triggering
+    SCW_ACCESS_KEY:
+      process.env.NODE_ENV === "production"
+        ? z.string()
+        : z.string().optional(),
+    SCW_SECRET_KEY:
+      process.env.NODE_ENV === "production"
+        ? z.string()
+        : z.string().optional(),
+    SCW_DEFAULT_PROJECT_ID:
+      process.env.NODE_ENV === "production"
+        ? z.string()
+        : z.string().optional(),
+    SCW_DEFAULT_ZONE: z.string().default("fr-par-1"),
+    SCW_JOB_DEFINITION_ID:
+      process.env.NODE_ENV === "production"
+        ? z.string()
+        : z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -59,8 +75,13 @@ export const env = createEnv({
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+    // Scaleway runtime environment variables
+    SCW_ACCESS_KEY: process.env.SCW_ACCESS_KEY,
+    SCW_SECRET_KEY: process.env.SCW_SECRET_KEY,
+    SCW_DEFAULT_PROJECT_ID: process.env.SCW_DEFAULT_PROJECT_ID,
+    SCW_DEFAULT_ZONE: process.env.SCW_DEFAULT_ZONE,
+    SCW_JOB_DEFINITION_ID: process.env.SCW_JOB_DEFINITION_ID,
     NODE_ENV: process.env.NODE_ENV,
-    CONVEX_URL: process.env.CONVEX_URL,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },

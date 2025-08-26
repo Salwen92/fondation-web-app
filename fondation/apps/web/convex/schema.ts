@@ -23,11 +23,8 @@ export default defineSchema({
   jobs: defineTable({
     userId: v.id("users"),
     repositoryId: v.id("repositories"),
-    repositoryUrl: v.optional(v.string()),
-    branch: v.optional(v.string()),
     status: v.union(
       v.literal("pending"),
-      v.literal("claimed"),
       v.literal("cloning"),
       v.literal("analyzing"),
       v.literal("gathering"),
@@ -35,12 +32,10 @@ export default defineSchema({
       v.literal("completed"),
       v.literal("failed"),
       v.literal("canceled"),
-      v.literal("dead"),
     ),
     prompt: v.string(),
     callbackToken: v.string(),
     createdAt: v.number(),
-    updatedAt: v.optional(v.number()),
     progress: v.optional(v.string()),
     currentStep: v.optional(v.number()),
     totalSteps: v.optional(v.number()),
@@ -65,14 +60,6 @@ export default defineSchema({
       rejected: v.number(),
       deleted: v.number()
     })),
-    // Queue management fields
-    attempts: v.optional(v.number()),
-    maxAttempts: v.optional(v.number()),
-    lockedBy: v.optional(v.string()),
-    leaseUntil: v.optional(v.number()),
-    dedupeKey: v.optional(v.string()),
-    runAt: v.optional(v.number()),
-    lastError: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_repository", ["repositoryId"]),

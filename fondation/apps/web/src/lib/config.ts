@@ -30,6 +30,16 @@ export function getJobCallbackUrl(): string {
   return `${getAppBaseUrl()}/api/webhook/job-callback`;
 }
 
+/**
+ * Get the gateway URL for job processing
+ */
+export function getGatewayUrl(): string {
+  if (process.env.NODE_ENV === "production") {
+    return process.env.SCALEWAY_GATEWAY_URL ?? "https://gateway.fondation.ai";
+  }
+  
+  return "http://localhost:8081";
+}
 
 /**
  * Configuration object for the application
@@ -38,6 +48,7 @@ export const appConfig = {
   baseUrl: getAppBaseUrl(),
   api: {
     jobCallback: getJobCallbackUrl(),
+    gateway: getGatewayUrl(),
   },
   isProduction: process.env.NODE_ENV === "production",
   isDevelopment: process.env.NODE_ENV === "development",

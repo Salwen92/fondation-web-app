@@ -168,7 +168,6 @@ export const getByFullName = query({
 export const triggerAnalyze = mutation({
   args: {
     repositoryId: v.id("repositories"),
-    prompt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Get repository details
@@ -185,28 +184,23 @@ export const triggerAnalyze = mutation({
 
     // Generate a callback token using Math.random (crypto is not available in Convex)
     const callbackToken = Math.random().toString(36).substr(2, 9) + Math.random().toString(36).substr(2, 9);
-    const now = Date.now();
 
-    // Create a new job for the queue
+    // Create a new job for regeneration
     const newJobId = await ctx.db.insert("jobs", {
       userId: repository.userId,
       repositoryId: args.repositoryId,
-      repositoryUrl: `https://github.com/${repository.fullName}`,
-      branch: repository.defaultBranch || "main",
       status: "pending",
-      prompt: args.prompt || "Generate comprehensive course documentation",
+      prompt: "Regenerate course documentation",
       callbackToken,
-      createdAt: now,
-      updatedAt: now,
+      createdAt: Date.now(),
       currentStep: 0,
       totalSteps: 7,
-      progress: "Queued for processing...",
-      attempts: 0,
-      maxAttempts: 3,
+      progress: "Initializing regeneration...",
     });
 
-    // Job is now queued, worker will pick it up via polling
-    console.log("Job created and queued for worker processing");
+    // Note: The client will trigger the Scaleway Gateway service directly
+    // to avoid localhost restrictions in development
+    console.log("Regeneration job created, client will trigger Scaleway Gateway service");
 
     return {
       jobId: newJobId,

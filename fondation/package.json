@@ -1,0 +1,25 @@
+{
+  "name": "fondation",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "build": "bun run --filter '*' build",
+    "dev:web": "bun run --filter web dev",
+    "dev:worker": "bun run --filter worker dev",
+    "lint": "bun run --filter '*' lint",
+    "typecheck": "bun run --filter '*' typecheck",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --cache",
+    "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --cache"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  }
+}
