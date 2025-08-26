@@ -1,138 +1,216 @@
 /**
- * Runtime validation schemas for API endpoints
- * Uses Zod for type-safe validation
+ * Input validation and sanitization utilities
  */
 
-import { z } from "zod";
-
-// ============================================
-// Common schemas
-// ============================================
-
-export const jobIdSchema = z.string().min(1, "Job ID is required");
-export const repositoryUrlSchema = z.string().url("Invalid repository URL");
-export const branchSchema = z.string().min(1).optional().default("main");
-export const callbackUrlSchema = z.string().url("Invalid callback URL");
-export const callbackTokenSchema = z.string().min(1, "Callback token is required");
-
-// ============================================
-// API Request Schemas
-// ============================================
+import DOMPurify from "isomorphic-dompurify";
 
 /**
- * Schema for /api/analyze-proxy request
+ * Validation result type
  */
-export const analyzeProxySchema = z.object({
-  jobId: jobIdSchema,
-  repositoryUrl: repositoryUrlSchema,
-  branch: z.string().min(1).optional().default("main"),
-  callbackUrl: callbackUrlSchema,
-  callbackToken: callbackTokenSchema,
-  githubToken: z.string().optional(),
-});
-
-export type AnalyzeProxyRequest = z.infer<typeof analyzeProxySchema>;
-
-/**
- * Schema for /api/webhook/job-callback request
- */
-export const jobCallbackSchema = z.object({
-  jobId: jobIdSchema,
-  type: z.enum(["progress", "complete", "error"]).optional(),
-  status: z.string().optional(),
-  timestamp: z.string().optional(),
-  progress: z.string().optional(),
-  step: z.number().int().min(0).optional(),
-  totalSteps: z.number().int().min(1).optional(),
-  error: z.string().optional(),
-  files: z.array(z.object({
-    path: z.string().optional(),
-    type: z.string().optional(),
-    content: z.string().optional(),
-  })).optional(),
-});
-
-export type JobCallbackRequest = z.infer<typeof jobCallbackSchema>;
-
-/**
- * Schema for /api/auth/store-token request
- */
-export const storeTokenSchema = z.object({
-  accessToken: z.string().min(1, "Access token is required"),
-});
-
-export type StoreTokenRequest = z.infer<typeof storeTokenSchema>;
-
-/**
- * Schema for /api/jobs/[id]/cancel request params
- */
-export const jobIdParamSchema = z.object({
-  id: z.string().min(1, "Job ID parameter is required"),
-});
-
-export type JobIdParam = z.infer<typeof jobIdParamSchema>;
-
-/**
- * Schema for /api/clear-stuck-jobs request
- */
-export const clearStuckJobsSchema = z.object({
-  repositoryFullName: z.string().min(1, "Repository full name is required"),
-});
-
-export type ClearStuckJobsRequest = z.infer<typeof clearStuckJobsSchema>;
-
-// ============================================
-// Response Schemas (for type safety)
-// ============================================
-
-/**
- * Generic error response schema
- */
-export const errorResponseSchema = z.object({
-  error: z.string(),
-  details: z.string().optional(),
-  code: z.string().optional(),
-});
-
-export type ErrorResponse = z.infer<typeof errorResponseSchema>;
-
-/**
- * Success response schema
- */
-export const successResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string().optional(),
-  data: z.unknown().optional(),
-});
-
-export type SuccessResponse = z.infer<typeof successResponseSchema>;
-
-// ============================================
-// Validation Helpers
-// ============================================
-
-/**
- * Safely parse and validate request data
- * Returns either the validated data or a validation error
- */
-export function validateRequest<T>(
-  schema: z.ZodSchema<T>,
-  data: unknown
-): { success: true; data: T } | { success: false; error: z.ZodError } {
-  const result = schema.safeParse(data);
-  if (result.success) {
-    return { success: true, data: result.data };
-  }
-  return { success: false, error: result.error };
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  sanitized?: unknown;
 }
 
 /**
- * Format Zod validation errors for API responses
+ * Common validation patterns
  */
-export function formatValidationError(error: z.ZodError): string {
-  const errors = error.errors.map(err => {
-    const path = err.path.join(".");
-    return path ? `${path}: ${err.message}` : err.message;
+export const patterns = {
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  url: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/,
+  githubRepo: /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/,
+  alphanumeric: /^[a-zA-Z0-9]+$/,
+  slug: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+} as const;
+
+/**
+ * Sanitize HTML content
+ */
+export function sanitizeHtml(html: string, options?: Parameters<typeof DOMPurify.sanitize>[1]): string {
+  const result = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "p", "br", "ul", "ol", "li", "code", "pre"],
+    ALLOWED_ATTR: ["href", "target", "rel"],
+    ALLOW_DATA_ATTR: false,
+    ...options,
   });
-  return errors.join(", ");
+  // DOMPurify returns a string or TrustedHTML
+  return String(result);
+}
+
+/**
+ * Sanitize user input for safe display
+ */
+export function sanitizeInput(input: string): string {
+  return input
+    .trim()
+    .replace(/[<>]/g, "") // Remove angle brackets
+    .replace(/javascript:/gi, "") // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, ""); // Remove event handlers
+}
+
+/**
+ * Validate GitHub repository format
+ */
+export function validateGitHubRepo(repo: string): ValidationResult {
+  const errors: string[] = [];
+  const sanitized = sanitizeInput(repo);
+
+  if (!sanitized) {
+    errors.push("Le nom du dépôt est requis");
+  } else if (!patterns.githubRepo.test(sanitized)) {
+    errors.push("Format invalide. Utilisez: owner/repository");
+  } else if (sanitized.length > 100) {
+    errors.push("Le nom du dépôt est trop long");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    sanitized,
+  };
+}
+
+/**
+ * Validate email address
+ */
+export function validateEmail(email: string): ValidationResult {
+  const errors: string[] = [];
+  const sanitized = sanitizeInput(email.toLowerCase());
+
+  if (!sanitized) {
+    errors.push("L'adresse email est requise");
+  } else if (!patterns.email.test(sanitized)) {
+    errors.push("Format d'email invalide");
+  } else if (sanitized.length > 254) {
+    errors.push("L'adresse email est trop longue");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    sanitized,
+  };
+}
+
+/**
+ * Validate URL
+ */
+export function validateUrl(url: string): ValidationResult {
+  const errors: string[] = [];
+  const sanitized = sanitizeInput(url);
+
+  if (!sanitized) {
+    errors.push("L'URL est requise");
+  } else if (!patterns.url.test(sanitized)) {
+    errors.push("Format d'URL invalide");
+  } else if (sanitized.length > 2048) {
+    errors.push("L'URL est trop longue");
+  }
+
+  // Additional security checks
+  try {
+    const parsed = new URL(sanitized);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      errors.push("Seuls les protocoles HTTP(S) sont autorisés");
+    }
+  } catch {
+    errors.push("URL malformée");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    sanitized,
+  };
+}
+
+/**
+ * Validate and sanitize search query
+ */
+export function validateSearchQuery(query: string, maxLength = 100): ValidationResult {
+  const errors: string[] = [];
+  let sanitized = sanitizeInput(query);
+
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength);
+    errors.push(`La recherche a été limitée à ${maxLength} caractères`);
+  }
+
+  // Remove special regex characters that could cause issues
+  sanitized = sanitized.replace(/[.*+?^${}()|[\]\\]/g, "");
+
+  return {
+    isValid: true, // Search queries are always "valid" after sanitization
+    errors,
+    sanitized,
+  };
+}
+
+/**
+ * Validate numeric input
+ */
+export function validateNumber(
+  value: string | number,
+  options?: {
+    min?: number;
+    max?: number;
+    integer?: boolean;
+  }
+): ValidationResult {
+  const errors: string[] = [];
+  const num = typeof value === "string" ? parseFloat(value) : value;
+
+  if (isNaN(num)) {
+    errors.push("Valeur numérique invalide");
+  } else {
+    if (options?.integer && !Number.isInteger(num)) {
+      errors.push("La valeur doit être un nombre entier");
+    }
+    if (options?.min !== undefined && num < options.min) {
+      errors.push(`La valeur doit être au moins ${options.min}`);
+    }
+    if (options?.max !== undefined && num > options.max) {
+      errors.push(`La valeur ne doit pas dépasser ${options.max}`);
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    sanitized: num,
+  };
+}
+
+/**
+ * Create a validated form handler
+ */
+export function createValidatedForm<T extends Record<string, unknown>>(
+  validators: {
+    [K in keyof T]: (value: unknown) => ValidationResult;
+  }
+) {
+  return {
+    validate: (data: Partial<T>): { isValid: boolean; errors: Record<string, string[]>; sanitized: Partial<T> } => {
+      const errors: Record<string, string[]> = {};
+      const sanitized: Partial<T> = {};
+      let isValid = true;
+
+      for (const [key, validator] of Object.entries(validators)) {
+        const value = data[key as keyof T];
+        const result = (validator as (value: unknown) => ValidationResult)(value);
+        
+        if (!result.isValid) {
+          errors[key] = result.errors;
+          isValid = false;
+        }
+        
+        if (result.sanitized !== undefined) {
+          sanitized[key as keyof T] = result.sanitized as T[keyof T];
+        }
+      }
+
+      return { isValid, errors, sanitized };
+    },
+  };
 }

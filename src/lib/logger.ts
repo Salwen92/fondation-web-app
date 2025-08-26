@@ -1,6 +1,5 @@
 /**
- * Structured logging utility for the application
- * Provides consistent logging format and levels
+ * Comprehensive error logging and monitoring system
  */
 
 export enum LogLevel {
@@ -8,155 +7,274 @@ export enum LogLevel {
   INFO = 1,
   WARN = 2,
   ERROR = 3,
+  FATAL = 4,
 }
 
-type LogContext = Record<string, unknown>;
+interface LogContext {
+  userId?: string;
+  sessionId?: string;
+  requestId?: string;
+  url?: string;
+  method?: string;
+  userAgent?: string;
+  extra?: Record<string, unknown>;
+}
 
 interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: string;
   context?: LogContext;
-  error?: Error;
+  error?: {
+    name: string;
+    message: string;
+    stack?: string;
+  };
 }
 
 class Logger {
-  private isDevelopment = process.env.NODE_ENV === 'development';
-  private currentLevel = this.isDevelopment ? LogLevel.DEBUG : LogLevel.INFO;
-  
-  /**
-   * Set the minimum log level
-   */
-  setLevel(level: LogLevel) {
-    this.currentLevel = level;
-  }
-  
-  /**
-   * Format log entry for output
-   */
-  private formatLogEntry(entry: LogEntry): string {
-    const levelName = LogLevel[entry.level];
-    const contextStr = entry.context ? ` ${JSON.stringify(entry.context)}` : '';
-    const errorStr = entry.error ? `\nError: ${entry.error.message}\nStack: ${entry.error.stack}` : '';
+  private queue: LogEntry[] = [];
+  private flushInterval: NodeJS.Timeout | null = null;
+  private minLevel: LogLevel;
+
+  constructor() {
+    this.minLevel = process.env.NODE_ENV === "production" ? LogLevel.INFO : LogLevel.DEBUG;
     
-    return `[${entry.timestamp}] [${levelName}] ${entry.message}${contextStr}${errorStr}`;
+    // Flush logs every 5 seconds in production
+    if (process.env.NODE_ENV === "production" && typeof setInterval !== "undefined") {
+      this.flushInterval = setInterval(() => void this.flush(), 5000);
+    }
+
+    // Catch unhandled errors
+    if (typeof window !== "undefined") {
+      window.addEventListener("error", this.handleWindowError);
+      window.addEventListener("unhandledrejection", this.handleUnhandledRejection);
+    }
   }
-  
+
   /**
-   * Log a message at the specified level
+   * Log a debug message
    */
-  private log(level: LogLevel, message: string, context?: LogContext, error?: Error) {
-    if (level < this.currentLevel) return;
-    
+  debug(message: string, context?: LogContext): void {
+    this.log(LogLevel.DEBUG, message, context);
+  }
+
+  /**
+   * Log an info message
+   */
+  info(message: string, context?: LogContext): void {
+    this.log(LogLevel.INFO, message, context);
+  }
+
+  /**
+   * Log a warning
+   */
+  warn(message: string, context?: LogContext): void {
+    this.log(LogLevel.WARN, message, context);
+  }
+
+  /**
+   * Log an error
+   */
+  error(message: string, error?: Error, context?: LogContext): void {
+    this.log(LogLevel.ERROR, message, context, error);
+  }
+
+  /**
+   * Log a fatal error
+   */
+  fatal(message: string, error?: Error, context?: LogContext): void {
+    this.log(LogLevel.FATAL, message, context, error);
+    // Immediately flush on fatal errors
+    void this.flush();
+  }
+
+  /**
+   * Main logging method
+   */
+  private log(
+    level: LogLevel,
+    message: string,
+    context?: LogContext,
+    error?: Error
+  ): void {
+    if (level < this.minLevel) return;
+
     const entry: LogEntry = {
       level,
       message,
       timestamp: new Date().toISOString(),
       context,
-      error,
     };
-    
-    // In production, send to logging service
-    if (!this.isDevelopment) {
-      // TODO: Integrate with logging service (e.g., Sentry, LogRocket)
-      // For now, use console in production too but with structured format
-      const formattedEntry = this.formatLogEntry(entry);
-      
-      switch (level) {
-        case LogLevel.ERROR:
-          console.error(formattedEntry);
-          break;
-        case LogLevel.WARN:
-          console.warn(formattedEntry);
-          break;
-        default:
-          console.log(formattedEntry);
-      }
-      return;
+
+    if (error) {
+      entry.error = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      };
     }
-    
-    // In development, use console with colors
-    const formattedEntry = this.formatLogEntry(entry);
-    
-    switch (level) {
+
+    // In development, log to console
+    if (process.env.NODE_ENV === "development") {
+      this.logToConsole(entry);
+    }
+
+    // Queue for batch sending in production
+    if (process.env.NODE_ENV === "production") {
+      this.queue.push(entry);
+      
+      // Flush if queue is getting large
+      if (this.queue.length >= 10) {
+        void this.flush();
+      }
+    }
+  }
+
+  /**
+   * Log to console in development
+   */
+  private logToConsole(entry: LogEntry): void {
+    const prefix = `[${LogLevel[entry.level]}] ${entry.timestamp}`;
+    const message = `${prefix}: ${entry.message}`;
+
+    switch (entry.level) {
       case LogLevel.DEBUG:
-        console.debug(`🐛 ${formattedEntry}`);
+        console.debug(message, entry.context);
         break;
       case LogLevel.INFO:
-        console.info(`ℹ️ ${formattedEntry}`);
+        console.info(message, entry.context);
         break;
       case LogLevel.WARN:
-        console.warn(`⚠️ ${formattedEntry}`);
+        console.warn(message, entry.context);
         break;
       case LogLevel.ERROR:
-        console.error(`❌ ${formattedEntry}`);
+      case LogLevel.FATAL:
+        console.error(message, entry.error, entry.context);
         break;
     }
   }
-  
-  debug(message: string, context?: LogContext) {
-    this.log(LogLevel.DEBUG, message, context);
-  }
-  
-  info(message: string, context?: LogContext) {
-    this.log(LogLevel.INFO, message, context);
-  }
-  
-  warn(message: string, context?: LogContext) {
-    this.log(LogLevel.WARN, message, context);
-  }
-  
-  error(message: string, error?: Error, context?: LogContext) {
-    this.log(LogLevel.ERROR, message, context, error);
-  }
-  
+
   /**
-   * Log API request
+   * Flush queued logs to monitoring service
    */
-  logRequest(method: string, url: string, body?: unknown) {
-    this.info('API Request', {
-      method,
-      url,
-      body: body ? JSON.stringify(body).substring(0, 200) : undefined, // Truncate for safety
-    });
+  private async flush(): Promise<void> {
+    if (this.queue.length === 0) return;
+
+    const logs = [...this.queue];
+    this.queue = [];
+
+    try {
+      // In production, send to monitoring service
+      if (process.env.NEXT_PUBLIC_LOG_ENDPOINT) {
+        await fetch(process.env.NEXT_PUBLIC_LOG_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ logs }),
+        });
+      }
+    } catch (error) {
+      // Fallback to console if logging service fails
+      console.error("Failed to send logs:", error);
+      logs.forEach((log) => this.logToConsole(log));
+    }
   }
-  
+
   /**
-   * Log API response
+   * Handle window errors
    */
-  logResponse(method: string, url: string, status: number, duration?: number) {
-    const level = status >= 400 ? LogLevel.ERROR : LogLevel.INFO;
-    this.log(level, 'API Response', {
-      method,
-      url,
-      status,
-      duration: duration ? `${duration}ms` : undefined,
+  private handleWindowError = (event: ErrorEvent): void => {
+    this.error("Unhandled error", new Error(event.message), {
+      url: event.filename,
+      extra: {
+        line: event.lineno,
+        column: event.colno,
+      },
     });
+  };
+
+  /**
+   * Handle unhandled promise rejections
+   */
+  private handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
+    const error = event.reason instanceof Error 
+      ? event.reason 
+      : new Error(String(event.reason));
+    
+    this.error("Unhandled promise rejection", error);
+  };
+
+  /**
+   * Create a child logger with preset context
+   */
+  child(context: LogContext): LoggerInstance {
+    return {
+      debug: (message: string, extra?: LogContext) => 
+        this.debug(message, { ...context, ...extra }),
+      info: (message: string, extra?: LogContext) => 
+        this.info(message, { ...context, ...extra }),
+      warn: (message: string, extra?: LogContext) => 
+        this.warn(message, { ...context, ...extra }),
+      error: (message: string, error?: Error, extra?: LogContext) => 
+        this.error(message, error, { ...context, ...extra }),
+      fatal: (message: string, error?: Error, extra?: LogContext) => 
+        this.fatal(message, error, { ...context, ...extra }),
+    };
   }
-  
+
   /**
-   * Log job operation
+   * Clean up
    */
-  logJob(operation: string, jobId: string, context?: LogContext) {
-    this.info(`Job ${operation}`, {
-      jobId,
-      ...context,
-    });
-  }
-  
-  /**
-   * Log authentication event
-   */
-  logAuth(event: string, userId?: string, context?: LogContext) {
-    this.info(`Auth ${event}`, {
-      userId,
-      ...context,
-    });
+  destroy(): void {
+    if (this.flushInterval) {
+      clearInterval(this.flushInterval);
+    }
+    void this.flush();
+    
+    if (typeof window !== "undefined") {
+      window.removeEventListener("error", this.handleWindowError);
+      window.removeEventListener("unhandledrejection", this.handleUnhandledRejection);
+    }
   }
 }
 
-// Export singleton instance
+interface LoggerInstance {
+  debug: (message: string, context?: LogContext) => void;
+  info: (message: string, context?: LogContext) => void;
+  warn: (message: string, context?: LogContext) => void;
+  error: (message: string, error?: Error, context?: LogContext) => void;
+  fatal: (message: string, error?: Error, context?: LogContext) => void;
+}
+
+// Singleton logger instance
 export const logger = new Logger();
 
-// Export for testing or custom instances
-export { Logger };
+/**
+ * Create a logger for API routes
+ */
+export function createApiLogger(req: Request): LoggerInstance {
+  const url = new URL(req.url);
+  
+  return logger.child({
+    url: url.pathname,
+    method: req.method,
+    userAgent: req.headers.get("user-agent") ?? undefined,
+    requestId: crypto.randomUUID(),
+  });
+}
+
+/**
+ * Log performance metrics
+ */
+export function logPerformance(name: string, duration: number, context?: LogContext): void {
+  const level = duration > 1000 ? LogLevel.WARN : LogLevel.INFO;
+  const message = `Performance: ${name} took ${duration}ms`;
+  
+  if (level === LogLevel.WARN) {
+    logger.warn(message, { ...context, extra: { duration } });
+  } else {
+    logger.info(message, { ...context, extra: { duration } });
+  }
+}

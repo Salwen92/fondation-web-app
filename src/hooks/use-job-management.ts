@@ -1,35 +1,29 @@
-"use client";
-
-import { toast } from "sonner";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { type Id } from "../../convex/_generated/dataModel";
-import { env } from "@/env";
-import { withRetry } from "@/lib/retry";
-import { getUserFriendlyError } from "@/lib/error-messages";
+import { toast } from "sonner";
+import { getJobCallbackUrl } from "@/lib/config";
+import { fetchWithRetry } from "@/lib/retry";
+import type { Id } from "../../convex/_generated/dataModel";
 
-interface UseJobManagementProps {
-  userId: Id<"users">;
+interface UseJobManagementOptions {
   repositoryId: Id<"repositories">;
+  userId: Id<"users">;
   repositoryFullName: string;
   repositoryName: string;
   defaultBranch: string;
-  latestJobId?: Id<"jobs">;
 }
 
-/**
- * Custom hook for managing job operations
- * Encapsulates job generation and cancellation logic
- */
 export function useJobManagement({
-  userId,
   repositoryId,
+  userId,
   repositoryFullName,
   repositoryName,
   defaultBranch,
-  latestJobId
-}: UseJobManagementProps) {
+}: UseJobManagementOptions) {
   const generateCourse = useMutation(api.jobs.create);
+  const updateMetadata = useMutation(api.github.updateRepositoryMetadata);
+  const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId });
+  const repoWithMetadata = useQuery(api.github.getRepositoryWithMetadata, { repositoryId });
 
   const handleGenerate = async () => {
     try {
@@ -40,39 +34,28 @@ export function useJobManagement({
         prompt: `Generate comprehensive course documentation for ${repositoryName}`,
       });
       
-      // Then trigger the Scaleway Gateway service with retry
+      // Then trigger the Scaleway Gateway service
       if (result.jobId) {
-        await withRetry(
-          async () => {
-            const response = await fetch("/api/analyze-proxy", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                jobId: result.jobId,
-                repositoryUrl: `https://github.com/${repositoryFullName}`,
-                branch: defaultBranch,
-                callbackUrl: `${env.NEXT_PUBLIC_APP_URL}/api/webhook/job-callback`,
-                callbackToken: result.callbackToken,
-              }),
-            });
-            
-            if (!response.ok) {
-              throw new Error("Échec du démarrage de l'analyse");
-            }
-            
-            // Gateway response is logged for debugging but not shown to user
-            await response.json();
+        const response = await fetchWithRetry("/api/analyze-proxy", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          {
-            maxAttempts: 3,
-            initialDelay: 1000,
-            onRetry: (_error, attempt) => {
-              toast.info(`Nouvelle tentative (${attempt}/3)...`);
-            },
-          }
-        );
+          body: JSON.stringify({
+            jobId: result.jobId,
+            repositoryUrl: `https://github.com/${repositoryFullName}`,
+            branch: defaultBranch,
+            callbackUrl: getJobCallbackUrl(),
+            callbackToken: result.callbackToken,
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error("Échec du démarrage de l'analyse");
+        }
+        
+        const gatewayResult = await response.json() as unknown;
+        console.log("Scaleway Gateway triggered:", gatewayResult);
       }
       
       toast.success(
@@ -83,19 +66,17 @@ export function useJobManagement({
         }
       );
     } catch (error) {
-      const friendlyMessage = getUserFriendlyError(error);
       toast.error("Échec du démarrage de la génération", {
-        description: friendlyMessage,
+        description: error instanceof Error ? error.message : "Une erreur inconnue s'est produite",
       });
     }
   };
 
   const handleCancel = async () => {
-    if (!latestJobId) return;
+    if (!latestJob) return;
     
     try {
-      // Call the cancel API endpoint
-      const response = await fetch(`/api/jobs/${latestJobId}/cancel`, {
+      const response = await fetchWithRetry(`/api/jobs/${latestJob._id}/cancel`, {
         method: "POST",
       });
       
@@ -108,23 +89,26 @@ export function useJobManagement({
         description: "La génération du cours a été annulée.",
       });
     } catch (error) {
-      const friendlyMessage = getUserFriendlyError(error);
       toast.error("Échec de l'annulation", {
-        description: friendlyMessage,
+        description: error instanceof Error ? error.message : "Une erreur inconnue s'est produite",
       });
     }
   };
 
-  const handleViewCourse = () => {
-    // Extract owner and repo name from fullName (e.g. "owner/repo")
-    const [owner, repoName] = repositoryFullName.split('/');
-    // Navigate to course viewer using latest alias
-    window.location.href = `/course/${owner}/${repoName}/latest`;
-  };
+  const isProcessing = latestJob && ["pending", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
+  const isCompleted = latestJob?.status === "completed";
+  const isFailed = latestJob?.status === "failed";
+  const isCanceled = latestJob?.status === "canceled";
 
   return {
+    latestJob,
+    repoWithMetadata,
+    updateMetadata,
     handleGenerate,
     handleCancel,
-    handleViewCourse,
+    isProcessing: !!isProcessing,
+    isCompleted: !!isCompleted,
+    isFailed: !!isFailed,
+    isCanceled: !!isCanceled,
   };
 }
