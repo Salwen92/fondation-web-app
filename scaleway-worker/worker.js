@@ -13,14 +13,15 @@ const fs = require('fs').promises;
 const execAsync = promisify(exec);
 
 // Get job parameters from environment variables (set by Scaleway Job)
+// Note: We don't use ANTHROPIC_API_KEY because the system is pre-authenticated with Claude
+// The Docker environment is already authenticated and doesn't require API keys
 const {
   JOB_ID,
   REPOSITORY_URL,
   BRANCH = 'main',
   CALLBACK_URL,
   CALLBACK_TOKEN,
-  GITHUB_TOKEN,
-  ANTHROPIC_API_KEY
+  GITHUB_TOKEN
 } = process.env;
 
 // Validate required environment variables
@@ -199,12 +200,12 @@ async function processAnalyzeJob() {
       ? '/fondation' 
       : '/Users/salwen/Documents/Cyberscaling/fondation';
     
-    // Prefer bundled CLI when present
-    const cliBundled = path.join(fondationPath, 'cli.bundled.cjs');
+    // Prefer bundled CLI when present (Cloud Run legacy location)
+    const cliBundled = path.join(fondationPath, 'cloud-run', 'cli.bundled.cjs');
     let analyzeCommand;
     try {
       await fs.access(cliBundled);
-      analyzeCommand = `cd ${fondationPath} && node cli.bundled.cjs analyze ${repoPath}`;
+      analyzeCommand = `cd ${fondationPath} && node cloud-run/cli.bundled.cjs analyze ${repoPath}`;
       console.log('Using bundled CLI for analyze command');
     } catch {
       analyzeCommand = `cd ${fondationPath} && bun run src/analyze-all.ts ${repoPath}`;
@@ -214,13 +215,27 @@ async function processAnalyzeJob() {
     console.log(`Running analyze command: ${analyzeCommand}`);
     
     // Start the analyze process with extended timeout
+    // Ensure Claude Code authentication environment is preserved
+    const cliEnv = {
+      ...process.env,
+      CLAUDE_OUTPUT_DIR: outputDir,
+      // Explicitly preserve Claude Code authentication variables
+      CLAUDECODE: process.env.CLAUDECODE,
+      CLAUDE_CODE_SSE_PORT: process.env.CLAUDE_CODE_SSE_PORT,
+      CLAUDE_CODE_ENTRYPOINT: process.env.CLAUDE_CODE_ENTRYPOINT,
+    };
+    
+    console.log('CLI Environment check:', {
+      CLAUDECODE: cliEnv.CLAUDECODE,
+      CLAUDE_CODE_SSE_PORT: cliEnv.CLAUDE_CODE_SSE_PORT,
+      cwd: fondationPath
+    });
+    
     const analyzeProcess = exec(analyzeCommand, {
       timeout: 3600000, // 60 minutes timeout
       maxBuffer: 50 * 1024 * 1024, // 50MB buffer
-      env: {
-        ...process.env,
-        CLAUDE_OUTPUT_DIR: outputDir
-      }
+      env: cliEnv,
+      cwd: fondationPath // Ensure CLI runs from fondation project directory
     });
 
     // Monitor progress via file detection

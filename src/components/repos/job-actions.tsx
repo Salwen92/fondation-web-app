@@ -34,6 +34,7 @@ export function JobActions({
           className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
           size="sm"
           onClick={onViewCourse}
+          data-testid="view-course-button"
         >
           <Book className="mr-2 h-4 w-4" />
           Voir le Cours
@@ -44,6 +45,7 @@ export function JobActions({
           disabled={isProcessing}
           className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
           size="sm"
+          data-testid={isProcessing ? "generating-button" : (isFailed || isCanceled) ? "retry-button" : "generate-button"}
         >
           {isProcessing ? (
             <>
@@ -71,6 +73,7 @@ export function JobActions({
           size="sm"
           onClick={onCancel}
           className="glass border-red-200 hover:bg-red-50 hover:border-red-300"
+          data-testid="cancel-button"
         >
           <X className="h-4 w-4 text-red-500" />
         </Button>
@@ -79,6 +82,7 @@ export function JobActions({
           variant="outline"
           size="sm"
           className="glass"
+          data-testid="code-button"
         >
           <Code2 className="h-4 w-4" />
         </Button>

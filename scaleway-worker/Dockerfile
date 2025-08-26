@@ -4,56 +4,49 @@
 # Use Node.js 20 Alpine for smaller image size
 FROM node:20-alpine
 
-# Accept ANTHROPIC_API_KEY as build argument to bake it into the image
-ARG ANTHROPIC_API_KEY
+# Install git, bash, and other dependencies
+RUN apk add --no-cache git bash curl
 
-# Install git, bash, curl, and build tools
-RUN apk add --no-cache git bash curl python3 make g++
-
-# Install bun globally
-RUN curl -fsSL https://bun.sh/install | bash && \
-    mv /root/.bun /opt/bun && \
-    chmod -R 755 /opt/bun
-ENV PATH="/opt/bun/bin:$PATH"
-
-# Copy Fondation source code (will be provided during build)
+# Set working directory for Fondation CLI files
 WORKDIR /fondation
-# Note: During build, use --build-context to specify Fondation path
-# docker build --build-context fondation-source=/path/to/fondation .
-COPY --from=fondation-source . .
 
-# Install Fondation dependencies
-RUN bun install
+# Copy the CLI bundle and prompts from the cloud-run directory
+# These files will be provided via build context
+COPY --from=fondation-source cloud-run/cli.bundled.cjs ./cloud-run/
+COPY --from=fondation-source cloud-run/prompts ./cloud-run/prompts/
 
-# Try to build the bundled CLI if possible
-RUN bun run build:cli || echo "CLI bundling failed, will use source"
+# Copy package.json from fondation source for any needed metadata
+COPY --from=fondation-source package.json ./
 
 # Set working directory for worker
-WORKDIR /app
+WORKDIR /scaleway
 
-# Copy worker script
-COPY worker.js .
-COPY package.json .
+# Copy worker and server files
+COPY worker.js ./worker/
+COPY server.js ./worker/
+COPY package.json ./
 
 # Create required directories
 RUN mkdir -p /tmp/repos /tmp/outputs
 
-# Create a non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+# Create a non-root user for security
+RUN addgroup -g 1001 -S scaleway && \
+    adduser -S scaleway -u 1001
 
 # Set ownership
-RUN chown -R nodejs:nodejs /app /fondation /tmp/repos /tmp/outputs /opt/bun
+RUN chown -R scaleway:scaleway /fondation /scaleway /tmp/repos /tmp/outputs
 
 # Switch to non-root user
-USER nodejs
+USER scaleway
 
 # Set environment variable to indicate we're running in Docker
 ENV RUNNING_IN_DOCKER=true
 
-# Bake the ANTHROPIC_API_KEY into the image as environment variable
-ENV ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
+# Install Express for the server
+RUN npm install express
 
-# The worker.js script will be executed by Scaleway Jobs
-# No need for EXPOSE or CMD as this is not a server
-ENTRYPOINT ["node", "worker.js"]
+# Expose port for the server
+EXPOSE 8080
+
+# Run the server instead of the worker directly
+ENTRYPOINT ["node", "/scaleway/worker/server.js"]

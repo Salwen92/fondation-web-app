@@ -125,14 +125,6 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                     <span>{docsCount} docs</span>
                   </div>
                 )}
-                {latestJob && (
-                  <div className="flex items-center space-x-1">
-                    <span className="text-xs">
-                      {getStatusEmoji(latestJob.status)}
-                    </span>
-                    <span className="capitalize">{translateStatus(latestJob.status)}</span>
-                  </div>
-                )}
               </div>
               <div className="flex items-center space-x-1">
                 <GitBranch className="h-3.5 w-3.5" />
