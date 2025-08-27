@@ -171,6 +171,17 @@ export class CLIExecutor {
         
         console.log(`⚙️  Command: ${analyzeCommand}`);
         
+        // Track the 6-step analysis workflow
+        const workflowSteps = [
+          "Extracting abstractions",
+          "Analyzing relationships", 
+          "Ordering chapters",
+          "Generating chapters",
+          "Reviewing chapters",
+          "Creating tutorials"
+        ];
+        let currentStepIndex = 0;
+        
         const child = exec(analyzeCommand, {
           timeout: 3600000, // 60 minutes timeout
           maxBuffer: 50 * 1024 * 1024, // 50MB buffer
@@ -189,12 +200,44 @@ export class CLIExecutor {
           stdout += text;
           console.log(`[Fondation CLI] ${text.trim()}`);
           
-          // Parse progress messages if they exist
+          // Parse progress messages from CLI output
           const lines = text.split("\n");
           for (const line of lines) {
-            if (line.includes("[PROGRESS]") || line.includes("Step")) {
-              const progress = line.replace("[PROGRESS]", "").trim();
+            const trimmedLine = line.trim();
+            
+            // Detect various progress patterns
+            if (trimmedLine.includes("[PROGRESS]")) {
+              const progress = trimmedLine.replace("[PROGRESS]", "").trim();
               options.onProgress?.(progress).catch(console.error);
+            } else if (trimmedLine.match(/^Step \d+:/i)) {
+              // Step 1: Extract abstractions
+              const stepMatch = trimmedLine.match(/^Step (\d+):/i);
+              if (stepMatch) {
+                const stepNum = parseInt(stepMatch[1]) - 1;
+                if (stepNum >= 0 && stepNum < workflowSteps.length) {
+                  currentStepIndex = stepNum;
+                  const progressMsg = `Step ${stepNum + 1}/6: ${workflowSteps[stepNum]}`;
+                  options.onProgress?.(progressMsg).catch(console.error);
+                }
+              }
+            } else if (trimmedLine.includes("Generating") || 
+                      trimmedLine.includes("Analyzing") || 
+                      trimmedLine.includes("Processing") ||
+                      trimmedLine.includes("Creating") ||
+                      trimmedLine.includes("Reviewing") ||
+                      trimmedLine.includes("Extracting")) {
+              // Detect action words and map to workflow steps
+              for (let i = 0; i < workflowSteps.length; i++) {
+                if (trimmedLine.toLowerCase().includes(workflowSteps[i].toLowerCase().split(" ")[0])) {
+                  currentStepIndex = i;
+                  const progressMsg = `Step ${i + 1}/6: ${workflowSteps[i]}`;
+                  options.onProgress?.(progressMsg).catch(console.error);
+                  break;
+                }
+              }
+            } else if (trimmedLine.match(/^\d+\/\d+/)) {
+              // Progress indicators like "3/6 completed"
+              options.onProgress?.(trimmedLine).catch(console.error);
             }
           }
         });
