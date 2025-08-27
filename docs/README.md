@@ -1,59 +1,63 @@
-# Fondation Web Application Documentation
+# Fondation Documentation
 
 ## Overview
 
-Fondation is an AI-powered documentation generation platform that automatically creates comprehensive documentation for GitHub repositories. Built with Next.js 15, Convex, and NextAuth.js, it provides a seamless experience for developers to generate and manage documentation for their projects.
+Fondation is an AI-powered documentation generation platform that automatically creates comprehensive documentation for GitHub repositories using Claude AI. Built as a vendor-agnostic monorepo with Next.js 15, Convex, and a persistent worker architecture.
 
-## Table of Contents
+## Documentation Index
 
-- [Architecture Overview](./ARCHITECTURE.md)
-- [API Documentation](./API.md)
-- [Authentication Guide](./AUTHENTICATION.md)
-- [Developer Setup](./SETUP.md)
-- [Convex Database Schema](./CONVEX-SCHEMA.md)
-- [Troubleshooting](./TROUBLESHOOTING.md)
+### Core Documentation
+- [API Documentation](./API.md) - REST API endpoints and interfaces
+- [Authentication Guide](./AUTHENTICATION.md) - OAuth and session management
+- [Convex Database Schema](./CONVEX-SCHEMA.md) - Database structure and types
 
-## Quick Start
+### Development Guides
+- [Developer Setup](./SETUP.md) - Local development environment setup
+- [Troubleshooting](./TROUBLESHOOTING.md) - Common issues and solutions
+- [CLI Integration Guide](./cli-integration-guide.md) - Claude CLI integration
 
-```bash
-# Install dependencies
-bun install
+### Migration & History
+- [Migration Completed](./MIGRATION_COMPLETED.md) - Vendor-agnostic architecture migration
+- [Queue Systems Comparison](./QUEUE_SYSTEMS_COMPARISON.md) - Analysis of queue implementations
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your GitHub OAuth credentials
+### Audit Reports
+- [Audit Report](./audit-report/) - Code quality and architecture analysis
+- [Audit Proposals](./audit-report-proposal-b/) - Enhancement proposals
 
-# Start Convex development server
-bunx convex dev
+## System Architecture
 
-# Start Next.js development server
-bun run dev
+The system uses a simple, vendor-agnostic architecture:
+
+```
+USER → NEXT.JS → CONVEX ← WORKER (polls for jobs)
+         ↓         ↑
+      Real-time updates
 ```
 
-## Current Implementation Status
+### Key Components
 
-### ✅ Phase 1.1: Foundation & Authentication (Complete)
-- GitHub OAuth integration
-- User session management
-- Convex database setup
-- Basic UI components with shadcn/ui
+1. **Web Application** (`fondation/apps/web/`)
+   - Next.js 15 with App Router
+   - React 19 with Server Components
+   - Tailwind CSS for styling
+   - Real-time updates via Convex
 
-### ✅ Phase 1.2: Repository Listing & Job Creation (Complete)
-- Fetch and display GitHub repositories
-- Create documentation generation jobs
-- Repository caching in Convex
-- Responsive grid layout
+2. **Worker Process** (`fondation/apps/worker/`)
+   - Persistent Node.js process
+   - Polls Convex for pending jobs
+   - Executes Claude CLI for analysis
+   - Docker containerized for production
 
-### 🚧 Phase 1.3: Cloud Run Setup (Pending)
-- Container configuration for CLI execution
-- Job execution backend
-- Callback system for status updates
+3. **Shared Types** (`fondation/packages/shared/`)
+   - TypeScript type definitions
+   - Zod schemas for validation
+   - Shared between web and worker
 
-### 📅 Phase 2: Execution & Feedback (Future)
-- Real-time job status updates
-- Log streaming with virtual scrolling
-- Code display with syntax highlighting
-- Result visualization
+4. **Database & Queue** (Convex)
+   - Real-time database
+   - Job queue with atomic claiming
+   - Lease-based job management
+   - Automatic retry with backoff
 
 ## Tech Stack
 
@@ -66,98 +70,98 @@ bun run dev
 
 ### Backend & Database
 - **Convex 1.25**: Real-time backend platform
-- **NextAuth.js 5.0 (Beta)**: Authentication solution
+- **NextAuth.js 5.0**: Authentication solution
 - **Octokit 22.0**: GitHub API client
 
-### Development Tools
-- **Bun**: Fast JavaScript runtime and package manager
-- **ESLint 9**: Code linting
-- **Prettier**: Code formatting
-- **Zod 3.24**: Runtime type validation
-
-## Project Structure
-
-```
-fondation-web-app/
-├── src/
-│   ├── app/                 # Next.js App Router pages
-│   │   ├── (auth)/          # Authentication pages
-│   │   ├── (dashboard)/     # Protected dashboard pages
-│   │   └── api/             # API routes
-│   ├── components/          # React components
-│   │   ├── auth/           # Authentication components
-│   │   ├── dashboard/      # Dashboard components
-│   │   ├── repos/          # Repository components
-│   │   └── ui/             # shadcn/ui components
-│   ├── lib/                # Utility functions
-│   ├── server/             # Server-side code
-│   │   └── auth/          # Auth configuration
-│   └── styles/             # Global styles
-├── convex/                 # Convex backend
-│   ├── _generated/        # Auto-generated Convex files
-│   ├── schema.ts          # Database schema
-│   ├── users.ts           # User functions
-│   ├── repositories.ts    # Repository functions
-│   └── jobs.ts            # Job functions
-├── docs/                   # Documentation
-├── roadmap/               # Development roadmap
-└── public/                # Static assets
-```
+### Infrastructure
+- **Docker**: Container runtime
+- **Bun**: JavaScript runtime and package manager
+- **Claude CLI**: AI documentation generation
 
 ## Key Features
 
 ### 🔐 Authentication
-- Secure GitHub OAuth 2.0 integration
-- Session persistence with JWT tokens
-- Automatic user profile syncing
+- GitHub OAuth 2.0 integration
+- Secure session management
+- Encrypted token storage
 
 ### 📚 Repository Management
-- Fetch repositories from authenticated user's GitHub account
-- Cache repository data in Convex for performance
-- Display repositories in responsive grid layout
-- Manual refresh capability
+- Fetch repositories from GitHub
+- Cache repository metadata
+- Real-time status updates
 
-### 💼 Job System
-- Create documentation generation jobs
-- Track job status (pending, running, completed, failed)
-- Secure callback tokens for job updates
-- Job history and management
+### 💼 Job Processing
+- Persistent worker polling
+- Atomic job claiming
+- Automatic retry logic
+- Lease-based recovery
 
 ### 🎨 User Interface
-- Clean, modern design with shadcn/ui
-- Responsive layout for all screen sizes
-- Toast notifications for user feedback
-- Loading states and error handling
+- Modern design with shadcn/ui
+- Responsive layout
+- Real-time notifications
+- Progress tracking
 
-## Performance Targets
+## Performance Characteristics
 
-| Metric | Target | Current Status |
-|--------|--------|---------------|
-| Bundle Size | <200KB | ✅ Achieved |
-| Lighthouse Score | >80 | ✅ Achieved |
-| Time to Interactive | <2s | ✅ Achieved |
-| Type Coverage | 100% | ✅ Achieved |
+| Metric | Target | Status |
+|--------|--------|--------|
+| Job pickup latency | < 5s | ✅ |
+| Small repo analysis | 2-5 min | ✅ |
+| Large repo analysis | 10-30 min | ✅ |
+| Bundle size | < 200KB | ✅ |
+| Type coverage | 100% | ✅ |
 
-## Security Considerations
+## Security Model
 
-- Environment variables validated with Zod schemas
-- GitHub OAuth scopes limited to necessary permissions
-- Secure token storage in HTTP-only cookies
-- CSRF protection via NextAuth.js
-- Input validation on all user inputs
-- SQL injection prevention via Convex ORM
+- **Authentication**: GitHub OAuth only
+- **Secrets**: Encrypted in Convex
+- **Worker**: Non-root Docker container
+- **Network**: Outbound connections only
+- **Claude**: Manual CLI authentication
 
-## Contributing
+## Deployment
 
-Please refer to the [Developer Setup Guide](./SETUP.md) for detailed instructions on setting up the development environment.
+### Production Setup
+- **Web App**: Deployed to Vercel
+- **Worker**: Docker container on any Linux host
+- **Database**: Convex cloud service
 
-## License
+### Scaling Strategy
+- **Vertical**: Increase worker resources
+- **Horizontal**: Deploy multiple workers
+- **Queue**: Automatic load distribution
 
-[License information to be added]
+## Development Workflow
+
+1. **Setup Environment**
+   ```bash
+   cd fondation
+   bun install
+   ```
+
+2. **Start Services**
+   ```bash
+   # Terminal 1: Convex
+   cd apps/web && bunx convex dev
+   
+   # Terminal 2: Web app
+   cd apps/web && bun run dev
+   
+   # Terminal 3: Worker
+   cd apps/worker && bun run dev
+   ```
+
+3. **Code Quality**
+   ```bash
+   bun run typecheck
+   bun run lint
+   bun run format
+   ```
 
 ## Support
 
 For issues and questions:
-- GitHub Issues: [Repository Issues Page]
+- GitHub Issues: [Repository Issues]
 - Documentation: This docs folder
-- Roadmap: See `/roadmap` folder for development plans
+- Contributing: See [CONTRIBUTING.md](../fondation/CONTRIBUTING.md)

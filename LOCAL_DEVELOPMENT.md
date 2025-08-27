@@ -1,27 +1,42 @@
-# Local Development Setup - Scaleway Hybrid Architecture
+# Local Development Setup
 
-This guide provides step-by-step instructions for running the complete Fondation Web App locally with the new Scaleway hybrid architecture.
+This guide provides step-by-step instructions for running the complete Fondation application locally with the new vendor-agnostic monorepo architecture.
 
 ## Architecture Overview
 
-The application uses a hybrid architecture optimized for Scaleway:
-- **API Gateway** (Scaleway Serverless Container): Instant response, handles HTTP requests
-- **Worker** (Scaleway Serverless Job): Long-running tasks (up to 24 hours)
-- **Web App** (Next.js): User interface
-- **Database** (Convex): Real-time data synchronization
+The application uses a simple, vendor-agnostic architecture:
+- **Web App** (Next.js): User interface with real-time updates
+- **Worker** (Node.js): Persistent process that polls for jobs
+- **Database** (Convex): Real-time data and job queue
+- **Claude CLI**: AI-powered documentation generation
 
 ## Prerequisites
 
-- Node.js 20+ and npm/bun
-- Docker (optional, for containerized testing)
-- Fondation CLI source code at `/Users/salwen/Documents/Cyberscaling/fondation`
-- Anthropic API key
+- Bun (latest version)
+- Node.js 20+ 
+- Git
+- Claude CLI (must be authenticated)
+- GitHub OAuth App credentials
+- Convex account
 
 ## Environment Setup
 
-### 1. Set Environment Variables
+### 1. Clone and Navigate to Monorepo
 
-Create a `.env.local` file in the root directory:
+```bash
+cd fondation
+```
+
+### 2. Install Dependencies
+
+```bash
+# Install all workspace dependencies
+bun install
+```
+
+### 3. Configure Web App Environment
+
+Create `apps/web/.env.local`:
 
 ```bash
 # Authentication
@@ -34,273 +49,193 @@ GITHUB_SECRET=your-github-oauth-app-secret
 
 # Convex
 NEXT_PUBLIC_CONVEX_URL=your-convex-url
-
-# Anthropic API (for Fondation CLI)
-ANTHROPIC_API_KEY=your-anthropic-api-key
-
-# Scaleway Gateway (for local development)
-SCALEWAY_GATEWAY_URL=http://localhost:8081
+CONVEX_DEPLOYMENT=your-deployment-name
 ```
 
-### 2. Install Dependencies
+### 4. Configure Worker Environment
+
+Create `apps/worker/.env`:
 
 ```bash
-# Install web app dependencies
-bun install
+# Convex connection
+CONVEX_URL=your-convex-url
 
-# Install Scaleway Gateway dependencies
-cd scaleway-gateway
-npm install
-cd ..
-
-# No installation needed for worker (uses system Node.js)
+# Worker settings
+POLL_INTERVAL=5000
+MAX_CONCURRENT_JOBS=1
+WORKER_ID=local-worker-1
+TEMP_DIR=/tmp/fondation
 ```
 
-## Starting the Services
-
-You need to run **three services** in parallel. Open three terminal windows:
-
-### Terminal 1: Convex Backend
+### 5. Authenticate Claude CLI
 
 ```bash
-# Start Convex development server
+# Authenticate Claude CLI (one-time setup)
+claude login
+
+# Verify authentication
+claude --version
+```
+
+## Running the Application
+
+### Start All Services
+
+Open three terminal windows:
+
+#### Terminal 1: Convex Backend
+```bash
+cd fondation/apps/web
 bunx convex dev
 ```
 
-This will:
-- Start the Convex backend
-- Watch for schema changes
-- Provide real-time synchronization
-
-### Terminal 2: Scaleway API Gateway
-
+#### Terminal 2: Web Application
 ```bash
-# Navigate to gateway directory
-cd scaleway-gateway
-
-# Start in development mode (spawns local workers)
-npm run dev
+cd fondation/apps/web
+bun run dev
 ```
+Access at: http://localhost:3000
 
-This will:
-- Start the API Gateway on port 8081
-- Enable local worker spawning for development
-- Show logs for all worker processes
-
-Available endpoints:
-- `GET http://localhost:8081/` - Health check
-- `POST http://localhost:8081/analyze` - Trigger analysis job
-- `POST http://localhost:8081/cancel/:jobId` - Cancel running job
-- `GET http://localhost:8081/status` - View active jobs
-
-### Terminal 3: Next.js Web Application
-
+#### Terminal 3: Worker Process
 ```bash
-# Start Next.js development server
+cd fondation/apps/worker
 bun run dev
 ```
 
-This will:
-- Start the web app on port 3000
-- Enable hot module replacement
-- Connect to Convex and the API Gateway
+## Testing Workflow
 
-## Testing the Complete Flow
+1. **Login**: Navigate to http://localhost:3000 and sign in with GitHub
+2. **Select Repository**: Choose a repository from your GitHub account
+3. **Generate Documentation**: Click "Generate Documentation"
+4. **Monitor Progress**: Watch real-time updates as the worker processes
+5. **View Results**: Access generated documentation once complete
 
-### 1. Access the Application
+## Development Commands
 
-Open your browser and navigate to:
-```
-http://localhost:3000
-```
-
-### 2. Sign In with GitHub
-
-1. Click "Se connecter avec GitHub"
-2. Authorize the OAuth application
-3. You'll be redirected to the dashboard
-
-### 3. Generate Documentation
-
-1. Select a repository from your list
-2. Click "Générer Documentation"
-3. The system will:
-   - Create a job in Convex
-   - Trigger the Scaleway Gateway
-   - Gateway spawns a local worker process
-   - Worker clones the repository
-   - Worker runs Fondation CLI analyze
-   - Progress updates are sent to Convex
-   - UI updates in real-time
-
-### 4. Monitor Progress
-
-You can monitor the job progress in multiple ways:
-
-**In the UI:**
-- Real-time progress bar
-- Status messages
-- Step indicators
-
-**In the Gateway Terminal:**
+### Type Checking
 ```bash
-# You'll see logs like:
-[Development Mode] Starting local worker for job j123...
-[Worker j123] stdout: Cloning repository...
-[Worker j123] stdout: Running analyze command...
+# Check all workspaces
+bun run typecheck
+
+# Check specific workspace
+cd apps/web && bun run typecheck
 ```
 
-**Check Active Jobs:**
+### Linting
 ```bash
-curl http://localhost:8081/status
+# Lint all workspaces
+bun run lint
+
+# Fix linting issues
+bun run lint:fix
 ```
 
-**View Convex Logs:**
-Check the Convex terminal for database updates and callbacks.
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. Port Conflicts
-
-If ports are already in use:
-- Web app: Change port with `PORT=3001 bun run dev`
-- Gateway: Edit `PORT` in `scaleway-gateway/server-gateway.ts`
-- Convex: Will automatically find an available port
-
-#### 2. Worker Fails to Start
-
-Check:
-- Anthropic API key is set correctly
-- Fondation CLI path exists (`/Users/salwen/Documents/Cyberscaling/fondation`)
-- Node.js version is 20+
-
-#### 3. GitHub Authentication Issues
-
-Ensure:
-- GitHub OAuth app is configured correctly
-- Callback URL is `http://localhost:3000/api/auth/callback/github`
-- GITHUB_ID and GITHUB_SECRET are correct
-
-#### 4. Worker Process Hangs
-
-To kill a stuck worker:
+### Formatting
 ```bash
-# Find the process
-ps aux | grep worker.js
+# Format all code
+bun run format
 
-# Kill it
-kill -9 <PID>
-
-# Or use the cancel endpoint
-curl -X POST http://localhost:8081/cancel/<jobId>
+# Check formatting
+bun run format:check
 ```
 
-## Development Tips
+## Common Issues
 
-### Testing Worker Directly
+### Worker Not Picking Up Jobs
 
-You can test the worker script directly without the gateway:
+1. Check Convex connection:
+```bash
+curl $CONVEX_URL
+```
+
+2. Verify worker is polling:
+- Check worker logs for "Polling for jobs..." messages
+- Ensure POLL_INTERVAL is set (default: 5000ms)
+
+### Claude CLI Authentication Issues
+
+1. Re-authenticate:
+```bash
+claude logout
+claude login
+```
+
+2. Verify credentials:
+```bash
+claude --version
+```
+
+### Convex Connection Issues
+
+1. Check deployment URL:
+```bash
+bunx convex dashboard
+```
+
+2. Verify environment variables match
+
+### Port Conflicts
+
+Default ports:
+- Web app: 3000
+- Convex: 5001
+- Worker metrics: 8080
+
+Change if needed:
+```bash
+# Web app
+PORT=3001 bun run dev
+
+# Worker metrics
+METRICS_PORT=8081 bun run dev
+```
+
+## Debugging
+
+### Enable Debug Logs
 
 ```bash
-cd scaleway-worker
+# Web app
+DEBUG=* bun run dev
 
-# Set required environment variables
-export JOB_ID=test-123
-export REPOSITORY_URL=https://github.com/example/repo
-export BRANCH=main
-export CALLBACK_URL=http://localhost:3000/api/webhook/job-callback
-export CALLBACK_TOKEN=test-token
-export ANTHROPIC_API_KEY=your-key
-
-# Run the worker
-node worker.js
+# Worker
+DEBUG=fondation:* bun run dev
 ```
 
-### Using Docker (Optional)
-
-To test the containerized version:
+### Inspect Database
 
 ```bash
-# Build images
-cd scaleway-gateway
-docker build -t scaleway-gateway .
-
-cd ../scaleway-worker
-docker build -t scaleway-worker \
-  --build-context fondation-source=/Users/salwen/Documents/Cyberscaling/fondation .
-
-# Run gateway container
-docker run -p 8081:8081 \
-  -e NODE_ENV=development \
-  -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
-  scaleway-gateway
+cd apps/web
+bunx convex dashboard
 ```
 
-### Debugging
+### Monitor Worker Health
 
-1. **Enable verbose logging:**
-   ```bash
-   DEBUG=* npm run dev  # In gateway directory
-   ```
+```bash
+curl http://localhost:8080/health
+curl http://localhost:8080/metrics
+```
 
-2. **Check Convex functions:**
-   - Open Convex dashboard
-   - View function logs
-   - Check data in tables
+## Docker Development
 
-3. **Monitor network requests:**
-   - Open browser DevTools
-   - Check Network tab for API calls
-   - Verify callback URLs are correct
+### Build Worker Container
+```bash
+cd apps/worker
+docker build -t fondation-worker-dev .
+```
 
-## Production Deployment
+### Run Worker in Docker
+```bash
+docker run -it \
+  -v ~/.claude:/home/worker/.claude:ro \
+  -e CONVEX_URL=$CONVEX_URL \
+  -p 8080:8080 \
+  fondation-worker-dev
+```
 
-When ready to deploy to Scaleway:
+## Additional Resources
 
-1. **Deploy Gateway to Scaleway Serverless Container:**
-   ```bash
-   # Build and push image
-   docker build -t rg.fr-par.scw.cloud/fondation/gateway:latest scaleway-gateway
-   docker push rg.fr-par.scw.cloud/fondation/gateway:latest
-   
-   # Deploy container
-   scw container container create \
-     name=fondation-gateway \
-     namespace-id=$NAMESPACE_ID \
-     registry-image=rg.fr-par.scw.cloud/fondation/gateway:latest
-   ```
-
-2. **Deploy Worker to Scaleway Serverless Jobs:**
-   ```bash
-   # Build and push image
-   docker build -t rg.fr-par.scw.cloud/fondation/worker:latest scaleway-worker
-   docker push rg.fr-par.scw.cloud/fondation/worker:latest
-   
-   # Create job definition
-   scw jobs definition create \
-     name=fondation-worker \
-     image-uri=rg.fr-par.scw.cloud/fondation/worker:latest
-   ```
-
-3. **Update environment variables:**
-   - Set `SCALEWAY_GATEWAY_URL` to production URL
-   - Configure Scaleway API credentials
-   - Update callback URLs
-
-## Architecture Benefits
-
-This hybrid approach provides:
-- ✅ **Instant response** from the API Gateway
-- ✅ **60-minute+ execution** time for analysis
-- ✅ **Cost efficiency** with scale-to-zero
-- ✅ **Local development** that mirrors production
-- ✅ **Easy debugging** with separate components
-
-## Support
-
-For issues or questions:
-- Check the [main README](README.md)
-- Review [cloud-run](cloud-run/README.md) for comparison
-- Open an issue on GitHub
+- [Architecture Overview](./fondation/docs/ARCHITECTURE.md)
+- [API Documentation](./docs/API.md)
+- [Troubleshooting Guide](./docs/TROUBLESHOOTING.md)
+- [Contributing Guidelines](./fondation/CONTRIBUTING.md)
