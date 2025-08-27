@@ -4,14 +4,15 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "apps/*",
     "packages/*"
   ],
   "scripts": {
     "dev": "bun run --filter '*' dev",
     "build": "bun run --filter '*' build",
+    "build:cli": "bun run --filter '@fondation-io/fondation' build",
     "dev:web": "bun run --filter '@fondation/web' dev",
     "dev:worker": "bun run --filter '@fondation/worker' dev",
+    "dev:cli": "bun run --filter '@fondation-io/fondation' dev",
     "lint": "bun run --filter '*' lint",
     "typecheck": "bun run --filter '*' typecheck",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --cache",

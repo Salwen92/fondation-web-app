@@ -4,24 +4,31 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache python3 make g++
+# Install build dependencies (including bash for bun install)
+RUN apk add --no-cache python3 make g++ curl bash
+
+# Install bun globally
+RUN curl -fsSL https://bun.sh/install | bash && \
+    mv /root/.bun /opt/bun && \
+    chmod -R 755 /opt/bun
+ENV PATH="/opt/bun/bin:$PATH"
 
 WORKDIR /build
 
-# Copy workspace files
+# Copy workspace files (updated for packages structure)
 COPY package.json bun.lock ./
 COPY tsconfig.json ./
 COPY packages/ packages/
-COPY apps/worker/ apps/worker/
-COPY apps/web/convex/_generated/ apps/web/convex/_generated/
 
-# Install dependencies
-RUN npm install -g bun && \
-    bun install
+# Install dependencies for all packages
+RUN bun install
+
+# Build the CLI first (skip build for now, just install deps)
+WORKDIR /build/packages/cli
+RUN bun install --no-save || true
 
 # Build the worker
-WORKDIR /build/apps/worker
+WORKDIR /build/packages/worker
 RUN npx tsc
 
 # Runtime stage
@@ -35,10 +42,11 @@ RUN apk add --no-cache \
     bash \
     ca-certificates
 
-# Install Claude Code CLI (official Anthropic installation)
-RUN curl -fsSL https://claude.ai/install.sh | bash && \
-    cp ~/.local/bin/claude /usr/local/bin/claude && \
-    chmod +x /usr/local/bin/claude
+# Install bun in runtime (needed for CLI fallback)
+RUN curl -fsSL https://bun.sh/install | bash && \
+    mv /root/.bun /opt/bun && \
+    chmod -R 755 /opt/bun
+ENV PATH="/opt/bun/bin:$PATH"
 
 # Create non-root user
 RUN addgroup -g 1001 -S worker && \
@@ -50,11 +58,17 @@ RUN mkdir -p /home/worker/.claude /tmp/fondation && \
 
 WORKDIR /app
 
-# Copy built application maintaining monorepo structure
-COPY --from=builder --chown=worker:worker /build/apps/worker/dist ./apps/worker/dist/
-COPY --from=builder --chown=worker:worker /build/apps/worker/package.json ./apps/worker/
+# Copy built applications maintaining packages structure
+COPY --from=builder --chown=worker:worker /build/packages/worker/dist ./packages/worker/dist/
+COPY --from=builder --chown=worker:worker /build/packages/worker/package.json ./packages/worker/
+COPY --from=builder --chown=worker:worker /build/packages/shared ./packages/shared/
+
+# Copy built CLI with all its dependencies
+COPY --from=builder --chown=worker:worker /build/packages/cli ./packages/cli/
+
+# Copy workspace package.json and node_modules
 COPY --from=builder --chown=worker:worker /build/node_modules ./node_modules/
-COPY --from=builder --chown=worker:worker /build/apps/web/convex/_generated ./apps/web/convex/_generated/
+COPY --from=builder --chown=worker:worker /build/package.json ./
 
 # Switch to non-root user
 USER worker
@@ -66,13 +80,12 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Use tini for proper signal handling
 ENTRYPOINT ["/sbin/tini", "--"]
 
-# Environment variables to disable auto-update
-ENV CLAUDE_DISABLE_UPDATE=1 \
-    CLAUDE_CODE_DISABLE_AUTO_UPDATE=1 \
+# Environment variables
+ENV NODE_ENV=production \
     NO_UPDATE_NOTIFIER=1
 
-# Default command
-CMD ["node", "apps/worker/dist/index.js"]
+# Default command (updated for packages structure)
+CMD ["node", "packages/worker/dist/index.js"]
 
 # Environment variables (documented for reference)
 # CONVEX_URL - Required: Convex deployment URL
@@ -84,7 +97,6 @@ CMD ["node", "apps/worker/dist/index.js"]
 # TEMP_DIR - Optional: Temporary directory for cloned repos (default: /tmp/fondation)
 
 # Volumes
-# /home/worker/.claude - Claude CLI credentials (mount for persistence)
 # /tmp/fondation - Temporary directory for cloned repositories
 
 # Ports

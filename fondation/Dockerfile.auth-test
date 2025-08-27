@@ -1,0 +1,26 @@
+# Simple Docker image for testing CLI authentication
+FROM node:20-alpine
+
+# Install dependencies
+RUN apk add --no-cache git curl bash python3 make g++
+
+# Install bun
+RUN curl -fsSL https://bun.sh/install | bash && \
+    mv /root/.bun /opt/bun && \
+    chmod -R 755 /opt/bun
+ENV PATH="/opt/bun/bin:$PATH"
+
+WORKDIR /app
+
+# Copy CLI package only
+COPY packages/cli/ ./cli/
+
+# Install CLI dependencies
+WORKDIR /app/cli
+RUN npm install || true
+
+# Set working directory for testing
+WORKDIR /app
+
+# Default command - interactive shell for authentication
+CMD ["/bin/sh"]

@@ -43,10 +43,10 @@ export class PermanentWorker {
     };
   }
   
-  constructor(private config: WorkerConfig) {
+  constructor(public config: WorkerConfig) {
     validateConfig();
     this.convex = new ConvexClient(config.convexUrl);
-    this.cliExecutor = new CLIExecutor(config.cliPath);
+    this.cliExecutor = new CLIExecutor(); // No arguments needed - uses integrated CLI
     this.repoManager = new RepoManager(config.tempDir);
     this.healthServer = new HealthServer(this);
   }
@@ -265,17 +265,5 @@ export class PermanentWorker {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
   
-  // Getters for health checks
-  get isHealthy(): boolean {
-    return this.isRunning && Date.now() - this.lastJobTime < 3600000; // 1 hour
-  }
-  
-  get workerStats() {
-    return {
-      ...this.stats,
-      activeJobs: this.activeJobs.size,
-      averageTime: this.stats.total > 0 ? this.stats.totalTime / this.stats.total : 0,
-      lastJobTime: this.lastJobTime,
-    };
-  }
+  // Removed duplicate getters - already defined above
 }

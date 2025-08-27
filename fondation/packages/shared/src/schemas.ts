@@ -26,24 +26,6 @@ export function calculateRetryDelay(
   return exponentialDelay + jitter;
 }
 
-// Health check schema
-export const HealthCheckSchema = z.object({
-  status: z.enum(["healthy", "unhealthy", "degraded"]),
-  uptime: z.number(),
-  lastJobTime: z.number().optional(),
-  activeJobs: z.number(),
-  queueDepth: z.number().optional(),
-  memory: z.object({
-    rss: z.number(),
-    heapTotal: z.number(),
-    heapUsed: z.number(),
-    external: z.number(),
-  }),
-  errors: z.array(z.string()).optional(),
-});
-
-export type HealthCheck = z.infer<typeof HealthCheckSchema>;
-
 // Metrics schema
 export const MetricsSchema = z.object({
   jobsProcessed: z.number(),

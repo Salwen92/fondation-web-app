@@ -66,7 +66,7 @@ ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
 ### Start Web App
 
 ```bash
-cd fondation/apps/web
+cd fondation/packages/web
 
 # Install dependencies
 npm install
@@ -87,7 +87,7 @@ npm run dev
 cd fondation
 
 # Build the worker image
-docker build -t fondation-worker:dev -f apps/worker/Dockerfile .
+docker build -t fondation-worker:dev -f packages/worker/Dockerfile .
 
 # Run with host network to access localhost Convex
 docker run -it --rm \
