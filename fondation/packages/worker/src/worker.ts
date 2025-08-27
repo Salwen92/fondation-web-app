@@ -257,8 +257,41 @@ export class PermanentWorker {
   }
   
   private async saveResults(job: Job, result: any): Promise<void> {
-    // TODO: Save documents to Convex
     console.log(`💾 Saving results for job ${job.id}`);
+    
+    // Check if we have documents to save
+    if (!result.documents || result.documents.length === 0) {
+      console.warn(`⚠️  No documents to save for job ${job.id}`);
+      return;
+    }
+    
+    console.log(`📄 Saving ${result.documents.length} documents to Convex...`);
+    
+    try {
+      // Call the Convex mutation to upsert documents
+      await this.convex.mutation(api.docs.upsertFromJob, {
+        jobId: job.id as Id<"jobs">,
+        repositoryId: job.repositoryId as Id<"repositories">,
+        runId: `run_${Date.now()}`, // Unique run identifier
+        files: result.documents.map((doc: any) => ({
+          slug: doc.slug,
+          title: doc.title,
+          content: doc.content,
+          kind: doc.kind,
+          chapterIndex: doc.chapterIndex >= 0 ? doc.chapterIndex : undefined,
+        })),
+        summary: {
+          chaptersCount: result.documents.filter((d: any) => d.kind === "chapter").length,
+          tutorialsCount: result.documents.filter((d: any) => d.kind === "tutorial").length,
+          generatedAt: Date.now(),
+        },
+      });
+      
+      console.log(`✅ Successfully saved ${result.documents.length} documents`);
+    } catch (error) {
+      console.error(`❌ Failed to save documents:`, error);
+      throw error; // Re-throw to mark job as failed
+    }
   }
   
   private sleep(ms: number): Promise<void> {
