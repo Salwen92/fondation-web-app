@@ -42,11 +42,14 @@ RUN apk add --no-cache \
     bash \
     ca-certificates
 
-# Install bun in runtime (needed for CLI fallback)
+# Install bun in runtime (needed for CLI execution)
 RUN curl -fsSL https://bun.sh/install | bash && \
     mv /root/.bun /opt/bun && \
     chmod -R 755 /opt/bun
 ENV PATH="/opt/bun/bin:$PATH"
+
+# Install Claude CLI globally
+RUN npm install -g @anthropic-ai/claude-code
 
 # Create non-root user
 RUN addgroup -g 1001 -S worker && \

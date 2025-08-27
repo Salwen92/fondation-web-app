@@ -16,13 +16,13 @@ graph TD
 ## Components
 
 ### 1. Web Application (Next.js)
-- **Location**: `apps/web/`
+- **Location**: `packages/web/`
 - **Purpose**: User interface for repository management and course viewing
 - **Technologies**: Next.js 15, React 19, Tailwind CSS, NextAuth
 - **Database**: Convex for real-time data and job queue
 
 ### 2. Worker Process
-- **Location**: `apps/worker/`
+- **Location**: `packages/worker/`
 - **Purpose**: Persistent job processor that polls Convex for work
 - **Technologies**: Node.js, TypeScript
 - **Deployment**: Docker container on any host (VPS, cloud, local)
@@ -32,9 +32,18 @@ graph TD
   - Automatic retry with exponential backoff
   - Health checks and metrics endpoints
 
-### 3. Shared Types
+### 3. Fondation CLI
+- **Location**: `packages/cli/`
+- **Purpose**: Analyzes codebases and generates course content
+- **Technologies**: TypeScript, Claude SDK (@anthropic-ai/claude-code)
+- **Key Features**:
+  - 6-step analysis workflow
+  - Generates YAML abstractions and markdown chapters
+  - Uses Claude AI for content generation
+
+### 4. Shared Types
 - **Location**: `packages/shared/`
-- **Purpose**: Type-safe schemas shared between web and worker
+- **Purpose**: Type-safe schemas shared between all packages
 - **Technologies**: TypeScript, Zod validation
 
 ## Data Flow

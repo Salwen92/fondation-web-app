@@ -26,7 +26,7 @@ cd fondation
 bun install
 
 # Configure environment
-cp apps/web/.env.example apps/web/.env
+cp packages/web/.env.example packages/web/.env
 # Edit .env with your configuration
 
 # Start development
@@ -39,7 +39,7 @@ See [OPERATIONS.md](docs/OPERATIONS.md) for detailed deployment instructions.
 
 ```bash
 # Build Docker image
-docker build -f apps/worker/Dockerfile -t fondation-worker .
+docker build -f packages/worker/Dockerfile -t fondation-worker .
 
 # Deploy to any VPS or cloud provider
 ssh your-server
@@ -72,10 +72,10 @@ See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
 
 ```
 fondation/
-├── apps/
-│   ├── web/          # Next.js web application
-│   └── worker/       # Job processing worker
 ├── packages/
+│   ├── web/          # Next.js web application
+│   ├── worker/       # Job processing worker
+│   ├── cli/          # Fondation CLI (code analyzer)
 │   └── shared/       # Shared types and utilities
 ├── docs/             # Documentation
 └── deploy/           # Deployment scripts

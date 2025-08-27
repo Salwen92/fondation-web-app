@@ -54,7 +54,7 @@
 ```bash
 # On your development machine
 cd fondation
-docker build -f apps/worker/Dockerfile -t fondation-worker:latest .
+docker build -f packages/worker/Dockerfile -t fondation-worker:latest .
 
 # Tag for registry
 docker tag fondation-worker:latest your-registry/fondation-worker:latest
