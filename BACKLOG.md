@@ -6,7 +6,7 @@ This document tracks known issues, improvements, and features that need to be im
 
 ### 1. Remove Outdated API Routes
 **Priority**: HIGH  
-**Status**: TODO  
+**Status**: ✅ COMPLETED  
 **Files**: 
 - `fondation/apps/web/src/app/api/analyze-proxy/route.ts`
 - `fondation/apps/web/src/app/api/jobs/[id]/cancel/route.ts`
@@ -21,7 +21,7 @@ This document tracks known issues, improvements, and features that need to be im
 
 ### 2. Duplicate Code Between Root and Monorepo
 **Priority**: HIGH  
-**Status**: TODO  
+**Status**: ✅ COMPLETED  
 **Files**: 
 - `/src/*` (root)
 - `/fondation/apps/web/src/*` (monorepo)
@@ -38,7 +38,7 @@ This document tracks known issues, improvements, and features that need to be im
 
 ### 3. Environment Variables Consolidation
 **Priority**: MEDIUM  
-**Status**: TODO  
+**Status**: ✅ COMPLETED  
 **Files**: 
 - `fondation/apps/web/src/env.js`
 
@@ -52,7 +52,7 @@ This document tracks known issues, improvements, and features that need to be im
 
 ### 4. Missing Worker Health Check Implementation
 **Priority**: MEDIUM  
-**Status**: TODO  
+**Status**: ✅ COMPLETED  
 **Files**: 
 - `fondation/apps/worker/src/health.ts`
 
@@ -191,6 +191,52 @@ This document tracks known issues, improvements, and features that need to be im
 
 ---
 
+## 🆕 Recently Identified Issues
+
+### Production Encryption Implementation
+**Priority**: HIGH  
+**Status**: TODO  
+**Files**: 
+- `fondation/apps/web/src/lib/simple-crypto.ts`
+- `fondation/apps/web/src/app/api/auth/store-token/route.ts`
+
+**Description**: Currently using simple obfuscation for GitHub tokens instead of proper encryption.
+
+**Solution**: 
+- Implement AES-256-GCM encryption
+- Use secure key management service (AWS KMS, etc.)
+- Add proper IV generation and authentication tags
+
+---
+
+### Kubernetes Deployment Configuration
+**Priority**: MEDIUM  
+**Status**: TODO  
+**Files**: 
+- `k8s/worker-deployment.yaml` (needs creation)
+
+**Description**: No Kubernetes configuration for multi-worker deployment.
+
+**Solution**: 
+- Create Kubernetes deployment manifests
+- Add HPA for auto-scaling
+- Configure secrets management
+
+---
+
+### Production Logging Infrastructure
+**Priority**: MEDIUM  
+**Status**: TODO  
+
+**Description**: No centralized logging solution for production.
+
+**Solution**: 
+- Implement ELK stack or similar
+- Add structured logging
+- Configure log retention policies
+
+---
+
 ## 🔒 Security Improvements
 
 ### 13. Rate Limiting
@@ -210,7 +256,7 @@ This document tracks known issues, improvements, and features that need to be im
 
 ### 14. Input Validation
 **Priority**: HIGH  
-**Status**: TODO  
+**Status**: ✅ COMPLETED  
 **Files**: 
 - Various API routes and Convex functions
 

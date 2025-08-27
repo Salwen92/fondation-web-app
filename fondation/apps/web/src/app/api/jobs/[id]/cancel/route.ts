@@ -25,29 +25,16 @@ export async function POST(
       );
     }
     
-    // Call Worker Gateway cancel endpoint
-    const gatewayUrl = process.env.WORKER_GATEWAY_URL ?? "http://localhost:8081";
-    const cancelUrl = `${gatewayUrl}/cancel/${jobId}`;
-    
-    try {
-      const response = await fetch(cancelUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      
-      if (!response.ok) {
-        logger.error(`Worker cancel failed: ${response.status}`);
-      } else {
-        logger.info(`Worker process cancelled for job ${jobId}`);
-      }
-    } catch (error) {
-      logger.error("Failed to call worker cancel endpoint", error instanceof Error ? error : new Error(String(error)));
-      // Continue even if worker cancel fails
+    // Check if job can be cancelled
+    if (job.status === "completed" || job.status === "failed" || job.status === "canceled") {
+      return NextResponse.json(
+        { error: `Job already ${job.status}` },
+        { status: 400 }
+      );
     }
     
     // Update job status in Convex to canceled
+    // This will prevent workers from claiming or continuing to process the job
     await client.mutation(api.jobs.updateStatus, {
       jobId,
       status: "canceled",
@@ -55,6 +42,8 @@ export async function POST(
       error: "Job cancelled by user",
       progress: "Job was cancelled by user request",
     });
+    
+    logger.info(`Job ${jobId} cancelled successfully`);
     
     return NextResponse.json({ 
       success: true,

@@ -88,3 +88,33 @@ export const CLIResultSchema = z.object({
 });
 
 export type CLIResult = z.infer<typeof CLIResultSchema>;
+
+// Health check schema
+export const HealthCheckSchema = z.object({
+  status: z.enum(["healthy", "degraded", "unhealthy"]),
+  workerId: z.string(),
+  uptime: z.number(),
+  lastJobTime: z.number(),
+  activeJobs: z.number(),
+  maxConcurrentJobs: z.number(),
+  memory: z.object({
+    rss: z.number(),
+    heapTotal: z.number(),
+    heapUsed: z.number(),
+    external: z.number(),
+    percentUsed: z.number(),
+  }),
+  cpu: z.object({
+    loadAverage: z.array(z.number()),
+    cores: z.number(),
+  }),
+  system: z.object({
+    platform: z.string(),
+    arch: z.string(),
+    nodeVersion: z.string(),
+    totalMemory: z.number(),
+    freeMemory: z.number(),
+  }),
+});
+
+export type HealthCheck = z.infer<typeof HealthCheckSchema>;

@@ -1,0 +1,58 @@
+# Simplified Dockerfile for Claude Authentication
+FROM node:20-alpine
+
+# Install required packages
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash \
+    ca-certificates \
+    python3 \
+    make \
+    g++
+
+# Create worker user and directories
+RUN addgroup -g 1001 worker && \
+    adduser -D -u 1001 -G worker worker && \
+    mkdir -p /app /tmp/fondation && \
+    chown -R worker:worker /app /tmp/fondation
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json ./
+COPY packages/shared/package.json packages/shared/
+COPY apps/worker/package.json apps/worker/
+
+# Install dependencies with npm (avoid bun issues)
+RUN npm install --omit=dev
+
+# Copy source code
+COPY --chown=worker:worker packages/ packages/
+COPY --chown=worker:worker apps/worker/ apps/worker/
+COPY --chown=worker:worker apps/web/convex/_generated/ apps/web/convex/_generated/
+
+# Build TypeScript
+WORKDIR /app/apps/worker
+RUN npx tsc
+
+# Install Claude CLI globally
+RUN npm install -g @anthropic-ai/claude
+
+# Switch to worker user
+USER worker
+
+# Set up environment
+ENV NODE_ENV=development \
+    TEMP_DIR=/tmp/fondation \
+    CLI_PATH=/usr/local/bin/claude
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# Expose health port
+EXPOSE 8080
+
+# Default command - will be overridden for authentication
+CMD ["node", "dist/worker.js"]

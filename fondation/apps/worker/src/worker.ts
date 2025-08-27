@@ -22,6 +22,27 @@ export class PermanentWorker {
     totalTime: 0,
   };
   
+  // Public getters for health monitoring
+  get isHealthy(): boolean {
+    const memoryUsage = process.memoryUsage();
+    const memoryPercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+    const timeSinceLastJob = Date.now() - this.lastJobTime;
+    
+    // Healthy if memory usage is reasonable and we've processed a job recently
+    return memoryPercent < 90 && (this.stats.total === 0 || timeSinceLastJob < 1800000); // 30 minutes
+  }
+  
+  get workerStats() {
+    return {
+      total: this.stats.total,
+      succeeded: this.stats.succeeded,
+      failed: this.stats.failed,
+      totalTime: this.stats.totalTime,
+      activeJobs: this.activeJobs.size,
+      lastJobTime: this.lastJobTime,
+    };
+  }
+  
   constructor(private config: WorkerConfig) {
     validateConfig();
     this.convex = new ConvexClient(config.convexUrl);

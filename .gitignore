@@ -6,15 +6,28 @@ node_modules/
 # Testing
 coverage/
 
+# Next.js
+.next/
+out/
+next-env.d.ts
+
 # Production
 build/
 dist/
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
 
 # Misc
 .DS_Store
 *.pem
 .env*
 !.env.example
+
+# Logs
+*.log
+convex.log
 
 # Debug
 npm-debug.log*

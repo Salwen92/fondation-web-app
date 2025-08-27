@@ -4,6 +4,11 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../convex/_generated/api";
 import { safeObfuscate, safeDeobfuscate } from "@/lib/simple-crypto";
 import { logger } from "@/lib/logger";
+import { z } from "zod";
+
+const storeTokenSchema = z.object({
+  accessToken: z.string().min(1, "Access token is required"),
+});
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "http://localhost:3210";
 const client = new ConvexHttpClient(convexUrl);
@@ -23,15 +28,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json() as { accessToken?: string };
-    const { accessToken } = body;
-
-    if (!accessToken) {
+    const body = await req.json() as unknown;
+    
+    // Validate request body
+    const parseResult = storeTokenSchema.safeParse(body);
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "Access token is required" },
+        { 
+          error: "Invalid request data",
+          details: parseResult.error.errors 
+        },
         { status: 400 }
       );
     }
+    
+    const { accessToken } = parseResult.data;
 
     // Obfuscate the token before storing (TODO: Use proper encryption in production)
     const obfuscatedToken = safeObfuscate(accessToken);

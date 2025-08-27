@@ -1,8 +1,6 @@
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { toast } from "sonner";
-import { getJobCallbackUrl } from "@/lib/config";
-import { fetchWithRetry } from "@/lib/retry";
 import type { Id } from "../../convex/_generated/dataModel";
 
 interface UseJobManagementOptions {
@@ -27,47 +25,32 @@ export function useJobManagement({
 
   const handleGenerate = async () => {
     try {
-      // First create the job in Convex
+      // Create the job in Convex - workers will claim it from the queue
       const result = await generateCourse({
         userId,
         repositoryId,
         prompt: `Generate comprehensive course documentation for ${repositoryName}`,
       });
       
-      // Then trigger the Worker Gateway service
+      // Job is now in the queue, workers will pick it up automatically
       if (result.jobId) {
-        const response = await fetchWithRetry("/api/analyze-proxy", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            jobId: result.jobId,
-            repositoryUrl: `https://github.com/${repositoryFullName}`,
-            branch: defaultBranch,
-            callbackUrl: getJobCallbackUrl(),
-            callbackToken: result.callbackToken,
-          }),
+        // Update local metadata to show job is in progress
+        await updateMetadata({
+          repositoryId,
+          lastAnalyzedAt: Date.now(),
         });
         
-        if (!response.ok) {
-          throw new Error("Échec du démarrage de l'analyse");
-        }
-        
-        const gatewayResult = await response.json() as unknown;
-        console.log("Worker Gateway triggered:", gatewayResult);
+        toast.success(
+          "Documentation generation started!",
+          {
+            description: `Job ID: ${result.jobId}. The analysis will begin shortly.`,
+            duration: 8000,
+          }
+        );
       }
-      
-      toast.success(
-        "Génération du cours démarrée!",
-        {
-          description: `Job ID: ${result.jobId}. Vous recevrez un email à la fin.`,
-          duration: 8000,
-        }
-      );
     } catch (error) {
-      toast.error("Échec du démarrage de la génération", {
-        description: error instanceof Error ? error.message : "Une erreur inconnue s'est produite",
+      toast.error("Failed to start generation", {
+        description: error instanceof Error ? error.message : "An unknown error occurred",
       });
     }
   };
@@ -76,21 +59,21 @@ export function useJobManagement({
     if (!latestJob) return;
     
     try {
-      const response = await fetchWithRetry(`/api/jobs/${latestJob._id}/cancel`, {
+      const response = await fetch(`/api/jobs/${latestJob._id}/cancel`, {
         method: "POST",
       });
       
       if (!response.ok) {
         const error = await response.json() as { error?: string };
-        throw new Error(error.error ?? "Échec de l'annulation");
+        throw new Error(error.error ?? "Failed to cancel job");
       }
       
-      toast.success("Génération annulée", {
-        description: "La génération du cours a été annulée.",
+      toast.success("Generation cancelled", {
+        description: "The documentation generation has been cancelled.",
       });
     } catch (error) {
-      toast.error("Échec de l'annulation", {
-        description: error instanceof Error ? error.message : "Une erreur inconnue s'est produite",
+      toast.error("Failed to cancel", {
+        description: error instanceof Error ? error.message : "An unknown error occurred",
       });
     }
   };

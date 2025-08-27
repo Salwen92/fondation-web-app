@@ -31,14 +31,10 @@ export function getJobCallbackUrl(): string {
 }
 
 /**
- * Get the gateway URL for job processing
+ * Get the Convex URL for backend operations
  */
-export function getGatewayUrl(): string {
-  if (process.env.NODE_ENV === "production") {
-    return process.env.WORKER_GATEWAY_URL ?? "https://gateway.fondation.ai";
-  }
-  
-  return "http://localhost:8081";
+export function getConvexUrl(): string {
+  return process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "";
 }
 
 /**
@@ -48,7 +44,7 @@ export const appConfig = {
   baseUrl: getAppBaseUrl(),
   api: {
     jobCallback: getJobCallbackUrl(),
-    gateway: getGatewayUrl(),
+    convex: getConvexUrl(),
   },
   isProduction: process.env.NODE_ENV === "production",
   isDevelopment: process.env.NODE_ENV === "development",

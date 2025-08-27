@@ -126,6 +126,9 @@ docker logs -f <container-id>
 - Claude authentication: **SETUP NEEDED** ⚠️
 - Convex production URL: **CONFIGURE** ⚠️
 - End-to-end testing: **EXECUTE** ⚠️
+- Production encryption: **UPGRADE FROM OBFUSCATION** ⚠️
+- SSL certificates: **CONFIGURE** ⚠️
+- Monitoring stack: **DEPLOY** ⚠️
 
 ---
 

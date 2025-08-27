@@ -38,8 +38,10 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
   // Get actual docs count from latest completed job
   const docsCount = latestJob?.status === "completed" ? latestJob.docsCount ?? 0 : 0;
   
-  // TODO: Get real language and stats data from GitHub API
-  const languages = ["TypeScript", "React", "Node.js"]; // Mock data - should come from GitHub API
+  // Get languages from repository metadata
+  const languages = repo.languages?.all
+    ?.slice(0, 3)
+    .map(lang => lang.name) ?? [];
 
   // Use the job management hook
   const { handleGenerate, handleCancel } = useJobManagement({
@@ -113,14 +115,18 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
 
             {/* Languages */}
             <div className="flex flex-wrap gap-1 mb-4">
-              {languages.map((lang) => (
+              {languages.length > 0 ? languages.map((lang) => (
                 <span 
                   key={lang}
                   className="px-2 py-1 text-xs rounded-full bg-muted/50 text-muted-foreground"
                 >
                   {lang}
                 </span>
-              ))}
+              )) : (
+                <span className="px-2 py-1 text-xs rounded-full bg-muted/50 text-muted-foreground italic">
+                  No languages detected
+                </span>
+              )}
             </div>
 
             {/* Stats */}
