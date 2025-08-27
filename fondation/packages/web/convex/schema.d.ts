@@ -183,14 +183,14 @@ declare const _default: import("convex/server").SchemaDefinition<{
         title: string;
         chapterIndex: number;
         content: string;
-        kind: "chapter" | "tutorial" | "toc" | "yaml";
+        kind: "yaml" | "chapter" | "tutorial" | "toc";
     }, {
         jobId: import("convex/values").VId<import("convex/values").GenericId<"jobs">, "required">;
         repositoryId: import("convex/values").VId<import("convex/values").GenericId<"repositories">, "required">;
         slug: import("convex/values").VString<string, "required">;
         title: import("convex/values").VString<string, "required">;
         chapterIndex: import("convex/values").VFloat64<number, "required">;
-        kind: import("convex/values").VUnion<"chapter" | "tutorial" | "toc" | "yaml", [import("convex/values").VLiteral<"chapter", "required">, import("convex/values").VLiteral<"tutorial", "required">, import("convex/values").VLiteral<"toc", "required">, import("convex/values").VLiteral<"yaml", "required">], "required", never>;
+        kind: import("convex/values").VUnion<"yaml" | "chapter" | "tutorial" | "toc", [import("convex/values").VLiteral<"chapter", "required">, import("convex/values").VLiteral<"tutorial", "required">, import("convex/values").VLiteral<"toc", "required">, import("convex/values").VLiteral<"yaml", "required">], "required", never>;
         content: import("convex/values").VString<string, "required">;
         createdAt: import("convex/values").VFloat64<number, "required">;
         updatedAt: import("convex/values").VFloat64<number | undefined, "optional">;
