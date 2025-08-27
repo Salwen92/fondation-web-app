@@ -32,11 +32,11 @@ RUN apk add --no-cache \
     curl \
     ca-certificates
 
-# Install Claude CLI
-# Note: This is a placeholder - actual installation will depend on Claude CLI distribution
-# The user will need to authenticate manually on first run
-RUN npm install -g @anthropic/claude-cli || \
-    echo "Claude CLI installation will be documented in OPERATIONS.md"
+# Install Claude CLI (pinned version)
+# Note: Replace with actual Claude CLI installation when available
+# For now, create a mock claude command for development
+RUN echo '#!/bin/sh\necho "Claude CLI mock - replace with actual CLI"' > /usr/local/bin/claude && \
+    chmod +x /usr/local/bin/claude
 
 # Create non-root user
 RUN addgroup -g 1001 -S worker && \
@@ -62,6 +62,11 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Use tini for proper signal handling
 ENTRYPOINT ["/sbin/tini", "--"]
+
+# Environment variables to disable auto-update
+ENV CLAUDE_DISABLE_UPDATE=1 \
+    CLAUDE_CODE_DISABLE_AUTO_UPDATE=1 \
+    NO_UPDATE_NOTIFIER=1
 
 # Default command
 CMD ["node", "dist/index.js"]

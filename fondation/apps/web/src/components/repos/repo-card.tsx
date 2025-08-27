@@ -42,14 +42,21 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
   const languages = ["TypeScript", "React", "Node.js"]; // Mock data - should come from GitHub API
 
   // Use the job management hook
-  const { handleGenerate, handleCancel, handleViewCourse } = useJobManagement({
+  const { handleGenerate, handleCancel } = useJobManagement({
     userId,
     repositoryId: repo._id,
     repositoryFullName: repo.fullName,
     repositoryName: repo.name,
     defaultBranch: repo.defaultBranch,
-    latestJobId: latestJob?._id,
   });
+  
+  // Handle view course action
+  const handleViewCourse = () => {
+    if (latestJob?._id) {
+      const [owner, repoName] = repo.fullName.split('/');
+      window.location.href = `/course/${owner}/${repoName}/${latestJob._id}`;
+    }
+  };
 
   // Job status calculations
   const isProcessing = latestJob && ["pending", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
@@ -143,7 +150,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
 
             {/* Actions */}
             <JobActions
-              status={latestJob?.status}
+              status={latestJob?.status as any}
               isProcessing={!!isProcessing}
               isCompleted={!!isCompleted}
               isFailed={!!isFailed}

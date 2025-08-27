@@ -4,6 +4,8 @@ import { validateConfig } from "./config.js";
 import { CLIExecutor } from "./cli-executor.js";
 import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
+import { api } from "../../web/convex/_generated/api.js";
+import type { Id } from "../../web/convex/_generated/dataModel.js";
 
 export class PermanentWorker {
   private convex: ConvexClient;
@@ -80,22 +82,28 @@ export class PermanentWorker {
     }
     
     try {
-      // TODO: Replace with actual Convex query when schema is updated
-      // const job = await this.convex.query("jobs:claimOne", {
-      //   workerId: this.config.workerId,
-      //   leaseMs: this.config.leaseTime,
-      // });
+      // Claim a job from the queue
+      const claimedJob = await this.convex.mutation(api.queue.claimOne, {
+        workerId: this.config.workerId,
+        leaseMs: this.config.leaseTime,
+      });
       
-      // Placeholder for now
-      const job = null;
-      
-      if (job) {
+      if (claimedJob) {
+        const job: Job = {
+          id: claimedJob.id as string,
+          repositoryId: claimedJob.repositoryId as string,
+          userId: claimedJob.userId as string,
+          prompt: claimedJob.prompt,
+          callbackToken: claimedJob.callbackToken,
+          attempts: claimedJob.attempts,
+        };
+        
         console.log(`📝 Claimed job: ${job.id}`);
         this.lastJobTime = Date.now();
         this.activeJobs.add(job.id);
         
         // Process job asynchronously
-        this.processJob(job as Job)
+        this.processJob(job)
           .finally(() => {
             this.activeJobs.delete(job.id);
           });
@@ -165,12 +173,11 @@ export class PermanentWorker {
   private startHeartbeat(jobId: string): NodeJS.Timeout {
     return setInterval(async () => {
       try {
-        // TODO: Replace with actual Convex mutation
-        // await this.convex.mutation("jobs:heartbeat", {
-        //   jobId,
-        //   workerId: this.config.workerId,
-        //   leaseMs: this.config.leaseTime,
-        // });
+        await this.convex.mutation(api.queue.heartbeat, {
+          jobId: jobId as Id<"jobs">,
+          workerId: this.config.workerId,
+          leaseMs: this.config.leaseTime,
+        });
         console.log(`💓 Heartbeat for job ${jobId}`);
       } catch (error) {
         console.error(`❌ Heartbeat failed for job ${jobId}:`, error);
@@ -183,7 +190,12 @@ export class PermanentWorker {
     status: JobStatus,
     progress?: string
   ): Promise<void> {
-    // TODO: Replace with actual Convex mutation
+    await this.convex.mutation(api.queue.heartbeat, {
+      jobId: jobId as Id<"jobs">,
+      workerId: this.config.workerId,
+      status: status as "cloning" | "analyzing" | "gathering" | "running",
+      progress,
+    });
     console.log(`📊 Job ${jobId}: ${status} - ${progress || ""}`);
   }
   
@@ -193,12 +205,20 @@ export class PermanentWorker {
   }
   
   private async completeJob(jobId: string, result: any): Promise<void> {
-    // TODO: Replace with actual Convex mutation
+    await this.convex.mutation(api.queue.complete, {
+      jobId: jobId as Id<"jobs">,
+      workerId: this.config.workerId,
+      result,
+    });
     console.log(`✅ Job ${jobId} completed with result`);
   }
   
   private async failJob(jobId: string, error: string): Promise<void> {
-    // TODO: Replace with actual Convex mutation
+    await this.convex.mutation(api.queue.retryOrFail, {
+      jobId: jobId as Id<"jobs">,
+      workerId: this.config.workerId,
+      error,
+    });
     console.log(`❌ Job ${jobId} failed: ${error}`);
   }
   

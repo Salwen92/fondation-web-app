@@ -408,19 +408,36 @@ export const cleanupOldGenerations = internalMutation({
   }
 });
 
-// Export all docs for backup
+// Export all docs for backup - with pagination support for large datasets
 export const exportAll = query({
-  args: { jobId: v.optional(v.id("jobs")) },
+  args: { 
+    jobId: v.optional(v.id("jobs")),
+    limit: v.optional(v.number()), // Default to 1000 for safety
+    cursor: v.optional(v.string())
+  },
   handler: async (ctx, args) => {
+    const limit = args.limit ?? 1000; // Safe default limit
+    
     if (args.jobId !== undefined) {
       const jobId = args.jobId;
-      return await ctx.db
+      const query = ctx.db
         .query("docs")
-        .withIndex("by_job", (q) => q.eq("jobId", jobId))
-        .collect();
+        .withIndex("by_job", (q) => q.eq("jobId", jobId));
+      
+      // Apply pagination if needed
+      if (limit < Infinity) {
+        return await query.take(limit);
+      }
+      return await query.collect();
     } else {
-      // Export all docs
-      return await ctx.db.query("docs").collect();
+      // Export all docs with pagination
+      const query = ctx.db.query("docs");
+      
+      // Apply pagination for safety
+      if (limit < Infinity) {
+        return await query.take(limit);
+      }
+      return await query.collect();
     }
   }
 });

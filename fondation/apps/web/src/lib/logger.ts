@@ -18,6 +18,8 @@ interface LogContext {
   method?: string;
   userAgent?: string;
   extra?: Record<string, unknown>;
+  // Additional fields for flexibility
+  [key: string]: unknown;
 }
 
 interface LogEntry {
@@ -205,6 +207,13 @@ class Logger {
     
     this.error("Unhandled promise rejection", error);
   };
+
+  /**
+   * Log job-related messages
+   */
+  logJob(message: string, jobId: string, context?: LogContext): void {
+    this.info(message, { ...context, jobId });
+  }
 
   /**
    * Create a child logger with preset context

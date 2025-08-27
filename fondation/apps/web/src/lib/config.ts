@@ -35,7 +35,7 @@ export function getJobCallbackUrl(): string {
  */
 export function getGatewayUrl(): string {
   if (process.env.NODE_ENV === "production") {
-    return process.env.SCALEWAY_GATEWAY_URL ?? "https://gateway.fondation.ai";
+    return process.env.WORKER_GATEWAY_URL ?? "https://gateway.fondation.ai";
   }
   
   return "http://localhost:8081";

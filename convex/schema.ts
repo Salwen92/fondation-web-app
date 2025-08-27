@@ -75,7 +75,10 @@ export default defineSchema({
     lastError: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
-    .index("by_repository", ["repositoryId"]),
+    .index("by_repository", ["repositoryId"])
+    .index("by_status_runAt", ["status", "runAt"])
+    .index("by_leaseUntil", ["leaseUntil"])
+    .index("by_dedupeKey", ["dedupeKey"]),
 
   docs: defineTable({
     jobId: v.id("jobs"),

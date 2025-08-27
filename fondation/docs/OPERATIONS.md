@@ -17,13 +17,17 @@
 - Convex deployment configured
 - GitHub repository access
 
-### Initial Setup on Scaleway Instance
+### Initial Setup on VPS/Cloud Instance
 
-1. **Provision a Scaleway Instance**
+1. **Provision a server (any provider)**
    ```bash
-   # Recommended: DEV1-S or PLAY2-NANO
-   # OS: Ubuntu 22.04 LTS
-   # Storage: 20GB minimum
+   # Minimum requirements:
+   # - 2 CPU cores
+   # - 2GB RAM
+   # - 20GB storage
+   # - Ubuntu 22.04 LTS (or compatible)
+   # 
+   # Providers: Scaleway, DigitalOcean, Linode, Hetzner, AWS EC2, etc.
    ```
 
 2. **Run setup script**
@@ -32,7 +36,7 @@
    ssh root@your-instance-ip
    
    # Download and run setup script
-   curl -fsSL https://raw.githubusercontent.com/your-org/fondation/main/deploy/scaleway-setup.sh | bash
+   curl -fsSL https://raw.githubusercontent.com/your-org/fondation/main/deploy/vps-setup.sh | bash
    ```
 
 3. **Configure environment**

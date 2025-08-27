@@ -25,8 +25,8 @@ export async function POST(
       );
     }
     
-    // Call Scaleway Gateway cancel endpoint
-    const gatewayUrl = process.env.SCALEWAY_GATEWAY_URL ?? "http://localhost:8081";
+    // Call Worker Gateway cancel endpoint
+    const gatewayUrl = process.env.WORKER_GATEWAY_URL ?? "http://localhost:8081";
     const cancelUrl = `${gatewayUrl}/cancel/${jobId}`;
     
     try {

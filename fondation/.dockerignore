@@ -1,4 +1,5 @@
 node_modules
+**/node_modules
 npm-debug.log
 .git
 .gitignore
@@ -12,6 +13,8 @@ README.md
 *~
 .DS_Store
 .next
+**/.next
+apps/web/.next
 .convex
 dist
 build
@@ -24,3 +27,7 @@ temp
 .turbo
 .vercel
 *.tsbuildinfo
+test
+__tests__
+*.test.*
+*.spec.*

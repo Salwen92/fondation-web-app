@@ -18,13 +18,29 @@ export default defineSchema({
     fullName: v.string(),
     description: v.optional(v.string()),
     defaultBranch: v.string(),
+    lastFetched: v.optional(v.number()),
+    languages: v.optional(v.object({
+      primary: v.string(),
+      all: v.array(v.object({
+        name: v.string(),
+        percentage: v.number(),
+        bytes: v.number(),
+      })),
+    })),
+    stats: v.optional(v.object({
+      stars: v.number(),
+      forks: v.number(),
+      issues: v.number(),
+    })),
   }).index("by_user", ["userId"]),
 
   jobs: defineTable({
+    // Core fields
     userId: v.id("users"),
     repositoryId: v.id("repositories"),
     status: v.union(
       v.literal("pending"),
+      v.literal("claimed"),
       v.literal("cloning"),
       v.literal("analyzing"),
       v.literal("gathering"),
@@ -32,13 +48,31 @@ export default defineSchema({
       v.literal("completed"),
       v.literal("failed"),
       v.literal("canceled"),
+      v.literal("dead"),
     ),
     prompt: v.string(),
     callbackToken: v.string(),
+    
+    // Queue management fields
+    runAt: v.number(), // When job should run (for scheduling/backoff)
+    attempts: v.number(), // Number of attempts made
+    maxAttempts: v.optional(v.number()), // Max attempts before marking dead (default: 5)
+    lockedBy: v.optional(v.string()), // Worker ID that has claimed the job
+    leaseUntil: v.optional(v.number()), // Lease expiration timestamp
+    dedupeKey: v.optional(v.string()), // For preventing duplicate jobs
+    lastError: v.optional(v.string()), // Last error message for debugging
+    
+    // Timestamps
     createdAt: v.number(),
+    updatedAt: v.number(),
+    completedAt: v.optional(v.number()),
+    
+    // Progress tracking
     progress: v.optional(v.string()),
     currentStep: v.optional(v.number()),
     totalSteps: v.optional(v.number()),
+    
+    // Results
     result: v.optional(v.union(
       v.object({
         success: v.boolean(),
@@ -50,7 +84,6 @@ export default defineSchema({
     )),
     error: v.optional(v.string()),
     docsCount: v.optional(v.number()),
-    completedAt: v.optional(v.number()),
     cancelRequested: v.optional(v.boolean()),
     runId: v.optional(v.string()),
     regenerationStats: v.optional(v.object({
@@ -62,7 +95,10 @@ export default defineSchema({
     })),
   })
     .index("by_user", ["userId"])
-    .index("by_repository", ["repositoryId"]),
+    .index("by_repository", ["repositoryId"])
+    .index("by_status_runAt", ["status", "runAt"])
+    .index("by_leaseUntil", ["leaseUntil"])
+    .index("by_dedupeKey", ["dedupeKey"]),
 
   docs: defineTable({
     jobId: v.id("jobs"),

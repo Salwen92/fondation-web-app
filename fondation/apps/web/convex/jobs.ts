@@ -11,6 +11,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const callbackToken = uuidv4();
+    const now = Date.now();
 
     // Get repository details
     const repository = await ctx.db.get(args.repositoryId);
@@ -25,6 +26,7 @@ export const create = mutation({
       .filter((q) => 
         q.or(
           q.eq(q.field("status"), "pending"),
+          q.eq(q.field("status"), "claimed"),
           q.eq(q.field("status"), "cloning"),
           q.eq(q.field("status"), "analyzing"),
           q.eq(q.field("status"), "gathering"),
@@ -37,14 +39,22 @@ export const create = mutation({
       throw new Error("A job is already running for this repository. Please wait for it to complete or cancel it first.");
     }
 
-    // Create the job
+    // Create the job with queue fields
     const jobId = await ctx.db.insert("jobs", {
       userId: args.userId,
       repositoryId: args.repositoryId,
       status: "pending",
       prompt: args.prompt,
       callbackToken,
-      createdAt: Date.now(),
+      // Queue fields
+      runAt: now,
+      attempts: 0,
+      maxAttempts: 5,
+      dedupeKey: `${args.repositoryId}_${now}`,
+      // Timestamps
+      createdAt: now,
+      updatedAt: now,
+      // Progress
       currentStep: 0,
       totalSteps: 7,
       progress: "Initializing...",
@@ -54,9 +64,9 @@ export const create = mutation({
     const user = await ctx.db.get(args.userId);
     const githubToken = user?.githubAccessToken;
     
-    // Don't trigger Scaleway Gateway from here in development
+    // Don't trigger worker service from here in development
     // The client will trigger it directly to avoid localhost restrictions
-    console.log("Job created, client will trigger Scaleway Gateway service");
+    console.log("Job created, client will trigger worker service");
 
     return {
       jobId,
@@ -107,6 +117,7 @@ export const updateStatus = mutation({
     jobId: v.id("jobs"),
     status: v.union(
       v.literal("pending"),
+      v.literal("claimed"),
       v.literal("cloning"),
       v.literal("analyzing"),
       v.literal("gathering"),
@@ -114,6 +125,7 @@ export const updateStatus = mutation({
       v.literal("completed"),
       v.literal("failed"),
       v.literal("canceled"),
+      v.literal("dead"),
     ),
     callbackToken: v.string(),
     progress: v.optional(v.string()),
@@ -141,13 +153,17 @@ export const updateStatus = mutation({
       throw new Error("Invalid callback token");
     }
 
+    const now = Date.now();
+
     await ctx.db.patch(args.jobId, {
       status: args.status,
+      updatedAt: now,
       ...(args.progress && { progress: args.progress }),
       ...(args.currentStep !== undefined && { currentStep: args.currentStep }),
       ...(args.totalSteps !== undefined && { totalSteps: args.totalSteps }),
       ...(args.result && { result: args.result }),
-      ...(args.error && { error: args.error }),
+      ...(args.error && { error: args.error, lastError: args.error }),
+      ...(args.status === "completed" && { completedAt: now }),
     });
 
     return { success: true };

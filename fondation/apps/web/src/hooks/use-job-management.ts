@@ -34,7 +34,7 @@ export function useJobManagement({
         prompt: `Generate comprehensive course documentation for ${repositoryName}`,
       });
       
-      // Then trigger the Scaleway Gateway service
+      // Then trigger the Worker Gateway service
       if (result.jobId) {
         const response = await fetchWithRetry("/api/analyze-proxy", {
           method: "POST",
@@ -55,7 +55,7 @@ export function useJobManagement({
         }
         
         const gatewayResult = await response.json() as unknown;
-        console.log("Scaleway Gateway triggered:", gatewayResult);
+        console.log("Worker Gateway triggered:", gatewayResult);
       }
       
       toast.success(

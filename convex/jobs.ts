@@ -26,16 +26,16 @@ export const claimOne = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     
-    // Find oldest pending job that's ready to run
+    // Find oldest pending job that's ready to run using index
     const pendingJob = await ctx.db
       .query("jobs")
+      .withIndex("by_status_runAt", (q) => 
+        q.eq("status", JOB_STATUS.PENDING)
+      )
       .filter((q) =>
-        q.and(
-          q.eq(q.field("status"), JOB_STATUS.PENDING),
-          q.or(
-            q.eq(q.field("runAt"), undefined),
-            q.lte(q.field("runAt"), now)
-          )
+        q.or(
+          q.eq(q.field("runAt"), undefined),
+          q.lte(q.field("runAt"), now)
         )
       )
       .order("asc")
@@ -45,7 +45,12 @@ export const claimOne = mutation({
       return null;
     }
 
-    // Atomically claim the job
+    // Atomically claim the job with sanity check
+    const job = await ctx.db.get(pendingJob._id);
+    if (!job || job.status !== JOB_STATUS.PENDING) {
+      return null; // Job was claimed by another worker
+    }
+
     await ctx.db.patch(pendingJob._id, {
       status: JOB_STATUS.CLAIMED,
       lockedBy: args.workerId,
@@ -135,10 +140,10 @@ export const retryOrFail = mutation({
       });
     } else {
       // Calculate exponential backoff with jitter
-      const baseDelay = 1000; // 1 second
+      const baseDelay = 5000; // 5 seconds
       const backoffMultiplier = 2;
-      const maxDelay = 60000; // 1 minute
-      const jitter = Math.random() * 1000; // 0-1 second jitter
+      const maxDelay = 600000; // 10 minutes
+      const jitter = Math.random() * 5000; // 0-5 second jitter
       
       const exponentialDelay = Math.min(
         baseDelay * Math.pow(backoffMultiplier, attempts - 1),
@@ -167,19 +172,20 @@ export const reclaimExpired = mutation({
   handler: async (ctx) => {
     const now = Date.now();
     
-    // Find jobs with expired leases
+    // Find jobs with expired leases using index
     const expiredJobs = await ctx.db
       .query("jobs")
+      .withIndex("by_leaseUntil")
       .filter((q) =>
         q.and(
+          q.lt(q.field("leaseUntil"), now),
           q.or(
             q.eq(q.field("status"), JOB_STATUS.CLAIMED),
             q.eq(q.field("status"), JOB_STATUS.RUNNING),
             q.eq(q.field("status"), JOB_STATUS.CLONING),
             q.eq(q.field("status"), JOB_STATUS.ANALYZING),
             q.eq(q.field("status"), JOB_STATUS.GATHERING)
-          ),
-          q.lt(q.field("leaseUntil"), now)
+          )
         )
       )
       .collect();
@@ -199,44 +205,62 @@ export const reclaimExpired = mutation({
   },
 });
 
-// Get queue metrics
+// Get queue metrics (optimized with bounded queries)
 export const getMetrics = query({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
     const oneHourAgo = now - 3600000;
+    const oneDayAgo = now - 86400000;
 
-    // Count jobs by status
-    const jobs = await ctx.db.query("jobs").collect();
-    
-    const statusCounts = jobs.reduce((acc, job) => {
-      acc[job.status] = (acc[job.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    // Get pending jobs count using index
+    const pendingCount = await ctx.db
+      .query("jobs")
+      .withIndex("by_status_runAt", (q) => q.eq("status", JOB_STATUS.PENDING))
+      .collect()
+      .then(jobs => jobs.length);
 
-    // Calculate recent job metrics
-    const recentJobs = jobs.filter(job => 
-      job.createdAt >= oneHourAgo
-    );
+    // Get running jobs count
+    const runningCount = await ctx.db
+      .query("jobs")
+      .withIndex("by_status_runAt", (q) => q.eq("status", JOB_STATUS.RUNNING))
+      .collect()
+      .then(jobs => jobs.length);
 
-    const completedRecent = recentJobs.filter(job => 
-      job.status === JOB_STATUS.COMPLETED
-    );
+    // Get recent completed jobs for metrics
+    const recentCompleted = await ctx.db
+      .query("jobs")
+      .withIndex("by_status_runAt", (q) => q.eq("status", JOB_STATUS.COMPLETED))
+      .filter((q) => q.gte(q.field("completedAt"), oneHourAgo))
+      .collect();
 
-    const averageDuration = completedRecent.length > 0
-      ? completedRecent.reduce((sum, job) => 
+    // Get recent failed jobs
+    const recentFailed = await ctx.db
+      .query("jobs")
+      .withIndex("by_status_runAt", (q) => q.eq("status", JOB_STATUS.FAILED))
+      .filter((q) => q.gte(q.field("updatedAt"), oneDayAgo))
+      .collect();
+
+    // Get dead jobs count
+    const deadCount = await ctx.db
+      .query("jobs")
+      .withIndex("by_status_runAt", (q) => q.eq("status", JOB_STATUS.DEAD))
+      .collect()
+      .then(jobs => jobs.length);
+
+    const averageDuration = recentCompleted.length > 0
+      ? recentCompleted.reduce((sum, job) => 
           sum + ((job.completedAt || 0) - job.createdAt), 0
-        ) / completedRecent.length
+        ) / recentCompleted.length
       : 0;
 
     return {
-      queueDepth: statusCounts[JOB_STATUS.PENDING] || 0,
-      running: statusCounts[JOB_STATUS.CLAIMED] || 0,
-      completed: statusCounts[JOB_STATUS.COMPLETED] || 0,
-      failed: statusCounts[JOB_STATUS.FAILED] || 0,
-      dead: statusCounts[JOB_STATUS.DEAD] || 0,
-      totalJobs: jobs.length,
-      recentJobsCount: recentJobs.length,
+      queueDepth: pendingCount,
+      running: runningCount,
+      completed: recentCompleted.length,
+      failed: recentFailed.length,
+      dead: deadCount,
+      recentJobsCount: recentCompleted.length + recentFailed.length,
       averageDuration,
       timestamp: now,
     };
@@ -257,14 +281,12 @@ export const create = mutation({
     if (args.dedupeKey) {
       const existing = await ctx.db
         .query("jobs")
+        .withIndex("by_dedupeKey", (q) => q.eq("dedupeKey", args.dedupeKey))
         .filter((q) =>
-          q.and(
-            q.eq(q.field("dedupeKey"), args.dedupeKey),
-            q.or(
-              q.eq(q.field("status"), JOB_STATUS.PENDING),
-              q.eq(q.field("status"), JOB_STATUS.CLAIMED),
-              q.eq(q.field("status"), JOB_STATUS.RUNNING)
-            )
+          q.or(
+            q.eq(q.field("status"), JOB_STATUS.PENDING),
+            q.eq(q.field("status"), JOB_STATUS.CLAIMED),
+            q.eq(q.field("status"), JOB_STATUS.RUNNING)
           )
         )
         .first();

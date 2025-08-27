@@ -21,9 +21,10 @@ export const JobSchema = z.object({
   id: z.string(),
   userId: z.string(),
   repositoryId: z.string(),
-  repositoryUrl: z.string(),
-  branch: z.string().default("main"),
+  repositoryUrl: z.string().optional(), // Optional since we get it from repo
+  branch: z.string().default("main").optional(),
   prompt: z.string(),
+  callbackToken: z.string().optional(), // Added for auth
   status: JobStatus,
   attempts: z.number().default(0),
   maxAttempts: z.number().default(3),
@@ -31,8 +32,8 @@ export const JobSchema = z.object({
   leaseUntil: z.number().optional(),
   dedupeKey: z.string().optional(),
   runAt: z.number().optional(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
+  createdAt: z.number().optional(),
+  updatedAt: z.number().optional(),
   completedAt: z.number().optional(),
   result: z.any().optional(),
   error: z.string().optional(),

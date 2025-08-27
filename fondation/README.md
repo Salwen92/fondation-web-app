@@ -2,6 +2,10 @@
 
 AI-powered course documentation generator for GitHub repositories.
 
+## Overview
+
+Fondation transforms GitHub repositories into structured educational content using Claude AI. The system is designed to be vendor-agnostic and production-ready, with a simple architecture that can be deployed anywhere Docker runs.
+
 ## Quick Start
 
 ### Prerequisites
@@ -37,18 +41,26 @@ See [OPERATIONS.md](docs/OPERATIONS.md) for detailed deployment instructions.
 # Build Docker image
 docker build -f apps/worker/Dockerfile -t fondation-worker .
 
-# Deploy to VPS
+# Deploy to any VPS or cloud provider
 ssh your-server
-curl -fsSL .../deploy/scaleway-setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/your-org/fondation/main/deploy/vps-setup.sh | bash
 ```
 
 ## Architecture
 
-Simple, vendor-agnostic design:
+Vendor-agnostic, production-ready design:
 
 ```
-Web App (Next.js) → Convex DB ← Worker (Docker) → Claude CLI
+Web App (Next.js) → Convex DB (Queue) ← Worker (Docker) → Claude CLI
 ```
+
+### Key Features
+- **No vendor lock-in**: Deploy anywhere Docker runs
+- **Atomic job claiming**: Prevents race conditions at scale
+- **Lease-based locking**: Handles worker failures gracefully  
+- **Exponential backoff**: Smart retry logic (5s-10min)
+- **Database indexing**: Optimized for high-throughput
+- **Security hardened**: Non-root Docker, disabled auto-updates
 
 - **No vendor lock-in**: Worker runs on any Docker host
 - **No cold starts**: Always-on worker process

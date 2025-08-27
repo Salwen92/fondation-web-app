@@ -41,6 +41,7 @@ export const updateRepositoryMetadata = mutation({
       const languages = Object.entries(languagesData)
         .map(([name, bytes]) => ({
           name,
+          bytes,
           percentage: totalBytes > 0 ? Math.round((bytes / totalBytes) * 100) : 0,
         }))
         .sort((a, b) => b.percentage - a.percentage);

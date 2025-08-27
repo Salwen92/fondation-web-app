@@ -8,13 +8,12 @@ AI-powered documentation generation platform that analyzes GitHub repositories a
 # Install dependencies
 bun install
 
-# Start all services
-./start-dev.sh
-
-# Or start services individually:
-bunx convex dev        # Backend
+# Start development services
+bunx convex dev        # Backend (Convex)
 bun run dev           # Frontend (http://localhost:3000)
-cd scaleway-gateway && bun run dev  # Gateway (http://localhost:8081)
+
+# Or run both:
+bun run dev:all
 ```
 
 ## 📋 Prerequisites
@@ -23,187 +22,141 @@ cd scaleway-gateway && bun run dev  # Gateway (http://localhost:8081)
 - **Node.js** (v18+)
 - **Git**
 - **GitHub Account** (for OAuth)
-- **Anthropic API Key** (for Claude AI)
 
 ## 🏗️ Architecture
 
 ```
-USER → NEXT.JS → CONVEX → SCALEWAY GATEWAY → SCALEWAY WORKER
-   ↑                ↑                              ↓
-   └────────────────┴──────── CALLBACKS ──────────┘
+USER → NEXT.JS → CONVEX DB (Queue) ← WORKER (Docker) → CLAUDE CLI
+   ↑                ↑                        ↓
+   └────────────────┴──────── STATUS ────────┘
 ```
 
 ### Components
 
 - **Frontend**: Next.js 15 with TypeScript, Tailwind CSS
-- **Backend**: Convex real-time database
-- **Gateway**: Express.js API gateway
-- **Worker**: Node.js job processor with Fondation CLI
+- **Backend**: Convex real-time database with job queue
+- **Worker**: Docker container polling Convex for jobs
+- **AI**: Claude CLI for content generation
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
-Create `.env.local`:
+Create `.env.local` from the example:
 
-```env
-# Convex
-NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
-CONVEX_DEPLOYMENT=your-deployment
-
-# GitHub OAuth (via NextAuth)
-AUTH_SECRET=your-auth-secret
-AUTH_GITHUB_ID=your-github-client-id
-AUTH_GITHUB_SECRET=your-github-client-secret
-
-# Scaleway Gateway
-SCALEWAY_GATEWAY_URL=http://localhost:8081
-
-# Worker (for production Docker build)
-ANTHROPIC_API_KEY=sk-ant-your-key
+```bash
+cp .env.example .env.local
 ```
 
-## 📦 Project Structure
+Required variables:
+- `AUTH_SECRET`: NextAuth secret (generate with `npx auth secret`)
+- `GITHUB_CLIENT_ID`: GitHub OAuth app ID
+- `GITHUB_CLIENT_SECRET`: GitHub OAuth app secret
+- `NEXT_PUBLIC_CONVEX_URL`: Convex deployment URL
+- `WORKER_GATEWAY_URL`: Worker service URL (optional, for production)
+
+### GitHub OAuth Setup
+
+1. Go to GitHub Settings > Developer settings > OAuth Apps
+2. Create new OAuth App with:
+   - Homepage URL: `http://localhost:3000`
+   - Callback URL: `http://localhost:3000/api/auth/callback/github`
+
+## 📁 Project Structure
 
 ```
-fondation-web-app/
-├── src/                    # Next.js application
-│   ├── app/               # App router pages
-│   ├── components/        # React components
-│   └── lib/              # Utilities
-├── convex/                # Backend functions
-│   ├── jobs.ts           # Job management
-│   ├── repositories.ts   # GitHub repos
-│   └── docs.ts           # Document storage
-├── scaleway-gateway/      # API gateway
-│   └── server-gateway.ts # Request routing
-├── scaleway-worker/       # Job processor
-│   └── worker.js         # Fondation CLI integration
-└── public/               # Static assets
+apps/web/
+├── src/
+│   ├── app/             # Next.js app router pages
+│   ├── components/      # React components
+│   ├── hooks/          # Custom React hooks
+│   └── lib/            # Utilities and helpers
+├── convex/             # Convex backend
+│   ├── _generated/     # Auto-generated types
+│   ├── schema.ts       # Database schema
+│   ├── queue.ts        # Job queue implementation
+│   └── jobs.ts         # Job management
+├── public/             # Static assets
+└── styles/             # Global styles
 ```
+
+## 🗄️ Database Schema
+
+### Core Tables
+
+- **users**: GitHub authenticated users
+- **repositories**: GitHub repositories
+- **jobs**: Processing queue with status tracking
+- **docs**: Generated documentation
+
+### Job Queue
+
+Jobs use atomic claiming with lease-based locking:
+- Status progression: `pending` → `claimed` → `processing` → `completed`
+- Automatic retry with exponential backoff (5s → 10min)
+- Lease expiration recovery for failed workers
 
 ## 🚀 Development
 
-### Code Quality
+### Local Development
 
 ```bash
-# Run type checks
-bun run typecheck
+# Start Convex backend
+bunx convex dev
 
-# Run linter
-bun run lint
+# In another terminal, start Next.js
+bun run dev
 
-# Run both
-bun run check
-
-# Format code
-bun run format:write
+# Access at http://localhost:3000
 ```
 
 ### Testing
 
 ```bash
-# Run E2E test
-1. Start all services: ./start-dev.sh
-2. Navigate to http://localhost:3000
-3. Login with GitHub
-4. Select a repository
-5. Click "Générer le cours"
-6. Monitor progress
-7. View generated documentation
+# Type checking
+bun run typecheck
+
+# Linting
+bun run lint
+
+# Format code
+bun run format
 ```
 
-## 🔐 Authentication
+## 🐳 Production Deployment
 
-The app uses GitHub OAuth for authentication:
-
-1. User clicks login
-2. Redirected to GitHub OAuth
-3. GitHub returns with token
-4. Session created via NextAuth
-5. User synced with Convex
-
-## 🎯 Features
-
-- **Repository Analysis**: Analyzes any GitHub repository
-- **AI Documentation**: Generates comprehensive docs with Claude
-- **Real-time Updates**: Live progress tracking
-- **French UI**: Complete French localization
-- **Multiple Formats**: Chapters, tutorials, and reference docs
-- **Markdown Rendering**: Full markdown support with syntax highlighting
-
-## 📝 API Endpoints
-
-### Frontend API Routes
-
-- `POST /api/analyze-proxy` - Start documentation generation
-- `POST /api/webhook/job-callback` - Receive progress updates
-- `POST /api/jobs/[id]/cancel` - Cancel running job
-- `GET /api/jobs/[id]/status` - Get job status
-
-### Gateway Endpoints
-
-- `POST /analyze` - Trigger worker job
-- `POST /cancel/:jobId` - Cancel worker process
-- `GET /status` - View active jobs
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Port already in use**
-   ```bash
-   lsof -ti:3000 | xargs kill -9
-   lsof -ti:8081 | xargs kill -9
-   ```
-
-2. **Convex connection issues**
-   ```bash
-   bunx convex dev --clear-cache
-   ```
-
-3. **TypeScript errors**
-   ```bash
-   rm -rf .next node_modules
-   bun install
-   bun run build
-   ```
-
-## 🚢 Deployment
-
-### Scaleway Deployment
-
-1. Build Docker images:
-   ```bash
-   cd scaleway-gateway
-   docker build -t gateway .
-   
-   cd ../scaleway-worker
-   docker build --build-arg ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -t worker .
-   ```
-
-2. Push to Scaleway Registry
-
-3. Deploy as Serverless Containers/Jobs
-
-### Vercel Deployment
+### Web App (Vercel)
 
 ```bash
-# Frontend only
+# Deploy to Vercel
 vercel deploy
 ```
 
-## 📄 License
+### Worker (Docker)
 
-Private - All rights reserved
+See [Worker Documentation](../worker/README.md) for deployment instructions.
+
+## 🔑 Security
+
+- OAuth authentication via GitHub
+- Session-based auth with NextAuth
+- Secure token validation for job callbacks
+- Environment variables for sensitive data
+
+## 📚 API Routes
+
+- `/api/auth/*` - NextAuth endpoints
+- `/api/analyze-proxy` - Job submission proxy
+- `/api/webhook/job-callback` - Job status updates
+- `/api/jobs/[id]/cancel` - Job cancellation
 
 ## 🤝 Contributing
 
-1. Create feature branch
-2. Make changes
-3. Run `bun run check`
+1. Fork the repository
+2. Create feature branch
+3. Make your changes
 4. Submit pull request
 
-## 📧 Support
+## 📄 License
 
-For issues, contact the development team or open an issue in the repository.
+MIT - See LICENSE file for details

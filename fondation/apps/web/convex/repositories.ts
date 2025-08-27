@@ -185,22 +185,32 @@ export const triggerAnalyze = mutation({
     // Generate a callback token using Math.random (crypto is not available in Convex)
     const callbackToken = Math.random().toString(36).substr(2, 9) + Math.random().toString(36).substr(2, 9);
 
-    // Create a new job for regeneration
+    const now = Date.now();
+    
+    // Create a new job for regeneration with queue fields
     const newJobId = await ctx.db.insert("jobs", {
       userId: repository.userId,
       repositoryId: args.repositoryId,
       status: "pending",
       prompt: "Regenerate course documentation",
       callbackToken,
-      createdAt: Date.now(),
+      // Queue fields
+      runAt: now,
+      attempts: 0,
+      maxAttempts: 5,
+      dedupeKey: `${args.repositoryId}_regen_${now}`,
+      // Timestamps
+      createdAt: now,
+      updatedAt: now,
+      // Progress
       currentStep: 0,
       totalSteps: 7,
       progress: "Initializing regeneration...",
     });
 
-    // Note: The client will trigger the Scaleway Gateway service directly
+    // Note: The client will trigger the worker service directly
     // to avoid localhost restrictions in development
-    console.log("Regeneration job created, client will trigger Scaleway Gateway service");
+    console.log("Regeneration job created, client will trigger worker service");
 
     return {
       jobId: newJobId,

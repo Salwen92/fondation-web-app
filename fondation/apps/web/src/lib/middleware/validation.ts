@@ -5,7 +5,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { type z } from "zod";
-import { validateRequest, formatValidationError } from "@/lib/validation";
+import { validateRequest, formatValidationError } from "@/lib/api-validation";
 import { logger } from "@/lib/logger";
 
 /**
@@ -31,12 +31,12 @@ export function withValidation<T>(
       }
 
       // Validate against schema
-      const validation = validateRequest(schema, body);
+      const result = schema.safeParse(body);
       
-      if (!validation.success) {
-        const errorMessage = formatValidationError(validation.error);
+      if (!result.success) {
+        const errorMessage = formatValidationError(result.error);
         logger.warn("Request validation failed", {
-          errors: validation.error.errors,
+          errors: result.error.errors,
           path: req.url,
         });
         
@@ -44,14 +44,14 @@ export function withValidation<T>(
           { 
             error: "Validation failed",
             details: errorMessage,
-            errors: validation.error.errors
+            errors: result.error.errors
           },
           { status: 400 }
         );
       }
 
       // Call the handler with validated data
-      return await handler(req, validation.data);
+      return await handler(req, result.data);
       
     } catch (error) {
       logger.error("Unexpected error in validated route", error instanceof Error ? error : new Error(String(error)));
@@ -81,12 +81,12 @@ export function withParamValidation<T>(
   ): Promise<NextResponse> => {
     try {
       // Validate params
-      const validation = validateRequest(schema, context.params);
+      const result = schema.safeParse(context.params);
       
-      if (!validation.success) {
-        const errorMessage = formatValidationError(validation.error);
+      if (!result.success) {
+        const errorMessage = formatValidationError(result.error);
         logger.warn("Parameter validation failed", {
-          errors: validation.error.errors,
+          errors: result.error.errors,
           path: req.url,
         });
         
@@ -94,14 +94,14 @@ export function withParamValidation<T>(
           { 
             error: "Invalid parameters",
             details: errorMessage,
-            errors: validation.error.errors
+            errors: result.error.errors
           },
           { status: 400 }
         );
       }
 
       // Call the handler with validated params
-      return await handler(req, validation.data);
+      return await handler(req, result.data);
       
     } catch (error) {
       logger.error("Unexpected error in param validation", error instanceof Error ? error : new Error(String(error)));
@@ -143,11 +143,11 @@ export function withFullValidation<TBody, TParams>(
         );
       }
 
-      const bodyValidation = validateRequest(bodySchema, body);
-      if (!bodyValidation.success) {
-        const errorMessage = formatValidationError(bodyValidation.error);
+      const bodyResult = bodySchema.safeParse(body);
+      if (!bodyResult.success) {
+        const errorMessage = formatValidationError(bodyResult.error);
         logger.warn("Body validation failed", {
-          errors: bodyValidation.error.errors,
+          errors: bodyResult.error.errors,
           path: req.url,
         });
         
@@ -155,18 +155,18 @@ export function withFullValidation<TBody, TParams>(
           { 
             error: "Body validation failed",
             details: errorMessage,
-            errors: bodyValidation.error.errors
+            errors: bodyResult.error.errors
           },
           { status: 400 }
         );
       }
 
       // Validate params
-      const paramsValidation = validateRequest(paramsSchema, context.params);
-      if (!paramsValidation.success) {
-        const errorMessage = formatValidationError(paramsValidation.error);
+      const paramsResult = paramsSchema.safeParse(context.params);
+      if (!paramsResult.success) {
+        const errorMessage = formatValidationError(paramsResult.error);
         logger.warn("Parameter validation failed", {
-          errors: paramsValidation.error.errors,
+          errors: paramsResult.error.errors,
           path: req.url,
         });
         
@@ -174,14 +174,14 @@ export function withFullValidation<TBody, TParams>(
           { 
             error: "Parameter validation failed",
             details: errorMessage,
-            errors: paramsValidation.error.errors
+            errors: paramsResult.error.errors
           },
           { status: 400 }
         );
       }
 
       // Call the handler with validated data
-      return await handler(req, bodyValidation.data, paramsValidation.data);
+      return await handler(req, bodyResult.data, paramsResult.data);
       
     } catch (error) {
       logger.error("Unexpected error in full validation", error instanceof Error ? error : new Error(String(error)));

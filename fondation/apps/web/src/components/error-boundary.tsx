@@ -119,3 +119,6 @@ export function AsyncErrorBoundary({ children }: { children: ReactNode }) {
     </ErrorBoundary>
   );
 }
+
+// Alias for backward compatibility
+export const ErrorBoundaryWrapper = ErrorBoundary;

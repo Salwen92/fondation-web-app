@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
-import { analyzeProxySchema } from "@/lib/validation";
+import { analyzeProxySchema } from "@/lib/api-validation";
 import { withValidation } from "@/lib/middleware/validation";
 
 export const POST = withValidation(
@@ -8,14 +8,14 @@ export const POST = withValidation(
   async (req: NextRequest, body: { jobId: string; repositoryUrl: string; branch?: string; callbackUrl: string; callbackToken: string; githubToken?: string }) => {
     try {
     
-    logger.info("Forwarding request to Scaleway Gateway", {
+    logger.info("Forwarding request to Worker Gateway", {
       jobId: body.jobId,
       repositoryUrl: body.repositoryUrl,
       branch: body.branch ?? "main",
     });
     
-    // Forward to Scaleway Gateway (port 8081 in dev, Cloud Run still on 8080 as fallback)
-    const gatewayUrl = process.env.SCALEWAY_GATEWAY_URL ?? "http://localhost:8081";
+    // Forward to Worker Gateway (port 8081 in dev, 8080 in production)
+    const gatewayUrl = process.env.WORKER_GATEWAY_URL ?? "http://localhost:8081";
     const response = await fetch(`${gatewayUrl}/analyze`, {
       method: "POST",
       headers: {

@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../convex/_generated/api";
 import { logger } from "@/lib/logger";
-import { clearStuckJobsSchema } from "@/lib/validation";
+import { clearStuckJobsSchema } from "@/lib/api-validation";
 import { withValidation } from "@/lib/middleware/validation";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);

@@ -1,10 +1,10 @@
 #!/bin/bash
-# Scaleway Instance Setup Script for Fondation Worker
-# Run this on a fresh Scaleway Instance (Ubuntu 22.04)
+# VPS Setup Script for Fondation Worker
+# Run this on a fresh Ubuntu 22.04 instance (any VPS provider)
 
 set -e
 
-echo "🚀 Setting up Scaleway Instance for Fondation Worker"
+echo "🚀 Setting up VPS Instance for Fondation Worker"
 
 # Update system
 echo "📦 Updating system packages..."

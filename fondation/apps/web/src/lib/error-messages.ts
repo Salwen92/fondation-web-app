@@ -33,10 +33,10 @@ const ERROR_MAPPINGS: Record<string, string> = {
   "Job already completed": "Cette tâche est déjà terminée.",
   "canceled": "La génération a été annulée.",
   
-  // Scaleway/Cloud Run errors
-  "Scaleway": "Problème avec le service de traitement. Notre équipe a été notifiée.",
+  // Worker service errors
+  "Worker": "Problème avec le service de traitement. Notre équipe a été notifiée.",
   "Gateway error": "Erreur de passerelle. Veuillez réessayer dans quelques instants.",
-  "Cloud Run": "Service temporairement indisponible. Veuillez réessayer.",
+  "Service unavailable": "Service temporairement indisponible. Veuillez réessayer.",
   
   // Convex/Database errors
   "Convex": "Erreur de base de données. Veuillez réessayer.",

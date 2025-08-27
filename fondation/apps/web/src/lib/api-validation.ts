@@ -60,6 +60,11 @@ export const cancelJobSchema = z.object({
   jobId: z.string().min(1),
 });
 
+// Clear stuck jobs schema
+export const clearStuckJobsSchema = z.object({
+  repositoryFullName: z.string().min(1),
+});
+
 // GitHub webhook schema
 export const githubWebhookSchema = z.object({
   action: z.string(),
@@ -103,6 +108,18 @@ export async function validateRequestBody<T>(
     });
     return { success: false, error: "Invalid JSON in request body" };
   }
+}
+
+/**
+ * Alias for validateRequestBody for backward compatibility
+ */
+export const validateRequest = validateRequestBody;
+
+/**
+ * Format validation error for response
+ */
+export function formatValidationError(error: z.ZodError): string {
+  return error.errors.map(e => `${e.path.join(".")}: ${e.message}`).join(", ");
 }
 
 /**
