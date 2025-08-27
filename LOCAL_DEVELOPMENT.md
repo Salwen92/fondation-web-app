@@ -21,22 +21,16 @@ The application uses a simple, vendor-agnostic architecture:
 
 ## Environment Setup
 
-### 1. Clone and Navigate to Monorepo
-
-```bash
-cd fondation
-```
-
-### 2. Install Dependencies
+### 1. Install Dependencies
 
 ```bash
 # Install all workspace dependencies
-bun install
+bun run install
 ```
 
-### 3. Configure Web App Environment
+### 2. Configure Web App Environment
 
-Create `apps/web/.env.local`:
+Create `fondation/apps/web/.env.local`:
 
 ```bash
 # Authentication
@@ -52,9 +46,9 @@ NEXT_PUBLIC_CONVEX_URL=your-convex-url
 CONVEX_DEPLOYMENT=your-deployment-name
 ```
 
-### 4. Configure Worker Environment
+### 3. Configure Worker Environment
 
-Create `apps/worker/.env`:
+Create `fondation/apps/worker/.env`:
 
 ```bash
 # Convex connection
@@ -67,7 +61,7 @@ WORKER_ID=local-worker-1
 TEMP_DIR=/tmp/fondation
 ```
 
-### 5. Authenticate Claude CLI
+### 4. Authenticate Claude CLI
 
 ```bash
 # Authenticate Claude CLI (one-time setup)
@@ -91,15 +85,19 @@ bunx convex dev
 
 #### Terminal 2: Web Application
 ```bash
-cd fondation/apps/web
 bun run dev
 ```
 Access at: http://localhost:3000
 
 #### Terminal 3: Worker Process
 ```bash
-cd fondation/apps/worker
-bun run dev
+bun run dev:worker
+```
+
+#### Alternative: Start Everything
+```bash
+# Start all services at once
+bun run dev:all
 ```
 
 ## Testing Workflow
@@ -117,8 +115,8 @@ bun run dev
 # Check all workspaces
 bun run typecheck
 
-# Check specific workspace
-cd apps/web && bun run typecheck
+# Check specific workspace (run from fondation directory)
+cd fondation/apps/web && bun run typecheck
 ```
 
 ### Linting

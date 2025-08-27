@@ -5,17 +5,17 @@ AI-powered documentation generation platform that analyzes GitHub repositories a
 ## 🚀 Quick Start
 
 ```bash
-# Install dependencies (from monorepo root)
-cd fondation
-bun install
+# Install dependencies
+bun run install
 
-# Start development environment
-cd apps/web
+# Start development environment (from project root)
 bun run dev
 
 # Start worker (separate terminal)
-cd apps/worker
-bun run dev
+bun run dev:worker
+
+# Or start everything at once
+bun run dev:all
 ```
 
 ## 📋 Prerequisites

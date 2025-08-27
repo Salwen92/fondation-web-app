@@ -4,7 +4,7 @@ import { validateConfig } from "./config.js";
 import { CLIExecutor } from "./cli-executor.js";
 import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
-import { api } from "../../web/convex/_generated/api.js";
+import { api, internal } from "../../web/convex/_generated/api.js";
 import type { Id } from "../../web/convex/_generated/dataModel.js";
 
 export class PermanentWorker {
@@ -95,7 +95,9 @@ export class PermanentWorker {
           userId: claimedJob.userId as string,
           prompt: claimedJob.prompt,
           callbackToken: claimedJob.callbackToken,
-          attempts: claimedJob.attempts,
+          attempts: claimedJob.attempts || 0,
+          status: claimedJob.status,
+          maxAttempts: claimedJob.maxAttempts || 3,
         };
         
         console.log(`📝 Claimed job: ${job.id}`);
@@ -115,9 +117,19 @@ export class PermanentWorker {
   
   private async processJob(job: Job): Promise<void> {
     const startTime = Date.now();
-    console.log(`🔧 Processing job ${job.id} for repository: ${job.repositoryUrl}`);
     
     try {
+      // Fetch repository details to get URL
+      const repository = await this.convex.query(internal.repositories.getByGithubId, {
+        githubId: job.repositoryId,
+      });
+      
+      if (!repository) {
+        throw new Error(`Repository ${job.repositoryId} not found`);
+      }
+      
+      console.log(`🔧 Processing job ${job.id} for repository: ${repository.fullName}`);
+      
       // Start heartbeat to maintain lease
       const heartbeatInterval = this.startHeartbeat(job.id);
       
@@ -128,7 +140,7 @@ export class PermanentWorker {
         // Clone repository
         await this.updateJobStatus(job.id, "cloning", "Cloning repository...");
         const repoPath = await this.repoManager.cloneRepo(
-          job.repositoryUrl,
+          repository.cloneUrl || repository.htmlUrl,
           job.branch || "main",
           job.id
         );

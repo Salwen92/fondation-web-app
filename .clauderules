@@ -73,4 +73,4 @@ const jobId = someString as Id<"jobs">;
 - Never commit without running checks
 - Write clear commit messages
 - Don't push broken code
-- Test locally before deploying
+- Test locally before push to remote

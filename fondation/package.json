@@ -10,8 +10,8 @@
   "scripts": {
     "dev": "bun run --filter '*' dev",
     "build": "bun run --filter '*' build",
-    "dev:web": "bun run --filter web dev",
-    "dev:worker": "bun run --filter worker dev",
+    "dev:web": "bun run --filter '@fondation/web' dev",
+    "dev:worker": "bun run --filter '@fondation/worker' dev",
     "lint": "bun run --filter '*' lint",
     "typecheck": "bun run --filter '*' typecheck",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --cache",
