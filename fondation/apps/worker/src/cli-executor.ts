@@ -15,23 +15,22 @@ export class CLIExecutor {
       console.log(`🚀 Executing CLI for: ${repoPath}`);
       console.log(`📝 Prompt: ${options.prompt.substring(0, 100)}...`);
       
-      // Build CLI command arguments
-      // Note: This assumes the Claude CLI is installed and authenticated
-      // The actual command structure will depend on the CLI implementation
+      // Build Claude Code CLI command arguments
+      // Uses --print for non-interactive output and --output-format json
       const args = [
-        "analyze",
-        "--path", repoPath,
-        "--prompt", options.prompt,
-        "--output", "json",
+        "--print",
+        "--output-format", "json", 
+        options.prompt + ` (working directory: ${repoPath})`
       ];
       
       console.log(`⚙️  Command: ${this.cliPath} ${args.join(" ")}`);
       
       const child = spawn(this.cliPath, args, {
         stdio: ["pipe", "pipe", "pipe"],
+        cwd: repoPath,
         env: {
           ...process.env,
-          // Don't pass ANTHROPIC_API_KEY - use CLI's built-in auth
+          // Claude CLI uses its own authentication system
         },
       });
       

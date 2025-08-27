@@ -96,8 +96,8 @@ export class PermanentWorker {
           prompt: claimedJob.prompt,
           callbackToken: claimedJob.callbackToken,
           attempts: claimedJob.attempts || 0,
-          status: claimedJob.status,
-          maxAttempts: claimedJob.maxAttempts || 3,
+          status: "claimed" as JobStatus,
+          maxAttempts: 3,
         };
         
         console.log(`📝 Claimed job: ${job.id}`);
@@ -120,8 +120,8 @@ export class PermanentWorker {
     
     try {
       // Fetch repository details to get URL
-      const repository = await this.convex.query(internal.repositories.getByGithubId, {
-        githubId: job.repositoryId,
+      const repository = await this.convex.query(api.repositories.getByRepositoryId, {
+        repositoryId: job.repositoryId as Id<"repositories">,
       });
       
       if (!repository) {
@@ -139,9 +139,10 @@ export class PermanentWorker {
         
         // Clone repository
         await this.updateJobStatus(job.id, "cloning", "Cloning repository...");
+        const repoUrl = `https://github.com/${repository.fullName}.git`;
         const repoPath = await this.repoManager.cloneRepo(
-          repository.cloneUrl || repository.htmlUrl,
-          job.branch || "main",
+          repoUrl,
+          repository.defaultBranch || "main",
           job.id
         );
         

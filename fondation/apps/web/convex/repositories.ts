@@ -165,6 +165,15 @@ export const getByFullName = query({
   },
 });
 
+export const getByRepositoryId = query({
+  args: {
+    repositoryId: v.id("repositories"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.repositoryId);
+  },
+});
+
 export const triggerAnalyze = mutation({
   args: {
     repositoryId: v.id("repositories"),

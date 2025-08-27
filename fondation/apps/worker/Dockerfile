@@ -10,17 +10,19 @@ RUN apk add --no-cache python3 make g++
 WORKDIR /build
 
 # Copy workspace files
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
+COPY tsconfig.json ./
 COPY packages/ packages/
 COPY apps/worker/ apps/worker/
+COPY apps/web/convex/_generated/ apps/web/convex/_generated/
 
 # Install dependencies
 RUN npm install -g bun && \
-    bun install --frozen-lockfile
+    bun install
 
 # Build the worker
 WORKDIR /build/apps/worker
-RUN bun run build
+RUN npx tsc
 
 # Runtime stage
 FROM node:20-alpine
@@ -30,12 +32,12 @@ RUN apk add --no-cache \
     git \
     tini \
     curl \
+    bash \
     ca-certificates
 
-# Install Claude CLI (pinned version)
-# Note: Replace with actual Claude CLI installation when available
-# For now, create a mock claude command for development
-RUN echo '#!/bin/sh\necho "Claude CLI mock - replace with actual CLI"' > /usr/local/bin/claude && \
+# Install Claude Code CLI (official Anthropic installation)
+RUN curl -fsSL https://claude.ai/install.sh | bash && \
+    cp ~/.local/bin/claude /usr/local/bin/claude && \
     chmod +x /usr/local/bin/claude
 
 # Create non-root user
@@ -48,10 +50,11 @@ RUN mkdir -p /home/worker/.claude /tmp/fondation && \
 
 WORKDIR /app
 
-# Copy built application
-COPY --from=builder --chown=worker:worker /build/apps/worker/dist ./dist/
-COPY --from=builder --chown=worker:worker /build/apps/worker/package.json ./
+# Copy built application maintaining monorepo structure
+COPY --from=builder --chown=worker:worker /build/apps/worker/dist ./apps/worker/dist/
+COPY --from=builder --chown=worker:worker /build/apps/worker/package.json ./apps/worker/
 COPY --from=builder --chown=worker:worker /build/node_modules ./node_modules/
+COPY --from=builder --chown=worker:worker /build/apps/web/convex/_generated ./apps/web/convex/_generated/
 
 # Switch to non-root user
 USER worker
@@ -69,7 +72,7 @@ ENV CLAUDE_DISABLE_UPDATE=1 \
     NO_UPDATE_NOTIFIER=1
 
 # Default command
-CMD ["node", "dist/index.js"]
+CMD ["node", "apps/worker/dist/index.js"]
 
 # Environment variables (documented for reference)
 # CONVEX_URL - Required: Convex deployment URL
