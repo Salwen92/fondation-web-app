@@ -5,7 +5,14 @@
 FROM node:20-alpine AS builder
 
 # Install build dependencies (including bash for bun install)
-RUN apk add --no-cache python3 make g++ curl bash
+RUN apk add --no-cache python3 make g++ curl bash \
+    ripgrep \
+    jq \
+    coreutils \
+    findutils \
+    git \
+    tini \
+    ca-certificates
 
 # Install bun globally
 RUN curl -fsSL https://bun.sh/install | bash && \
@@ -34,19 +41,17 @@ RUN npx tsc
 # Runtime stage
 FROM node:20-alpine
 
-# Install runtime dependencies
+# Install runtime dependencies (ALL required tools for Fondation CLI)
 RUN apk add --no-cache \
     git \
     tini \
     curl \
     bash \
+    ripgrep \
+    jq \
+    coreutils \
+    findutils \
     ca-certificates
-
-# Install bun in runtime (needed for CLI execution)
-RUN curl -fsSL https://bun.sh/install | bash && \
-    mv /root/.bun /opt/bun && \
-    chmod -R 755 /opt/bun
-ENV PATH="/opt/bun/bin:$PATH"
 
 # Install Claude CLI globally
 RUN npm install -g @anthropic-ai/claude-code
@@ -54,6 +59,12 @@ RUN npm install -g @anthropic-ai/claude-code
 # Create non-root user
 RUN addgroup -g 1001 -S worker && \
     adduser -u 1001 -S worker -G worker
+
+# Set HOME environment variable early for proper configuration
+ENV HOME=/home/worker
+
+# Ensure monorepo deps (SDK) resolve from anywhere
+ENV NODE_PATH=/app/node_modules
 
 # Create necessary directories
 RUN mkdir -p /home/worker/.claude /tmp/fondation && \
@@ -66,8 +77,17 @@ COPY --from=builder --chown=worker:worker /build/packages/worker/dist ./packages
 COPY --from=builder --chown=worker:worker /build/packages/worker/package.json ./packages/worker/
 COPY --from=builder --chown=worker:worker /build/packages/shared ./packages/shared/
 
-# Copy built CLI with all its dependencies
-COPY --from=builder --chown=worker:worker /build/packages/cli ./packages/cli/
+# Copy built CLI with dist and prompts (CRITICAL for runtime)
+COPY --from=builder --chown=worker:worker /build/packages/cli/dist ./packages/cli/dist/
+COPY --from=builder --chown=worker:worker /build/packages/cli/prompts ./packages/cli/prompts/
+COPY --from=builder --chown=worker:worker /build/packages/cli/package.json ./packages/cli/
+
+# Bake the ESM import fixer (self-healing image)
+COPY --from=builder --chown=worker:worker /build/packages/cli/scripts/patch-esm-imports.js ./packages/cli/scripts/patch-esm-imports.js
+RUN node /app/packages/cli/scripts/patch-esm-imports.js /app/packages/cli/dist
+
+# Copy Convex generated files (REQUIRED for worker to connect to Convex)
+COPY --from=builder --chown=worker:worker /build/packages/web/convex/_generated ./packages/web/convex/_generated/
 
 # Copy workspace package.json and node_modules
 COPY --from=builder --chown=worker:worker /build/node_modules ./node_modules/

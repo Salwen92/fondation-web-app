@@ -4,6 +4,11 @@ import { resolve, join } from "path";
 import { existsSync, readFileSync, readdirSync, statSync } from "fs";
 import { CLIResult } from "@fondation/shared";
 import * as yaml from "js-yaml";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const execAsync = promisify(exec);
 
@@ -155,14 +160,14 @@ export class CLIExecutor {
       console.log(`📦 CLI Path: ${this.cliPath}`);
       
       try {
-        // Check if we have bundled CLI, otherwise use source files (like main branch)
+        // Use the non-bundled Node.js entry point with NODE_PATH for monorepo resolution
         let analyzeCommand: string;
-        const bundledCli = `${this.cliPath}/dist/cli.bundled.cjs`;
+        const analyzeJs = `${this.cliPath}/dist/analyze-all.js`;
         
-        if (existsSync(bundledCli)) {
-          // Use bundled CLI (production)
-          analyzeCommand = `cd ${this.cliPath} && node dist/cli.bundled.cjs analyze ${repoPath}`;
-          console.log('🎯 Using bundled CLI for analyze command');
+        if (existsSync(analyzeJs)) {
+          // Use patched Node.js entry point (production)
+          analyzeCommand = `cd ${this.cliPath} && NODE_PATH=/app/node_modules node dist/analyze-all.js ${repoPath}`;
+          console.log('🎯 Using patched Node.js entry point for analyze command');
         } else {
           // Fallback to source files (development)
           analyzeCommand = `cd ${this.cliPath} && bun run src/analyze-all.ts ${repoPath}`;
