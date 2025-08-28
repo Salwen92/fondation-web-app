@@ -160,18 +160,29 @@ export class CLIExecutor {
       console.log(`📦 CLI Path: ${this.cliPath}`);
       
       try {
-        // Use the non-bundled Node.js entry point with NODE_PATH for monorepo resolution
-        let analyzeCommand: string;
-        const analyzeJs = `${this.cliPath}/dist/analyze-all.js`;
+        // Check if we're already inside Docker container
+        const isInsideDocker = process.env.DOCKER_CONTAINER === 'true' || 
+                              existsSync('/.dockerenv');
         
-        if (existsSync(analyzeJs)) {
-          // Use patched Node.js entry point (production)
-          analyzeCommand = `cd ${this.cliPath} && NODE_PATH=/app/node_modules node dist/analyze-all.js ${repoPath}`;
-          console.log('🎯 Using patched Node.js entry point for analyze command');
+        let analyzeCommand: string;
+        
+        if (isInsideDocker) {
+          // We're already inside Docker - run CLI directly
+          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules node dist/analyze-all.js "${repoPath}"`;
+          analyzeCommand = runCmd;
+          console.log('🎯 Running CLI directly inside Docker container');
         } else {
-          // Fallback to source files (development)
-          analyzeCommand = `cd ${this.cliPath} && bun run src/analyze-all.ts ${repoPath}`;
-          console.log('🛠️ Using Bun fallback for analyze command');
+          // External Docker runtime
+          const image = process.env.FONDATION_WORKER_IMAGE ?? "fondation-worker:authed-patched";
+          const repoMount = repoPath;
+          const runCmd = `cd /app/packages/cli && NODE_PATH=/app/node_modules node dist/analyze-all.js /tmp/repo`;
+          
+          const dockerCmd =
+            `docker run --rm -u 1001:1001 -e HOME=/home/worker -e NODE_PATH=/app/node_modules ` +
+            `-v "${repoMount}:/tmp/repo" ${image} sh -lc '${runCmd}'`;
+          
+          analyzeCommand = dockerCmd;
+          console.log('🎯 Using external Docker runtime for analyze command');
         }
         
         console.log(`⚙️  Command: ${analyzeCommand}`);
@@ -192,8 +203,9 @@ export class CLIExecutor {
           maxBuffer: 50 * 1024 * 1024, // 50MB buffer
           env: {
             ...process.env,
-            // Claude SDK uses its own authentication system
-            CLAUDE_OUTPUT_DIR: `/tmp/outputs/${Date.now()}`,
+            HOME: '/home/worker',
+            NODE_PATH: '/app/node_modules',
+            // Let CLI use default .claude-tutorial-output directory in repo
           },
         });
         

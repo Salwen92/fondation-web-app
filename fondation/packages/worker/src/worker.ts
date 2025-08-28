@@ -234,17 +234,52 @@ export class PermanentWorker {
   }
   
   private async updateJobProgress(jobId: string, progress: string): Promise<void> {
-    // TODO: Replace with actual Convex mutation
-    console.log(`📈 Job ${jobId}: ${progress}`);
+    // Extract step number from progress messages like "Step 1/6: Extracting abstractions"
+    const stepMatch = progress.match(/Step (\d+)\/(\d+):/);
+    let currentStep = undefined;
+    
+    if (stepMatch) {
+      currentStep = parseInt(stepMatch[1]);
+      console.log(`📈 Job ${jobId}: ${progress} (Step ${currentStep})`);
+    } else {
+      console.log(`📈 Job ${jobId}: ${progress}`);
+    }
+    
+    try {
+      await this.convex.mutation(api.queue.heartbeat, {
+        jobId: jobId as Id<"jobs">,
+        workerId: this.config.workerId,
+        progress,
+        currentStep,
+      });
+    } catch (error) {
+      console.error(`⚠️ Failed to update progress for job ${jobId}:`, error);
+    }
   }
   
   private async completeJob(jobId: string, result: any): Promise<void> {
+    // Convert complex result to simple structure for Convex schema
+    const simpleResult = {
+      success: result.success || false,
+      message: result.success 
+        ? `Generated ${result.documents?.length || 0} documents successfully` 
+        : "Generation failed",
+      data: result.documents?.length ? `${result.documents.length} documents` : undefined,
+    };
+    
+    console.log(`✅ Completing job ${jobId} with:`, { 
+      success: simpleResult.success,
+      message: simpleResult.message,
+      docsCount: result.documents?.length || 0 
+    });
+    
     await this.convex.mutation(api.queue.complete, {
       jobId: jobId as Id<"jobs">,
       workerId: this.config.workerId,
-      result,
+      result: simpleResult,
+      docsCount: result.documents?.length || 0,
     });
-    console.log(`✅ Job ${jobId} completed with result`);
+    console.log(`✅ Job ${jobId} completed successfully`);
   }
   
   private async failJob(jobId: string, error: string): Promise<void> {
