@@ -157,7 +157,7 @@ export const retryOrFail = mutation({
     }
     
     const now = Date.now();
-    const attempts = job.attempts + 1;
+    const attempts = (job.attempts ?? 0) + 1;
     const maxAttempts = job.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
     
     if (attempts >= maxAttempts) {
@@ -219,7 +219,7 @@ export const reclaimExpired = internalMutation({
       if (["claimed", "cloning", "analyzing", "gathering", "running"].includes(job.status)) {
         await ctx.db.patch(job._id, {
           status: "pending",
-          attempts: job.attempts + 1,
+          attempts: (job.attempts ?? 0) + 1,
           runAt: now,
           lastError: "Lease expired - worker likely crashed",
           updatedAt: now,

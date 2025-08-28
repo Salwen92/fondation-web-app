@@ -164,6 +164,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
               onGenerate={handleGenerate}
               onCancel={handleCancel}
               onViewCourse={handleViewCourse}
+              repositoryName={repository.name}
             />
           </div>
         </Card>

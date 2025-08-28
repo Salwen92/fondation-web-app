@@ -19,6 +19,7 @@ declare const _default: import("convex/server").SchemaDefinition<{
     repositories: import("convex/server").TableDefinition<import("convex/values").VObject<{
         description?: string | undefined;
         lastFetched?: number | undefined;
+        lastAnalyzedAt?: number | undefined;
         languages?: {
             primary: string;
             all: {
@@ -45,6 +46,7 @@ declare const _default: import("convex/server").SchemaDefinition<{
         description: import("convex/values").VString<string | undefined, "optional">;
         defaultBranch: import("convex/values").VString<string, "required">;
         lastFetched: import("convex/values").VFloat64<number | undefined, "optional">;
+        lastAnalyzedAt: import("convex/values").VFloat64<number | undefined, "optional">;
         languages: import("convex/values").VObject<{
             primary: string;
             all: {
@@ -77,16 +79,19 @@ declare const _default: import("convex/server").SchemaDefinition<{
             forks: import("convex/values").VFloat64<number, "required">;
             issues: import("convex/values").VFloat64<number, "required">;
         }, "optional", "stars" | "forks" | "issues">;
-    }, "required", "userId" | "githubRepoId" | "name" | "fullName" | "description" | "defaultBranch" | "lastFetched" | "languages" | "stats" | "languages.primary" | "languages.all" | "stats.stars" | "stats.forks" | "stats.issues">, {
+    }, "required", "userId" | "githubRepoId" | "name" | "fullName" | "description" | "defaultBranch" | "lastFetched" | "lastAnalyzedAt" | "languages" | "stats" | "languages.primary" | "languages.all" | "stats.stars" | "stats.forks" | "stats.issues">, {
         by_user: ["userId", "_creationTime"];
     }, {}, {}>;
     jobs: import("convex/server").TableDefinition<import("convex/values").VObject<{
         error?: string | undefined;
+        runAt?: number | undefined;
+        attempts?: number | undefined;
         maxAttempts?: number | undefined;
         lockedBy?: string | undefined;
         leaseUntil?: number | undefined;
         dedupeKey?: string | undefined;
         lastError?: string | undefined;
+        updatedAt?: number | undefined;
         completedAt?: number | undefined;
         progress?: string | undefined;
         currentStep?: number | undefined;
@@ -112,24 +117,21 @@ declare const _default: import("convex/server").SchemaDefinition<{
         status: "pending" | "claimed" | "cloning" | "analyzing" | "gathering" | "running" | "completed" | "failed" | "canceled" | "dead";
         prompt: string;
         callbackToken: string;
-        runAt: number;
-        attempts: number;
-        updatedAt: number;
     }, {
         userId: import("convex/values").VId<import("convex/values").GenericId<"users">, "required">;
         repositoryId: import("convex/values").VId<import("convex/values").GenericId<"repositories">, "required">;
         status: import("convex/values").VUnion<"pending" | "claimed" | "cloning" | "analyzing" | "gathering" | "running" | "completed" | "failed" | "canceled" | "dead", [import("convex/values").VLiteral<"pending", "required">, import("convex/values").VLiteral<"claimed", "required">, import("convex/values").VLiteral<"cloning", "required">, import("convex/values").VLiteral<"analyzing", "required">, import("convex/values").VLiteral<"gathering", "required">, import("convex/values").VLiteral<"running", "required">, import("convex/values").VLiteral<"completed", "required">, import("convex/values").VLiteral<"failed", "required">, import("convex/values").VLiteral<"canceled", "required">, import("convex/values").VLiteral<"dead", "required">], "required", never>;
         prompt: import("convex/values").VString<string, "required">;
         callbackToken: import("convex/values").VString<string, "required">;
-        runAt: import("convex/values").VFloat64<number, "required">;
-        attempts: import("convex/values").VFloat64<number, "required">;
+        runAt: import("convex/values").VFloat64<number | undefined, "optional">;
+        attempts: import("convex/values").VFloat64<number | undefined, "optional">;
         maxAttempts: import("convex/values").VFloat64<number | undefined, "optional">;
         lockedBy: import("convex/values").VString<string | undefined, "optional">;
         leaseUntil: import("convex/values").VFloat64<number | undefined, "optional">;
         dedupeKey: import("convex/values").VString<string | undefined, "optional">;
         lastError: import("convex/values").VString<string | undefined, "optional">;
         createdAt: import("convex/values").VFloat64<number, "required">;
-        updatedAt: import("convex/values").VFloat64<number, "required">;
+        updatedAt: import("convex/values").VFloat64<number | undefined, "optional">;
         completedAt: import("convex/values").VFloat64<number | undefined, "optional">;
         progress: import("convex/values").VString<string | undefined, "optional">;
         currentStep: import("convex/values").VFloat64<number | undefined, "optional">;

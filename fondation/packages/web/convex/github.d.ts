@@ -1,4 +1,5 @@
 export declare const updateRepositoryMetadata: import("convex/server").RegisteredMutation<"public", {
+    lastAnalyzedAt?: number | undefined;
     repositoryId: import("convex/values").GenericId<"repositories">;
 }, Promise<{
     success: boolean;
@@ -11,6 +12,7 @@ export declare const getRepositoryWithMetadata: import("convex/server").Register
     _creationTime: number;
     description?: string | undefined;
     lastFetched?: number | undefined;
+    lastAnalyzedAt?: number | undefined;
     languages?: {
         primary: string;
         all: {

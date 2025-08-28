@@ -17,6 +17,7 @@ export default defineSchema({
         description: v.optional(v.string()),
         defaultBranch: v.string(),
         lastFetched: v.optional(v.number()),
+        lastAnalyzedAt: v.optional(v.number()),
         languages: v.optional(v.object({
             primary: v.string(),
             all: v.array(v.object({
@@ -39,8 +40,8 @@ export default defineSchema({
         prompt: v.string(),
         callbackToken: v.string(),
         // Queue management fields
-        runAt: v.number(), // When job should run (for scheduling/backoff)
-        attempts: v.number(), // Number of attempts made
+        runAt: v.optional(v.number()), // When job should run (for scheduling/backoff)
+        attempts: v.optional(v.number()), // Number of attempts made
         maxAttempts: v.optional(v.number()), // Max attempts before marking dead (default: 5)
         lockedBy: v.optional(v.string()), // Worker ID that has claimed the job
         leaseUntil: v.optional(v.number()), // Lease expiration timestamp
@@ -48,7 +49,7 @@ export default defineSchema({
         lastError: v.optional(v.string()), // Last error message for debugging
         // Timestamps
         createdAt: v.number(),
-        updatedAt: v.number(),
+        updatedAt: v.optional(v.number()),
         completedAt: v.optional(v.number()),
         // Progress tracking
         progress: v.optional(v.string()),

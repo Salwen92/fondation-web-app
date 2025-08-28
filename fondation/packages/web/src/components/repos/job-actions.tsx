@@ -12,6 +12,7 @@ interface JobActionsProps {
   onGenerate: () => void;
   onCancel: () => void;
   onViewCourse: () => void;
+  repositoryName?: string;
 }
 
 /**
@@ -26,6 +27,7 @@ export function JobActions({
   onGenerate,
   onCancel,
   onViewCourse,
+  repositoryName,
 }: JobActionsProps) {
   return (
     <div className="flex gap-2">
@@ -45,6 +47,7 @@ export function JobActions({
           disabled={isProcessing}
           className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
           size="sm"
+          id={repositoryName ? `generate-${repositoryName.replace(/[^a-zA-Z0-9]/g, '-')}` : undefined}
           data-testid={isProcessing ? "generating-button" : (isFailed || isCanceled) ? "retry-button" : "generate-button"}
         >
           {isProcessing ? (

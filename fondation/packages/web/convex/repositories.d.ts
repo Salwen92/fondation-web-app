@@ -16,6 +16,7 @@ export declare const getByGithubId: import("convex/server").RegisteredQuery<"int
     _creationTime: number;
     description?: string | undefined;
     lastFetched?: number | undefined;
+    lastAnalyzedAt?: number | undefined;
     languages?: {
         primary: string;
         all: {
@@ -57,6 +58,7 @@ export declare const listUserRepositories: import("convex/server").RegisteredQue
     _creationTime: number;
     description?: string | undefined;
     lastFetched?: number | undefined;
+    lastAnalyzedAt?: number | undefined;
     languages?: {
         primary: string;
         all: {
@@ -83,6 +85,7 @@ export declare const getByFullName: import("convex/server").RegisteredQuery<"pub
     _creationTime: number;
     description?: string | undefined;
     lastFetched?: number | undefined;
+    lastAnalyzedAt?: number | undefined;
     languages?: {
         primary: string;
         all: {
@@ -109,6 +112,7 @@ export declare const getByRepositoryId: import("convex/server").RegisteredQuery<
     _creationTime: number;
     description?: string | undefined;
     lastFetched?: number | undefined;
+    lastAnalyzedAt?: number | undefined;
     languages?: {
         primary: string;
         all: {

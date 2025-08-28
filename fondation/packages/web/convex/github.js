@@ -4,11 +4,19 @@ import { v } from "convex/values";
 export const updateRepositoryMetadata = mutation({
     args: {
         repositoryId: v.id("repositories"),
+        lastAnalyzedAt: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const repository = await ctx.db.get(args.repositoryId);
         if (!repository) {
             throw new Error("Repository not found");
+        }
+        // If only updating lastAnalyzedAt (no metadata fetch), do that quickly
+        if (args.lastAnalyzedAt !== undefined) {
+            await ctx.db.patch(args.repositoryId, {
+                lastAnalyzedAt: args.lastAnalyzedAt,
+            });
+            return { success: true };
         }
         const user = await ctx.db.get(repository.userId);
         if (!user?.githubAccessToken) {
@@ -48,7 +56,7 @@ export const updateRepositoryMetadata = mutation({
             }
             const repoData = await repoResponse.json();
             // Update repository with fetched data
-            await ctx.db.patch(args.repositoryId, {
+            const updateData = {
                 languages: {
                     primary: languages[0]?.name ?? "Unknown",
                     all: languages,
@@ -59,7 +67,12 @@ export const updateRepositoryMetadata = mutation({
                     issues: repoData.open_issues_count,
                 },
                 lastFetched: Date.now(),
-            });
+            };
+            // Add lastAnalyzedAt if provided
+            if (args.lastAnalyzedAt !== undefined) {
+                updateData.lastAnalyzedAt = args.lastAnalyzedAt;
+            }
+            await ctx.db.patch(args.repositoryId, updateData);
             return { success: true };
         }
         catch (error) {
