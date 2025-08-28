@@ -9,8 +9,9 @@ import {
 } from "lucide-react";
 import { type Id } from "../../../convex/_generated/dataModel";
 import { motion } from "framer-motion";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useRouter } from "next/navigation";
 import { JobStatusBadge } from "./job-status-badge";
 import { ProgressBar } from "./progress-bar";
 import { JobActions } from "./job-actions";
@@ -33,7 +34,9 @@ interface RepoCardProps {
  * Displays repository information and job management controls
  */
 export function RepoCard({ repo, userId }: RepoCardProps) {
+  const router = useRouter();
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId: repo._id });
+  const startAnalysis = useMutation(api.jobs.startAnalysis);
   
   // Get actual docs count from latest completed job
   const docsCount = latestJob?.status === "completed" ? latestJob.docsCount ?? 0 : 0;
@@ -57,6 +60,22 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
     if (latestJob?._id) {
       const [owner, repoName] = repo.fullName.split('/');
       window.location.href = `/course/${owner}/${repoName}/${latestJob._id}`;
+    }
+  };
+
+  // Handle test analysis
+  const handleTest = async () => {
+    try {
+      const { jobId } = await startAnalysis({
+        repositoryId: repo._id,
+        userId,
+        repoUrl: `https://github.com/${repo.fullName}`,
+      });
+      
+      // Navigate to job detail page
+      router.push(`/jobs/${jobId}`);
+    } catch (error) {
+      console.error("Failed to start test analysis:", error);
     }
   };
 
@@ -164,7 +183,8 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
               onGenerate={handleGenerate}
               onCancel={handleCancel}
               onViewCourse={handleViewCourse}
-              repositoryName={repository.name}
+              onTest={handleTest}
+              repositoryName={repo.name}
             />
           </div>
         </Card>

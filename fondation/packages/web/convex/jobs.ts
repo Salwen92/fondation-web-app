@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, action } from "./_generated/server";
 import { v4 as uuidv4 } from "uuid";
 import { api } from "./_generated/api";
 
@@ -311,6 +311,183 @@ export const getLatestCompletedByRepository = query({
       .order("desc")
       .first();
     return job;
+  },
+});
+
+// E2E Test Flow Functions
+export const startAnalysis = mutation({
+  args: { 
+    repositoryId: v.id("repositories"),
+    userId: v.id("users"),
+    repoUrl: v.string() 
+  },
+  handler: async (ctx, args) => {
+    const callbackToken = uuidv4();
+    const now = Date.now();
+    
+    const jobId = await ctx.db.insert("jobs", {
+      userId: args.userId,
+      repositoryId: args.repositoryId,
+      status: "pending",
+      prompt: `Analyze repository: ${args.repoUrl}`,
+      callbackToken,
+      runAt: now,
+      attempts: 0,
+      createdAt: now,
+      updatedAt: now,
+    });
+    
+    // Schedule the worker action
+    await ctx.scheduler.runAfter(0, "jobs.runWorker", { jobId });
+    
+    return { jobId };
+  },
+});
+
+export const getLogs = query({
+  args: { 
+    jobId: v.id("jobs"), 
+    afterSeq: v.optional(v.number()) 
+  },
+  handler: async (ctx, args) => {
+    const logs = await ctx.db
+      .query("jobLogs")
+      .withIndex("by_job", (q) => q.eq("jobId", args.jobId))
+      .collect();
+    
+    const filtered = logs.filter(l => (args.afterSeq ?? -1) < l.seq);
+    return filtered.sort((a, b) => a.seq - b.seq);
+  },
+});
+
+export const appendLog = mutation({
+  args: { 
+    jobId: v.id("jobs"), 
+    level: v.union(v.literal("info"), v.literal("error")), 
+    msg: v.string() 
+  },
+  handler: async (ctx, args) => {
+    const seq = Date.now(); // simple monotonic
+    await ctx.db.insert("jobLogs", { 
+      jobId: args.jobId, 
+      ts: Date.now(), 
+      seq, 
+      level: args.level, 
+      msg: args.msg 
+    });
+  },
+});
+
+export const setStatus = mutation({
+  args: { 
+    jobId: v.id("jobs"), 
+    status: v.union(
+      v.literal("pending"),
+      v.literal("claimed"),
+      v.literal("cloning"),
+      v.literal("analyzing"),
+      v.literal("gathering"),
+      v.literal("running"),
+      v.literal("completed"),
+      v.literal("failed"),
+      v.literal("canceled"),
+      v.literal("dead"),
+    ), 
+    error: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    const patch: any = { status: args.status };
+    if (args.status === "running") patch.updatedAt = Date.now();
+    if (args.status === "completed" || args.status === "failed") {
+      patch.completedAt = Date.now();
+      patch.updatedAt = Date.now();
+    }
+    if (args.error) patch.error = args.error;
+    
+    await ctx.db.patch(args.jobId, patch);
+  },
+});
+
+// This action does the actual Docker call (or delegates to your existing worker)
+export const runWorker = action({
+  args: { jobId: v.id("jobs") },
+  handler: async (ctx, args) => {
+    const job = await ctx.runQuery("jobs.getJob", { jobId: args.jobId });
+    if (!job) return;
+
+    await ctx.runMutation("jobs.setStatus", { jobId: args.jobId, status: "running" });
+    await ctx.runMutation("jobs.appendLog", { 
+      jobId: args.jobId, 
+      level: "info", 
+      msg: "[fondation-worker] image=fondation-worker:authed-patched user=worker(1001) home=/home/worker" 
+    });
+    await ctx.runMutation("jobs.appendLog", { 
+      jobId: args.jobId, 
+      level: "info", 
+      msg: "[fondation-worker] cmd=\"cd /app/packages/cli && NODE_PATH=/app/node_modules node dist/analyze-all.js <repo>\"" 
+    });
+
+    try {
+      // Check if we're in mock mode for testing
+      const isMockMode = process.env.WORKER_MODE === "mock";
+      
+      if (isMockMode) {
+        // Mock worker for E2E testing
+        await ctx.runMutation("jobs.appendLog", { 
+          jobId: args.jobId, 
+          level: "info", 
+          msg: "[MOCK] Simulating Docker job execution..." 
+        });
+        
+        // Simulate steps
+        const steps = [
+          "mkdir-tmp",
+          "preflight", 
+          "run-cli",
+          "collect-artifacts"
+        ];
+        
+        for (let i = 0; i < steps.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+          await ctx.runMutation("jobs.appendLog", { 
+            jobId: args.jobId, 
+            level: "info", 
+            msg: `[step] ${steps[i]} (${i + 1}/${steps.length})` 
+          });
+        }
+        
+        await ctx.runMutation("jobs.appendLog", { 
+          jobId: args.jobId, 
+          level: "info", 
+          msg: "✅ Artifacts generated: step1_abstractions.yaml, step2_relationships.yaml, step3_order.yaml, chapters/chapter_0.md" 
+        });
+        
+        await ctx.runMutation("jobs.setStatus", { jobId: args.jobId, status: "completed" });
+      } else {
+        // Real worker - integrate with existing worker service
+        await ctx.runMutation("jobs.appendLog", { 
+          jobId: args.jobId, 
+          level: "info", 
+          msg: "Spawning real Docker worker (not implemented yet - use WORKER_MODE=mock for testing)" 
+        });
+        await ctx.runMutation("jobs.setStatus", { 
+          jobId: args.jobId, 
+          status: "failed", 
+          error: "Real worker integration not implemented - use WORKER_MODE=mock" 
+        });
+      }
+    } catch (e: any) {
+      await ctx.runMutation("jobs.appendLog", { 
+        jobId: args.jobId, 
+        level: "error", 
+        msg: String(e?.message || e) 
+      });
+      await ctx.runMutation("jobs.setStatus", { 
+        jobId: args.jobId, 
+        status: "failed", 
+        error: String(e?.message || e) 
+      });
+    }
   },
 });
 

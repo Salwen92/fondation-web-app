@@ -123,4 +123,14 @@ export default defineSchema({
     .index("by_job", ["jobId"])
     .index("by_repository", ["repositoryId"])
     .index("by_source_key", ["sourceKey"]),
+
+  jobLogs: defineTable({
+    jobId: v.id("jobs"),
+    ts: v.number(),      // Date.now()
+    seq: v.number(),     // monotonic sequence
+    level: v.union(v.literal("info"), v.literal("error")),
+    msg: v.string(),
+  })
+    .index("by_job", ["jobId"])
+    .index("by_job_seq", ["jobId", "seq"]),
 });

@@ -1,8 +1,31 @@
 # Fondation Docker Runtime (FINAL)
 
+## Canonical Runtime (do not change)
 **Image**: `fondation-worker:authed-patched`  
+**User/HOME**: uid=1001 /home/worker  
 **Command**: `cd /app/packages/cli && NODE_PATH=/app/node_modules node dist/analyze-all.js <repo>`  
-**Auth**: Claude OAuth baked via `claude login` (worker uid=1001, HOME=/home/worker)
+**Auth**: OAuth via `claude login` baked into image; if expired, re-run login & commit  
+**Prompts**: `/app/packages/cli/prompts/`  
+
+**Never use**: cli.bundled.cjs or Bun in runtime.
+
+## Preflight
+```bash
+docker run --rm --user 1001:1001 -e HOME=/home/worker \
+  fondation-worker:authed-patched sh -lc 'claude -p "auth ok?" --output-format text | head -3'
+```
+
+## Definitive Run
+```bash
+docker run --rm --user 1001:1001 -e HOME=/home/worker -e NODE_PATH=/app/node_modules \
+  fondation-worker:authed-patched sh -lc '
+    set -e
+    cd /app/packages/cli
+    mkdir -p /tmp/repo && printf "# tmp\n" > /tmp/repo/README.md
+    time node dist/analyze-all.js /tmp/repo
+    echo "[ARTIFACTS]"; find /tmp/repo/.claude-tutorial-output -maxdepth 2 -type f | sort | sed -n "1,120p"
+  '
+```
 
 ## Why this works
 - ESM self-heal: `/packages/cli/scripts/patch-esm-imports.js` runs in Docker build and appends `.js` to relative imports under `/app/packages/cli/dist/**`.
@@ -15,26 +38,6 @@ docker run -it --name cc-login --user 1001:1001 -e HOME=/home/worker \
   fondation-worker:patched claude login
 docker commit cc-login fondation-worker:authed-patched
 docker rm cc-login
-```
-
-## Preflight
-```bash
-docker run --rm --user 1001:1001 -e HOME=/home/worker fondation-worker:authed-patched \
-  sh -lc 'claude -p "auth ok?" --output-format text | head -3'
-docker run --rm fondation-worker:authed-patched sh -lc \
-  'node -e "import(\"@anthropic-ai/claude-code\").then(()=>console.log(\"sdk import: OK\"))"'
-```
-
-## Definitive run
-```bash
-docker run --rm --user 1001:1001 -e HOME=/home/worker -e NODE_PATH=/app/node_modules \
-  fondation-worker:authed-patched sh -lc '
-    set -e
-    cd /app/packages/cli
-    mkdir -p /tmp/repo && printf "# tmp\n" > /tmp/repo/README.md
-    time node dist/analyze-all.js /tmp/repo
-    echo "[ARTIFACTS]"; find /tmp/repo/.claude-tutorial-output -maxdepth 2 -type f | sort | sed -n "1,120p"
-  '
 ```
 
 ## Troubleshooting

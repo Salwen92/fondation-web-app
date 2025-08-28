@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Book, Code2, Loader2, Sparkles, X } from "lucide-react";
+import { Book, Code2, Loader2, Sparkles, X, FlaskConical } from "lucide-react";
 
 interface JobActionsProps {
   status?: string;
@@ -12,6 +12,7 @@ interface JobActionsProps {
   onGenerate: () => void;
   onCancel: () => void;
   onViewCourse: () => void;
+  onTest?: () => void;
   repositoryName?: string;
 }
 
@@ -27,6 +28,7 @@ export function JobActions({
   onGenerate,
   onCancel,
   onViewCourse,
+  onTest,
   repositoryName,
 }: JobActionsProps) {
   return (
@@ -81,14 +83,27 @@ export function JobActions({
           <X className="h-4 w-4 text-red-500" />
         </Button>
       ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          className="glass"
-          data-testid="code-button"
-        >
-          <Code2 className="h-4 w-4" />
-        </Button>
+        <>
+          {onTest && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onTest}
+              className="glass border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+              data-testid="repo-test-btn"
+            >
+              <FlaskConical className="h-4 w-4 text-blue-500" />
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="glass"
+            data-testid="code-button"
+          >
+            <Code2 className="h-4 w-4" />
+          </Button>
+        </>
       )}
     </div>
   );
