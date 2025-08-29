@@ -3,9 +3,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import type { Logger } from 'pino';
+import type { PackageJson } from '../../types/package';
 import type { CLIConfig } from '../utils/config';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const versionCommand = new Command('version')
   .description('Display version and environment information')
@@ -15,14 +14,24 @@ export const versionCommand = new Command('version')
     const logger: Logger = command.optsWithGlobals()._logger;
     const globalJson = command.optsWithGlobals().json;
 
-    // Read package.json
-    const packageJson = JSON.parse(readFileSync(join(__dirname, '../../../package.json'), 'utf-8'));
+    // Read package.json - handle both bundled and unbundled scenarios
+    let packageJson: PackageJson;
+    if (process.env.PACKAGE_JSON) {
+      // Use embedded package.json in bundled version
+      packageJson = JSON.parse(process.env.PACKAGE_JSON) as PackageJson;
+    } else {
+      // Read from file system in development
+      const __dirname = dirname(fileURLToPath(import.meta.url));
+      packageJson = JSON.parse(
+        readFileSync(join(__dirname, '../../../package.json'), 'utf-8'),
+      ) as PackageJson;
+    }
 
     const versionInfo = {
       cli: {
         name: packageJson.name,
         version: packageJson.version,
-        description: packageJson.description,
+        description: packageJson.description ?? 'CLI tool to run prompts using Claude Code SDK',
       },
       runtime: {
         type: process.versions.bun ? 'Bun' : 'Node.js',
@@ -44,9 +53,11 @@ export const versionCommand = new Command('version')
       },
       dependencies: {
         '@anthropic-ai/claude-code':
-          packageJson.dependencies['@anthropic-ai/claude-code'] || 'unknown',
-        commander: packageJson.dependencies.commander || 'unknown',
-        zod: packageJson.dependencies.zod || 'unknown',
+          packageJson.dependencies?.['@anthropic-ai/claude-code'] ?? 'unknown',
+        // biome-ignore lint/complexity/useLiteralKeys: TypeScript noPropertyAccessFromIndexSignature requires bracket notation
+        commander: packageJson.dependencies?.['commander'] ?? 'unknown',
+        // biome-ignore lint/complexity/useLiteralKeys: TypeScript noPropertyAccessFromIndexSignature requires bracket notation
+        zod: packageJson.dependencies?.['zod'] ?? 'unknown',
       },
     };
 

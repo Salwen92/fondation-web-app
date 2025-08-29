@@ -1,0 +1,33 @@
+# Minimal Fondation Docker Image
+# For quick testing and development
+
+FROM node:20-alpine
+
+# Install minimal system packages
+RUN apk add --no-cache git bash
+
+WORKDIR /app
+
+# Assume cli.bundled.cjs and prompts are built locally
+# Build with: docker build -f Dockerfile.minimal -t fondation-minimal .
+COPY dist/cli.bundled.cjs ./
+COPY prompts ./prompts
+
+# Copy package.json to multiple locations to handle path resolution issues
+COPY package.json ./
+COPY package.json /package.json
+
+# Install only the Claude SDK (includes CLI)
+RUN npm init -y --quiet && \
+    npm install --no-save @anthropic-ai/claude-code@1.0.96 && \
+    rm -f package-lock.json
+
+# Create directories
+RUN mkdir -p /workspace /output
+
+# Set environment
+ENV NODE_ENV=production \
+    CLAUDE_OUTPUT_DIR=/output
+
+ENTRYPOINT ["node", "cli.bundled.cjs"]
+CMD ["--help"]

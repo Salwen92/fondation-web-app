@@ -261,7 +261,10 @@ Use "fondation --help" for more information about global options.`,
     } catch (error) {
       logger.error('Analysis failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        fullError: JSON.stringify(error, null, 2),
       });
+      logger.debug('Full error details', { error });
       process.exit(1);
     }
   });
@@ -288,6 +291,22 @@ async function runPromptStep(
 
   // Use the SDK directly to match existing analyze-all.ts behavior
   const messages = [];
+
+  // Find the Claude Code executable path
+  // In Docker/bundled environments, force the known path
+  let claudeCodePath: string | undefined;
+  if (existsSync('/app/node_modules/@anthropic-ai/claude-code/cli.js')) {
+    // Docker environment - use explicit path
+    claudeCodePath = '/app/node_modules/@anthropic-ai/claude-code/cli.js';
+  } else {
+    // Development environment - try to resolve
+    try {
+      claudeCodePath = require.resolve('@anthropic-ai/claude-code/cli.js');
+    } catch {
+      // Let the SDK use its default path resolution
+    }
+  }
+
   for await (const message of query({
     prompt: 'please respect your system prompt very carefully',
     abortController: new AbortController(),
@@ -296,6 +315,7 @@ async function runPromptStep(
       allowedTools: ['Write', 'Read', 'LS', 'Glob', 'Grep', 'Edit', 'Bash'],
       cwd: workingDirectory,
       model,
+      ...(claudeCodePath && { pathToClaudeCodeExecutable: claudeCodePath }),
     },
   })) {
     messages.push(message);

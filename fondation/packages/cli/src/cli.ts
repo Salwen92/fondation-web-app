@@ -8,10 +8,24 @@ import { Command } from 'commander';
 import type { GlobalOptions } from './cli/types';
 import { type CLIConfig, loadConfig } from './cli/utils/config';
 import { createLogger, LogMessages, setLogger, Timer } from './cli/utils/logger';
+import type { PackageJson } from './types/package';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
-const version = packageJson.version;
+// Handle both bundled and unbundled scenarios
+let packageJson: PackageJson;
+let version: string;
+
+if (process.env.PACKAGE_JSON) {
+  // Use embedded package.json in bundled version
+  packageJson = JSON.parse(process.env.PACKAGE_JSON) as PackageJson;
+  version = packageJson.version;
+} else {
+  // Read from file system in development
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  packageJson = JSON.parse(
+    readFileSync(join(__dirname, '../package.json'), 'utf-8'),
+  ) as PackageJson;
+  version = packageJson.version;
+}
 
 async function main() {
   const program = new Command();

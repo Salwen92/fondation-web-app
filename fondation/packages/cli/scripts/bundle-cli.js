@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, mkdirSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
@@ -23,16 +23,23 @@ async function buildCLI() {
       process.exit(1);
     }
 
+    // Read package.json content to embed in bundle
+    const packageJsonContent = readFileSync(join(__dirname, '..', 'package.json'), 'utf-8');
+    const packageData = JSON.parse(packageJsonContent);
+    
     // Bundle strategy: include most core dependencies, exclude heavy/optional ones
     const result = await build({
       entryPoints: ['dist/cli.js'],
       bundle: true,
       platform: 'node',
-      target: 'node18',
+      target: 'node20',  // Upgrade to Node 20 for better compatibility
       format: 'cjs',
       outfile: 'dist/cli.bundled.cjs',
       define: {
         'import.meta.url': 'import_meta_url',
+        // Embed package.json content as a string to avoid file system reads
+        'process.env.PACKAGE_JSON': JSON.stringify(packageJsonContent),
+        'process.env.PACKAGE_VERSION': JSON.stringify(packageData.version),
       },
       banner: {
         js: `const import_meta_url = require('url').pathToFileURL(__filename).toString();`,
