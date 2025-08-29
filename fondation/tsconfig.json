@@ -10,8 +10,15 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "composite": true,
     "paths": {
       "@fondation/shared": ["./packages/shared/src/index.ts"]
     }
-  }
+  },
+  "references": [
+    { "path": "./packages/shared" },
+    { "path": "./packages/worker" },
+    { "path": "./packages/cli" }
+  ],
+  "files": []
 }

@@ -12,9 +12,9 @@ export declare const getUserByGithubId: import("convex/server").RegisteredQuery<
     email?: string | undefined;
     avatarUrl?: string | undefined;
     githubAccessToken?: string | undefined;
-    createdAt: number;
     githubId: string;
     username: string;
+    createdAt: number;
 } | null>>;
 export declare const getCurrentUser: import("convex/server").RegisteredQuery<"public", {
     githubId?: string | undefined;
@@ -24,9 +24,9 @@ export declare const getCurrentUser: import("convex/server").RegisteredQuery<"pu
     email?: string | undefined;
     avatarUrl?: string | undefined;
     githubAccessToken?: string | undefined;
-    createdAt: number;
     githubId: string;
     username: string;
+    createdAt: number;
 } | null>>;
 export declare const getDashboardStats: import("convex/server").RegisteredQuery<"public", {
     userId: import("convex/values").GenericId<"users">;
@@ -55,3 +55,4 @@ export declare const updateGitHubToken: import("convex/server").RegisteredMutati
 export declare const getGitHubToken: import("convex/server").RegisteredQuery<"public", {
     githubId: string;
 }, Promise<string | null>>;
+//# sourceMappingURL=users.d.ts.map

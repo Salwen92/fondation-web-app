@@ -22,9 +22,9 @@ export declare const getRepositoryWithMetadata: import("convex/server").Register
         }[];
     } | undefined;
     stats?: {
-        issues: number;
         stars: number;
         forks: number;
+        issues: number;
     } | undefined;
     userId: import("convex/values").GenericId<"users">;
     githubRepoId: string;
@@ -32,3 +32,4 @@ export declare const getRepositoryWithMetadata: import("convex/server").Register
     fullName: string;
     defaultBranch: string;
 } | null>>;
+//# sourceMappingURL=github.d.ts.map

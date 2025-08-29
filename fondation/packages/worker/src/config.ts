@@ -1,4 +1,14 @@
-import { WorkerConfig } from "@fondation/shared";
+// Local type until workspace resolution is fixed
+type WorkerConfig = {
+  workerId: string;
+  convexUrl: string;
+  pollInterval: number;
+  leaseTime: number;
+  heartbeatInterval: number;
+  maxConcurrentJobs: number;
+  tempDir: string;
+  cliPath?: string;
+};
 import { randomBytes } from "crypto";
 
 // Generate worker ID

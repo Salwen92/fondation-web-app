@@ -1,5 +1,31 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { HealthCheck } from "@fondation/shared";
+// Local type until workspace resolution is fixed
+type HealthCheck = {
+  status: "healthy" | "degraded" | "unhealthy";
+  workerId: string;
+  uptime: number;
+  lastJobTime: number;
+  activeJobs: number;
+  maxConcurrentJobs: number;
+  memory: {
+    rss: number;
+    heapTotal: number;
+    heapUsed: number;
+    external: number;
+    percentUsed: number;
+  };
+  cpu: {
+    loadAverage: number[];
+    cores: number;
+  };
+  system: {
+    platform: string;
+    arch: string;
+    nodeVersion: string;
+    totalMemory: number;
+    freeMemory: number;
+  };
+};
 import os from "os";
 
 interface WorkerInterface {

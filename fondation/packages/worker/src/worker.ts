@@ -1,11 +1,46 @@
 import { ConvexClient } from "convex/browser";
-import { WorkerConfig, Job, JobStatus, ProgressUpdate } from "@fondation/shared";
 import { validateConfig } from "./config.js";
 import { CLIExecutor } from "./cli-executor.js";
 import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
-import { api, internal } from "../web/convex/_generated/api.js";
-import type { Id } from "../web/convex/_generated/dataModel.js";
+import { api, internal, type Id } from "./convex-adapter.js";
+
+// Use local types until workspace resolution is fixed
+type WorkerConfig = {
+  workerId: string;
+  convexUrl: string;
+  pollInterval: number;
+  leaseTime: number;
+  heartbeatInterval: number;
+  maxConcurrentJobs: number;
+  tempDir: string;
+  cliPath?: string;
+};
+
+type Job = {
+  id: string;
+  userId: string;
+  repositoryId: string;
+  repositoryUrl?: string;
+  branch?: string;
+  prompt: string;
+  status: string;
+  [key: string]: any;
+};
+
+type JobStatus = 
+  | "pending" | "claimed" | "running" | "cloning" 
+  | "analyzing" | "gathering" | "completed" 
+  | "failed" | "canceled" | "dead";
+
+type ProgressUpdate = {
+  jobId: string;
+  status: JobStatus;
+  progress?: string;
+  currentStep?: number;
+  totalSteps?: number;
+  error?: string;
+};
 
 export class PermanentWorker {
   private convex: ConvexClient;
@@ -43,9 +78,9 @@ export class PermanentWorker {
     };
   }
   
-  constructor(public config: WorkerConfig) {
+  constructor(public config: WorkerConfig, convexClient: ConvexClient) {
     validateConfig();
-    this.convex = new ConvexClient(config.convexUrl);
+    this.convex = convexClient;
     this.cliExecutor = new CLIExecutor(); // No arguments needed - uses integrated CLI
     this.repoManager = new RepoManager(config.tempDir);
     this.healthServer = new HealthServer(this);

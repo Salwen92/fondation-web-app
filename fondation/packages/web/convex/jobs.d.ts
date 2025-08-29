@@ -11,24 +11,24 @@ export declare const listUserJobs: import("convex/server").RegisteredQuery<"publ
 }, Promise<{
     _id: import("convex/values").GenericId<"jobs">;
     _creationTime: number;
+    error?: string | undefined;
     attempts?: number | undefined;
     maxAttempts?: number | undefined;
+    runAt?: number | undefined;
     lockedBy?: string | undefined;
     leaseUntil?: number | undefined;
     dedupeKey?: string | undefined;
-    runAt?: number | undefined;
+    lastError?: string | undefined;
     updatedAt?: number | undefined;
     completedAt?: number | undefined;
-    result?: string | {
-        message?: string | undefined;
-        data?: string | undefined;
-        success: boolean;
-    } | null | undefined;
-    error?: string | undefined;
-    lastError?: string | undefined;
     progress?: string | undefined;
     currentStep?: number | undefined;
     totalSteps?: number | undefined;
+    result?: string | {
+        data?: string | undefined;
+        message?: string | undefined;
+        success: boolean;
+    } | null | undefined;
     docsCount?: number | undefined;
     cancelRequested?: boolean | undefined;
     runId?: string | undefined;
@@ -39,10 +39,10 @@ export declare const listUserJobs: import("convex/server").RegisteredQuery<"publ
         rejected: number;
         deleted: number;
     } | undefined;
-    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     userId: import("convex/values").GenericId<"users">;
     repositoryId: import("convex/values").GenericId<"repositories">;
     prompt: string;
+    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     callbackToken: string;
     createdAt: number;
 }[]>>;
@@ -51,24 +51,24 @@ export declare const getJob: import("convex/server").RegisteredQuery<"public", {
 }, Promise<{
     _id: import("convex/values").GenericId<"jobs">;
     _creationTime: number;
+    error?: string | undefined;
     attempts?: number | undefined;
     maxAttempts?: number | undefined;
+    runAt?: number | undefined;
     lockedBy?: string | undefined;
     leaseUntil?: number | undefined;
     dedupeKey?: string | undefined;
-    runAt?: number | undefined;
+    lastError?: string | undefined;
     updatedAt?: number | undefined;
     completedAt?: number | undefined;
-    result?: string | {
-        message?: string | undefined;
-        data?: string | undefined;
-        success: boolean;
-    } | null | undefined;
-    error?: string | undefined;
-    lastError?: string | undefined;
     progress?: string | undefined;
     currentStep?: number | undefined;
     totalSteps?: number | undefined;
+    result?: string | {
+        data?: string | undefined;
+        message?: string | undefined;
+        success: boolean;
+    } | null | undefined;
     docsCount?: number | undefined;
     cancelRequested?: boolean | undefined;
     runId?: string | undefined;
@@ -79,10 +79,10 @@ export declare const getJob: import("convex/server").RegisteredQuery<"public", {
         rejected: number;
         deleted: number;
     } | undefined;
-    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     userId: import("convex/values").GenericId<"users">;
     repositoryId: import("convex/values").GenericId<"repositories">;
     prompt: string;
+    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     callbackToken: string;
     createdAt: number;
 } | null>>;
@@ -91,24 +91,24 @@ export declare const getById: import("convex/server").RegisteredQuery<"public", 
 }, Promise<{
     _id: import("convex/values").GenericId<"jobs">;
     _creationTime: number;
+    error?: string | undefined;
     attempts?: number | undefined;
     maxAttempts?: number | undefined;
+    runAt?: number | undefined;
     lockedBy?: string | undefined;
     leaseUntil?: number | undefined;
     dedupeKey?: string | undefined;
-    runAt?: number | undefined;
+    lastError?: string | undefined;
     updatedAt?: number | undefined;
     completedAt?: number | undefined;
-    result?: string | {
-        message?: string | undefined;
-        data?: string | undefined;
-        success: boolean;
-    } | null | undefined;
-    error?: string | undefined;
-    lastError?: string | undefined;
     progress?: string | undefined;
     currentStep?: number | undefined;
     totalSteps?: number | undefined;
+    result?: string | {
+        data?: string | undefined;
+        message?: string | undefined;
+        success: boolean;
+    } | null | undefined;
     docsCount?: number | undefined;
     cancelRequested?: boolean | undefined;
     runId?: string | undefined;
@@ -119,10 +119,10 @@ export declare const getById: import("convex/server").RegisteredQuery<"public", 
         rejected: number;
         deleted: number;
     } | undefined;
-    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     userId: import("convex/values").GenericId<"users">;
     repositoryId: import("convex/values").GenericId<"repositories">;
     prompt: string;
+    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     callbackToken: string;
     createdAt: number;
 } | null>>;
@@ -131,24 +131,24 @@ export declare const getJobByRepository: import("convex/server").RegisteredQuery
 }, Promise<{
     _id: import("convex/values").GenericId<"jobs">;
     _creationTime: number;
+    error?: string | undefined;
     attempts?: number | undefined;
     maxAttempts?: number | undefined;
+    runAt?: number | undefined;
     lockedBy?: string | undefined;
     leaseUntil?: number | undefined;
     dedupeKey?: string | undefined;
-    runAt?: number | undefined;
+    lastError?: string | undefined;
     updatedAt?: number | undefined;
     completedAt?: number | undefined;
-    result?: string | {
-        message?: string | undefined;
-        data?: string | undefined;
-        success: boolean;
-    } | null | undefined;
-    error?: string | undefined;
-    lastError?: string | undefined;
     progress?: string | undefined;
     currentStep?: number | undefined;
     totalSteps?: number | undefined;
+    result?: string | {
+        data?: string | undefined;
+        message?: string | undefined;
+        success: boolean;
+    } | null | undefined;
     docsCount?: number | undefined;
     cancelRequested?: boolean | undefined;
     runId?: string | undefined;
@@ -159,23 +159,23 @@ export declare const getJobByRepository: import("convex/server").RegisteredQuery
         rejected: number;
         deleted: number;
     } | undefined;
-    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     userId: import("convex/values").GenericId<"users">;
     repositoryId: import("convex/values").GenericId<"repositories">;
     prompt: string;
+    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     callbackToken: string;
     createdAt: number;
 } | null>>;
 export declare const updateStatus: import("convex/server").RegisteredMutation<"public", {
-    result?: string | {
-        message?: string | undefined;
-        data?: string | undefined;
-        success: boolean;
-    } | null | undefined;
     error?: string | undefined;
     progress?: string | undefined;
     currentStep?: number | undefined;
     totalSteps?: number | undefined;
+    result?: string | {
+        data?: string | undefined;
+        message?: string | undefined;
+        success: boolean;
+    } | null | undefined;
     status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     callbackToken: string;
     jobId: import("convex/values").GenericId<"jobs">;
@@ -210,24 +210,24 @@ export declare const getLatestCompletedByRepository: import("convex/server").Reg
 }, Promise<{
     _id: import("convex/values").GenericId<"jobs">;
     _creationTime: number;
+    error?: string | undefined;
     attempts?: number | undefined;
     maxAttempts?: number | undefined;
+    runAt?: number | undefined;
     lockedBy?: string | undefined;
     leaseUntil?: number | undefined;
     dedupeKey?: string | undefined;
-    runAt?: number | undefined;
+    lastError?: string | undefined;
     updatedAt?: number | undefined;
     completedAt?: number | undefined;
-    result?: string | {
-        message?: string | undefined;
-        data?: string | undefined;
-        success: boolean;
-    } | null | undefined;
-    error?: string | undefined;
-    lastError?: string | undefined;
     progress?: string | undefined;
     currentStep?: number | undefined;
     totalSteps?: number | undefined;
+    result?: string | {
+        data?: string | undefined;
+        message?: string | undefined;
+        success: boolean;
+    } | null | undefined;
     docsCount?: number | undefined;
     cancelRequested?: boolean | undefined;
     runId?: string | undefined;
@@ -238,10 +238,10 @@ export declare const getLatestCompletedByRepository: import("convex/server").Reg
         rejected: number;
         deleted: number;
     } | undefined;
-    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     userId: import("convex/values").GenericId<"users">;
     repositoryId: import("convex/values").GenericId<"repositories">;
     prompt: string;
+    status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
     callbackToken: string;
     createdAt: number;
 } | null>>;
@@ -277,3 +277,4 @@ export declare const setStatus: import("convex/server").RegisteredMutation<"publ
 export declare const runWorker: import("convex/server").RegisteredAction<"public", {
     jobId: import("convex/values").GenericId<"jobs">;
 }, Promise<void>>;
+//# sourceMappingURL=jobs.d.ts.map

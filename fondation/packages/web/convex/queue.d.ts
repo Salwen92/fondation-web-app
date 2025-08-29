@@ -21,8 +21,8 @@ export declare const heartbeat: import("convex/server").RegisteredMutation<"publ
     progress?: string | undefined;
     currentStep?: number | undefined;
     leaseMs?: number | undefined;
-    workerId: string;
     jobId: import("convex/values").GenericId<"jobs">;
+    workerId: string;
 }, Promise<{
     success: boolean;
 }>>;
@@ -31,13 +31,13 @@ export declare const heartbeat: import("convex/server").RegisteredMutation<"publ
  */
 export declare const complete: import("convex/server").RegisteredMutation<"public", {
     result?: string | {
-        message?: string | undefined;
         data?: string | undefined;
+        message?: string | undefined;
         success: boolean;
     } | null | undefined;
     docsCount?: number | undefined;
-    workerId: string;
     jobId: import("convex/values").GenericId<"jobs">;
+    workerId: string;
 }, Promise<{
     success: boolean;
 }>>;
@@ -46,8 +46,8 @@ export declare const complete: import("convex/server").RegisteredMutation<"publi
  */
 export declare const retryOrFail: import("convex/server").RegisteredMutation<"public", {
     error: string;
-    workerId: string;
     jobId: import("convex/values").GenericId<"jobs">;
+    workerId: string;
 }, Promise<{
     status: string;
     attempts: number;
@@ -96,3 +96,4 @@ export declare const getMetrics: import("convex/server").RegisteredQuery<"public
     };
     timestamp: number;
 }>>;
+//# sourceMappingURL=queue.d.ts.map

@@ -26,9 +26,9 @@ export declare const getByGithubId: import("convex/server").RegisteredQuery<"int
         }[];
     } | undefined;
     stats?: {
-        issues: number;
         stars: number;
         forks: number;
+        issues: number;
     } | undefined;
     userId: import("convex/values").GenericId<"users">;
     githubRepoId: string;
@@ -68,9 +68,9 @@ export declare const listUserRepositories: import("convex/server").RegisteredQue
         }[];
     } | undefined;
     stats?: {
-        issues: number;
         stars: number;
         forks: number;
+        issues: number;
     } | undefined;
     userId: import("convex/values").GenericId<"users">;
     githubRepoId: string;
@@ -95,9 +95,9 @@ export declare const getByFullName: import("convex/server").RegisteredQuery<"pub
         }[];
     } | undefined;
     stats?: {
-        issues: number;
         stars: number;
         forks: number;
+        issues: number;
     } | undefined;
     userId: import("convex/values").GenericId<"users">;
     githubRepoId: string;
@@ -122,9 +122,9 @@ export declare const getByRepositoryId: import("convex/server").RegisteredQuery<
         }[];
     } | undefined;
     stats?: {
-        issues: number;
         stars: number;
         forks: number;
+        issues: number;
     } | undefined;
     userId: import("convex/values").GenericId<"users">;
     githubRepoId: string;
@@ -142,3 +142,4 @@ export declare const triggerAnalyze: import("convex/server").RegisteredMutation<
         defaultBranch: string;
     };
 }>>;
+//# sourceMappingURL=repositories.d.ts.map
