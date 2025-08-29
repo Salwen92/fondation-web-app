@@ -178,14 +178,14 @@ declare const _default: import("convex/server").SchemaDefinition<{
         runId?: string | undefined;
         sourceKey?: string | undefined;
         normalizedAt?: number | undefined;
+        slug: string;
+        kind: "yaml" | "chapter" | "tutorial" | "toc";
+        chapterIndex: number;
+        title: string;
+        content: string;
         repositoryId: import("convex/values").GenericId<"repositories">;
         createdAt: number;
         jobId: import("convex/values").GenericId<"jobs">;
-        slug: string;
-        title: string;
-        chapterIndex: number;
-        content: string;
-        kind: "yaml" | "chapter" | "tutorial" | "toc";
     }, {
         jobId: import("convex/values").VId<import("convex/values").GenericId<"jobs">, "required">;
         repositoryId: import("convex/values").VId<import("convex/values").GenericId<"repositories">, "required">;
@@ -199,7 +199,7 @@ declare const _default: import("convex/server").SchemaDefinition<{
         sourceKey: import("convex/values").VString<string | undefined, "optional">;
         runId: import("convex/values").VString<string | undefined, "optional">;
         normalizedAt: import("convex/values").VFloat64<number | undefined, "optional">;
-    }, "required", "repositoryId" | "createdAt" | "updatedAt" | "runId" | "jobId" | "slug" | "title" | "chapterIndex" | "content" | "sourceKey" | "normalizedAt" | "kind">, {
+    }, "required", "slug" | "kind" | "chapterIndex" | "title" | "content" | "repositoryId" | "createdAt" | "updatedAt" | "runId" | "jobId" | "sourceKey" | "normalizedAt">, {
         by_job: ["jobId", "_creationTime"];
         by_repository: ["repositoryId", "_creationTime"];
         by_source_key: ["sourceKey", "_creationTime"];

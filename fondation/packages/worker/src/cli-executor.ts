@@ -2,10 +2,24 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { resolve, join } from "path";
 import { existsSync, readFileSync, readdirSync, statSync } from "fs";
-import { CLIResult } from "@fondation/shared";
 import * as yaml from "js-yaml";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+
+// Local type definitions to avoid shared package dependency
+type CLIResult = {
+  success: boolean;
+  message?: string;
+  documents?: Array<{
+    slug: string;
+    title: string;
+    content: string;
+    kind: "chapter" | "tutorial" | "toc" | "yaml";
+    chapterIndex: number;
+  }>;
+  error?: string;
+  metadata?: Record<string, any>;
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

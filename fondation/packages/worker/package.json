@@ -9,7 +9,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fondation/shared": "workspace:*",
     "convex": "^1.26.1",
     "js-yaml": "^4.1.0"
   },
