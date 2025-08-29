@@ -80,8 +80,8 @@ Establish OAuth-authenticated Docker image for Claude SDK access.
 ### Commands
 ```
 docker build -f packages/cli/Dockerfile.minimal -t fondation-cli:base packages/cli/
-docker run -it --name claude-auth-session fondation-cli:base /bin/sh
-# Inside container: npx claude auth
+docker run -d --name claude-auth-session -v /tmp/test-workspace:/workspace --entrypoint="" fondation-cli:base tail -f /dev/null
+docker exec -it claude-auth-session npx claude auth
 docker commit claude-auth-session fondation-cli:auth-cli
 docker run --rm fondation-cli:auth-cli node cli.bundled.cjs run -p "test"
 ```
