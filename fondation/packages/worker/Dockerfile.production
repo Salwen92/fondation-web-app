@@ -1,4 +1,4 @@
-# Production Worker Docker Image
+# Production Worker Docker Image  
 # Builds on authenticated CLI base with worker application
 
 FROM fondation-cli:auth-cli AS base
@@ -6,16 +6,39 @@ FROM fondation-cli:auth-cli AS base
 # Install worker dependencies
 WORKDIR /app
 
-# Copy worker application
+# Copy worker application 
 COPY packages/worker/dist/ ./worker/
-COPY packages/worker/package.json ./worker/
+
+# Copy shared package  
 COPY packages/shared/dist/ ./shared/
 
-# Copy CLI bundle and prompts (already in base image at /app)
-# CLI available at: /app/cli.bundled.cjs
-# Prompts available at: /app/prompts/
+# Copy Convex generated files and create symlinks for worker imports
+COPY packages/web/convex/_generated/ ./web/convex/_generated/
+RUN mkdir -p ./worker/web/convex && ln -sf /app/web/convex/_generated ./worker/web/convex/_generated
+# Create node_modules symlink for web to access convex dependency
+RUN ln -sf /app/worker/node_modules ./web/node_modules
 
-# Create worker user and directories
+# Create clean package.json for worker (without workspace protocol)
+RUN cd ./worker && echo '{\
+  "name": "@fondation/worker",\
+  "version": "1.0.0",\
+  "type": "module",\
+  "main": "index.js",\
+  "dependencies": {\
+    "convex": "^1.26.1",\
+    "js-yaml": "^4.1.0",\
+    "zod": "^3.24.2"\
+  }\
+}' > package.json
+
+# Install worker dependencies and convex globally for API access
+RUN cd ./worker && npm install
+RUN npm install -g convex@^1.26.1
+
+# CLI bundle and prompts already available from base image
+# CLI: /app/cli.bundled.cjs, Prompts: /app/prompts/
+
+# Create worker user and directories  
 RUN addgroup -g 1001 worker && \
     adduser -D -u 1001 -G worker worker && \
     mkdir -p /tmp/fondation && \
@@ -24,7 +47,7 @@ RUN addgroup -g 1001 worker && \
 # Set working directory for worker
 WORKDIR /app/worker
 
-# Switch to worker user
+# Switch to worker user  
 USER worker
 
 # Set production environment
