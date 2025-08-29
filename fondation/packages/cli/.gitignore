@@ -1,0 +1,67 @@
+# Node.js dependencies
+node_modules/
+
+# Lock files (keep package-lock.json, ignore others)
+bun.lock
+
+# Build output
+dist/
+
+# Claude Code configuration
+.claude/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Test files
+test-*.tsx
+src/test-*.tsx
+
+# Coverage reports
+coverage/
+
+# Log files and directories
+*.log
+logs/
+
+# Lock files (we want to track package-lock.json for npm)
+# package-lock.json is intentionally NOT ignored
+
+# Husky git hooks
+.husky/_/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Biome configuration (project-specific, should be tracked)
+# biome.json is intentionally NOT ignored
+
+# Claude Prompts CLI configuration
+.claude-prompts.json
+.claude-prompts.yaml
+.claude-prompts.yml
+.claude-prompts.js
+.claude-prompts.config.js
+# Keep example files
+!.claude-prompts.*.example
+
+gemini/

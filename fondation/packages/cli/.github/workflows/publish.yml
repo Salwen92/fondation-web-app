@@ -1,0 +1,87 @@
+name: Publish to GitHub Packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:  # Allow manual trigger
+  push:
+    branches: [beta, main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - '.npmrc'
+      - '.github/workflows/publish.yml'
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@fondation-io'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          # Ensure Biome binary is installed for Linux
+          npm install --no-save @biomejs/cli-linux-x64
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Run linting (excluding tests)
+        run: npm run lint
+        
+      - name: Run type check
+        run: npm run typecheck
+        
+      - name: Build project
+        run: |
+          npm run build
+          npm run build:cli
+        
+      - name: Determine version and tag
+        id: version
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/}
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            # For releases, use the version from package.json
+            TAG="latest"
+          elif [[ "$BRANCH" == "main" ]]; then
+            # Main branch publishes as latest with version from package.json
+            TAG="latest"
+          elif [[ "$BRANCH" == "beta" ]]; then
+            # Beta branch auto-increments beta version
+            TAG="beta"
+            CURRENT_VERSION=$(node -p "require('./package.json').version")
+            BASE_VERSION=${CURRENT_VERSION%-beta.*}
+            # If already a beta version, increment the number
+            if [[ "$CURRENT_VERSION" == *"-beta."* ]]; then
+              BETA_NUM=${CURRENT_VERSION##*-beta.}
+              NEW_BETA_NUM=$((BETA_NUM + 1))
+            else
+              # First beta version
+              NEW_BETA_NUM=1
+            fi
+            NEW_VERSION="${BASE_VERSION}-beta.${NEW_BETA_NUM}"
+            npm version $NEW_VERSION --no-git-tag-version
+            echo "Updated version to: $(node -p "require('./package.json').version")"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Publishing with tag: $TAG"
+        
+      - name: Publish to GitHub Packages
+        run: npm publish --access restricted --tag ${{ steps.version.outputs.tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

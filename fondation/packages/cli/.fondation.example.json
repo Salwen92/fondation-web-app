@@ -1,0 +1,20 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "outputDir": ".claude-tutorial-output",
+  "temperature": 0.7,
+  "maxOutputTokens": 4096,
+  "logMessages": false,
+  "verbose": false,
+  "tools": ["Read", "Write", "Edit", "MultiEdit", "Bash", "Glob", "Grep", "LS"],
+  "profiles": {
+    "dev": {
+      "verbose": true,
+      "temperature": 0.8
+    },
+    "production": {
+      "model": "claude-opus-4-20250514",
+      "temperature": 0.5,
+      "maxOutputTokens": 8192
+    }
+  }
+}

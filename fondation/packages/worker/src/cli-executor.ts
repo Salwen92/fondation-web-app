@@ -168,7 +168,8 @@ export class CLIExecutor {
         
         if (isInsideDocker) {
           // We're already inside Docker - run CLI directly
-          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules node dist/analyze-all.js "${repoPath}"`;
+          // Use stdbuf to unbuffer output so we see progress messages immediately
+          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 node dist/analyze-all.js "${repoPath}"`;
           analyzeCommand = runCmd;
           console.log('🎯 Running CLI directly inside Docker container');
         } else {

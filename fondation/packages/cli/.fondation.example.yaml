@@ -1,0 +1,37 @@
+# Fondation CLI Configuration Example
+model: claude-sonnet-4-20250514
+outputDir: .claude-tutorial-output
+verbose: false
+temperature: 0.7
+maxOutputTokens: 4096
+logMessages: false
+tools:
+  - Read
+  - Write
+  - Edit
+  - MultiEdit
+  - Bash
+  - Glob
+  - Grep
+  - LS
+
+# Profiles for different use cases
+profiles:
+  dev:
+    verbose: true
+    model: claude-sonnet-4-20250514
+    temperature: 0.8
+    
+  production:
+    verbose: false
+    model: claude-opus-4-20250514
+    temperature: 0.5
+    maxOutputTokens: 8192
+    
+  test:
+    model: claude-sonnet-4-20250514
+    tools:
+      - Read
+      - Write
+    outputDir: ./test-output
+    temperature: 0.3

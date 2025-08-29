@@ -1,0 +1,34 @@
+order:
+  - index: 0
+    name: Workflow Orchestration
+    reasoning: "This is the main entry point that users interact with (ui-analyze-all.tsx) and orchestrates the entire 6-phase tutorial generation process. Understanding this first gives users the big picture of how the system works."
+  - index: 1
+    name: React-based Terminal UI
+    reasoning: "The user-facing interface that provides real-time feedback and makes the workflow transparent. Users see this when they run the tool, so it should be explained early to understand the visual experience."
+  - index: 2
+    name: Claude SDK Integration
+    reasoning: "The core integration layer that connects to Claude AI. This is foundational as it's used by most other components for AI processing, and users need to understand how the tool communicates with Claude."
+  - index: 3
+    name: Schema Validation Framework
+    reasoning: "The type-safe data validation system that ensures data integrity throughout the workflow. This is foundational infrastructure used by multiple components and needs to be understood before diving into data processing."
+  - index: 4
+    name: Message and Chat System
+    reasoning: "Handles conversation flow between user and Claude. This builds on the Claude SDK Integration and is used by the UI components for managing communication state."
+  - index: 5
+    name: Tool Integration Layer
+    reasoning: "Provides type-safe interfaces for Claude's tools (Read, Write, Glob, etc.). This builds on the Schema Validation Framework and is used throughout the system for file operations."
+  - index: 6
+    name: Content Analysis Framework
+    reasoning: "The core system that analyzes codebases to extract abstractions and relationships. This is a key conceptual component that users need to understand to grasp what the tool actually does with their code."
+  - index: 7
+    name: Prompt Template System
+    reasoning: "The modular system for managing AI prompts across different phases. This is used by the workflow orchestration and is key to understanding how the tool structures its conversations with Claude."
+  - index: 8
+    name: Chapter Generation Pipeline
+    reasoning: "The sophisticated content generation system that transforms abstractions into educational chapters. This is the heart of the content creation process and builds on multiple previous components."
+  - index: 9
+    name: File Generation Utilities
+    reasoning: "Utility system for managing file operations throughout the workflow. This is implementation detail that supports the chapter generation and other file-based operations."
+  - index: 10
+    name: Mock and Testing Infrastructure
+    reasoning: "Testing and mocking system for UI components and workflows. This is implementation detail that's important for development but not core to understanding the main functionality."
