@@ -3,9 +3,9 @@ declare const _default: import("convex/server").SchemaDefinition<{
         email?: string | undefined;
         avatarUrl?: string | undefined;
         githubAccessToken?: string | undefined;
+        createdAt: number;
         githubId: string;
         username: string;
-        createdAt: number;
     }, {
         githubId: import("convex/values").VString<string, "required">;
         username: import("convex/values").VString<string, "required">;
@@ -13,7 +13,7 @@ declare const _default: import("convex/server").SchemaDefinition<{
         avatarUrl: import("convex/values").VString<string | undefined, "optional">;
         githubAccessToken: import("convex/values").VString<string | undefined, "optional">;
         createdAt: import("convex/values").VFloat64<number, "required">;
-    }, "required", "githubId" | "username" | "email" | "avatarUrl" | "githubAccessToken" | "createdAt">, {
+    }, "required", "createdAt" | "githubId" | "username" | "email" | "avatarUrl" | "githubAccessToken">, {
         by_github_id: ["githubId", "_creationTime"];
     }, {}, {}>;
     repositories: import("convex/server").TableDefinition<import("convex/values").VObject<{
@@ -29,9 +29,9 @@ declare const _default: import("convex/server").SchemaDefinition<{
             }[];
         } | undefined;
         stats?: {
+            issues: number;
             stars: number;
             forks: number;
-            issues: number;
         } | undefined;
         userId: import("convex/values").GenericId<"users">;
         githubRepoId: string;
@@ -71,36 +71,36 @@ declare const _default: import("convex/server").SchemaDefinition<{
             }, "required", "bytes" | "name" | "percentage">, "required">;
         }, "optional", "primary" | "all">;
         stats: import("convex/values").VObject<{
+            issues: number;
             stars: number;
             forks: number;
-            issues: number;
         } | undefined, {
             stars: import("convex/values").VFloat64<number, "required">;
             forks: import("convex/values").VFloat64<number, "required">;
             issues: import("convex/values").VFloat64<number, "required">;
-        }, "optional", "stars" | "forks" | "issues">;
-    }, "required", "userId" | "githubRepoId" | "name" | "fullName" | "description" | "defaultBranch" | "lastFetched" | "lastAnalyzedAt" | "languages" | "stats" | "languages.primary" | "languages.all" | "stats.stars" | "stats.forks" | "stats.issues">, {
+        }, "optional", "issues" | "stars" | "forks">;
+    }, "required", "userId" | "githubRepoId" | "name" | "fullName" | "description" | "defaultBranch" | "lastFetched" | "lastAnalyzedAt" | "languages" | "stats" | "languages.primary" | "languages.all" | "stats.issues" | "stats.stars" | "stats.forks">, {
         by_user: ["userId", "_creationTime"];
     }, {}, {}>;
     jobs: import("convex/server").TableDefinition<import("convex/values").VObject<{
-        error?: string | undefined;
-        runAt?: number | undefined;
         attempts?: number | undefined;
         maxAttempts?: number | undefined;
         lockedBy?: string | undefined;
         leaseUntil?: number | undefined;
         dedupeKey?: string | undefined;
-        lastError?: string | undefined;
+        runAt?: number | undefined;
         updatedAt?: number | undefined;
         completedAt?: number | undefined;
+        result?: string | {
+            message?: string | undefined;
+            data?: string | undefined;
+            success: boolean;
+        } | null | undefined;
+        error?: string | undefined;
+        lastError?: string | undefined;
         progress?: string | undefined;
         currentStep?: number | undefined;
         totalSteps?: number | undefined;
-        result?: string | {
-            data?: string | undefined;
-            message?: string | undefined;
-            success: boolean;
-        } | null | undefined;
         docsCount?: number | undefined;
         cancelRequested?: boolean | undefined;
         runId?: string | undefined;
@@ -111,16 +111,16 @@ declare const _default: import("convex/server").SchemaDefinition<{
             rejected: number;
             deleted: number;
         } | undefined;
-        createdAt: number;
+        status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
         userId: import("convex/values").GenericId<"users">;
         repositoryId: import("convex/values").GenericId<"repositories">;
-        status: "pending" | "claimed" | "cloning" | "analyzing" | "gathering" | "running" | "completed" | "failed" | "canceled" | "dead";
         prompt: string;
         callbackToken: string;
+        createdAt: number;
     }, {
         userId: import("convex/values").VId<import("convex/values").GenericId<"users">, "required">;
         repositoryId: import("convex/values").VId<import("convex/values").GenericId<"repositories">, "required">;
-        status: import("convex/values").VUnion<"pending" | "claimed" | "cloning" | "analyzing" | "gathering" | "running" | "completed" | "failed" | "canceled" | "dead", [import("convex/values").VLiteral<"pending", "required">, import("convex/values").VLiteral<"claimed", "required">, import("convex/values").VLiteral<"cloning", "required">, import("convex/values").VLiteral<"analyzing", "required">, import("convex/values").VLiteral<"gathering", "required">, import("convex/values").VLiteral<"running", "required">, import("convex/values").VLiteral<"completed", "required">, import("convex/values").VLiteral<"failed", "required">, import("convex/values").VLiteral<"canceled", "required">, import("convex/values").VLiteral<"dead", "required">], "required", never>;
+        status: import("convex/values").VUnion<"pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead", [import("convex/values").VLiteral<"pending", "required">, import("convex/values").VLiteral<"claimed", "required">, import("convex/values").VLiteral<"cloning", "required">, import("convex/values").VLiteral<"analyzing", "required">, import("convex/values").VLiteral<"gathering", "required">, import("convex/values").VLiteral<"running", "required">, import("convex/values").VLiteral<"completed", "required">, import("convex/values").VLiteral<"failed", "required">, import("convex/values").VLiteral<"canceled", "required">, import("convex/values").VLiteral<"dead", "required">], "required", never>;
         prompt: import("convex/values").VString<string, "required">;
         callbackToken: import("convex/values").VString<string, "required">;
         runAt: import("convex/values").VFloat64<number | undefined, "optional">;
@@ -137,18 +137,18 @@ declare const _default: import("convex/server").SchemaDefinition<{
         currentStep: import("convex/values").VFloat64<number | undefined, "optional">;
         totalSteps: import("convex/values").VFloat64<number | undefined, "optional">;
         result: import("convex/values").VUnion<string | {
-            data?: string | undefined;
             message?: string | undefined;
+            data?: string | undefined;
             success: boolean;
         } | null | undefined, [import("convex/values").VObject<{
-            data?: string | undefined;
             message?: string | undefined;
+            data?: string | undefined;
             success: boolean;
         }, {
             success: import("convex/values").VBoolean<boolean, "required">;
             message: import("convex/values").VString<string | undefined, "optional">;
             data: import("convex/values").VString<string | undefined, "optional">;
-        }, "required", "data" | "success" | "message">, import("convex/values").VString<string, "required">, import("convex/values").VNull<null, "required">], "optional", "data" | "success" | "message">;
+        }, "required", "message" | "success" | "data">, import("convex/values").VString<string, "required">, import("convex/values").VNull<null, "required">], "optional", "message" | "success" | "data">;
         error: import("convex/values").VString<string | undefined, "optional">;
         docsCount: import("convex/values").VFloat64<number | undefined, "optional">;
         cancelRequested: import("convex/values").VBoolean<boolean | undefined, "optional">;
@@ -166,7 +166,7 @@ declare const _default: import("convex/server").SchemaDefinition<{
             rejected: import("convex/values").VFloat64<number, "required">;
             deleted: import("convex/values").VFloat64<number, "required">;
         }, "optional", "inserted" | "updated" | "skipped" | "rejected" | "deleted">;
-    }, "required", "error" | "createdAt" | "userId" | "repositoryId" | "status" | "prompt" | "callbackToken" | "runAt" | "attempts" | "maxAttempts" | "lockedBy" | "leaseUntil" | "dedupeKey" | "lastError" | "updatedAt" | "completedAt" | "progress" | "currentStep" | "totalSteps" | "result" | "docsCount" | "cancelRequested" | "runId" | "regenerationStats" | "result.data" | "result.success" | "result.message" | "regenerationStats.inserted" | "regenerationStats.updated" | "regenerationStats.skipped" | "regenerationStats.rejected" | "regenerationStats.deleted">, {
+    }, "required", "status" | "userId" | "repositoryId" | "prompt" | "callbackToken" | "attempts" | "maxAttempts" | "lockedBy" | "leaseUntil" | "dedupeKey" | "runAt" | "createdAt" | "updatedAt" | "completedAt" | "result" | "error" | "lastError" | "progress" | "currentStep" | "totalSteps" | "docsCount" | "cancelRequested" | "runId" | "regenerationStats" | "result.message" | "result.success" | "result.data" | "regenerationStats.inserted" | "regenerationStats.updated" | "regenerationStats.skipped" | "regenerationStats.rejected" | "regenerationStats.deleted">, {
         by_user: ["userId", "_creationTime"];
         by_repository: ["repositoryId", "_creationTime"];
         by_status_runAt: ["status", "runAt", "_creationTime"];
@@ -178,28 +178,28 @@ declare const _default: import("convex/server").SchemaDefinition<{
         runId?: string | undefined;
         sourceKey?: string | undefined;
         normalizedAt?: number | undefined;
-        createdAt: number;
         repositoryId: import("convex/values").GenericId<"repositories">;
+        createdAt: number;
         jobId: import("convex/values").GenericId<"jobs">;
         slug: string;
         title: string;
-        chapterIndex: number;
         content: string;
-        kind: "yaml" | "chapter" | "tutorial" | "toc";
+        kind: "chapter" | "tutorial" | "toc" | "yaml";
+        chapterIndex: number;
     }, {
         jobId: import("convex/values").VId<import("convex/values").GenericId<"jobs">, "required">;
         repositoryId: import("convex/values").VId<import("convex/values").GenericId<"repositories">, "required">;
         slug: import("convex/values").VString<string, "required">;
         title: import("convex/values").VString<string, "required">;
         chapterIndex: import("convex/values").VFloat64<number, "required">;
-        kind: import("convex/values").VUnion<"yaml" | "chapter" | "tutorial" | "toc", [import("convex/values").VLiteral<"chapter", "required">, import("convex/values").VLiteral<"tutorial", "required">, import("convex/values").VLiteral<"toc", "required">, import("convex/values").VLiteral<"yaml", "required">], "required", never>;
+        kind: import("convex/values").VUnion<"chapter" | "tutorial" | "toc" | "yaml", [import("convex/values").VLiteral<"chapter", "required">, import("convex/values").VLiteral<"tutorial", "required">, import("convex/values").VLiteral<"toc", "required">, import("convex/values").VLiteral<"yaml", "required">], "required", never>;
         content: import("convex/values").VString<string, "required">;
         createdAt: import("convex/values").VFloat64<number, "required">;
         updatedAt: import("convex/values").VFloat64<number | undefined, "optional">;
         sourceKey: import("convex/values").VString<string | undefined, "optional">;
         runId: import("convex/values").VString<string | undefined, "optional">;
         normalizedAt: import("convex/values").VFloat64<number | undefined, "optional">;
-    }, "required", "createdAt" | "repositoryId" | "updatedAt" | "runId" | "jobId" | "slug" | "title" | "chapterIndex" | "content" | "sourceKey" | "normalizedAt" | "kind">, {
+    }, "required", "repositoryId" | "createdAt" | "updatedAt" | "jobId" | "slug" | "title" | "content" | "kind" | "chapterIndex" | "runId" | "sourceKey" | "normalizedAt">, {
         by_job: ["jobId", "_creationTime"];
         by_repository: ["repositoryId", "_creationTime"];
         by_source_key: ["sourceKey", "_creationTime"];

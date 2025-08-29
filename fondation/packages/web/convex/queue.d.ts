@@ -17,12 +17,12 @@ export declare const claimOne: import("convex/server").RegisteredMutation<"publi
  * Update job status and extend lease (heartbeat)
  */
 export declare const heartbeat: import("convex/server").RegisteredMutation<"public", {
-    status?: "cloning" | "analyzing" | "gathering" | "running" | undefined;
+    status?: "running" | "cloning" | "analyzing" | "gathering" | undefined;
     progress?: string | undefined;
     currentStep?: number | undefined;
     leaseMs?: number | undefined;
-    jobId: import("convex/values").GenericId<"jobs">;
     workerId: string;
+    jobId: import("convex/values").GenericId<"jobs">;
 }, Promise<{
     success: boolean;
 }>>;
@@ -31,13 +31,13 @@ export declare const heartbeat: import("convex/server").RegisteredMutation<"publ
  */
 export declare const complete: import("convex/server").RegisteredMutation<"public", {
     result?: string | {
-        data?: string | undefined;
         message?: string | undefined;
+        data?: string | undefined;
         success: boolean;
     } | null | undefined;
     docsCount?: number | undefined;
-    jobId: import("convex/values").GenericId<"jobs">;
     workerId: string;
+    jobId: import("convex/values").GenericId<"jobs">;
 }, Promise<{
     success: boolean;
 }>>;
@@ -46,8 +46,8 @@ export declare const complete: import("convex/server").RegisteredMutation<"publi
  */
 export declare const retryOrFail: import("convex/server").RegisteredMutation<"public", {
     error: string;
-    jobId: import("convex/values").GenericId<"jobs">;
     workerId: string;
+    jobId: import("convex/values").GenericId<"jobs">;
 }, Promise<{
     status: string;
     attempts: number;

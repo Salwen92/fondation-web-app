@@ -7,7 +7,7 @@ export declare const upsertFromJob: import("convex/server").RegisteredMutation<"
         slug: string;
         title: string;
         content: string;
-        kind: "yaml" | "chapter" | "tutorial" | "toc";
+        kind: "chapter" | "tutorial" | "toc" | "yaml";
     }[];
     summary: {
         chaptersCount: number;
@@ -34,14 +34,14 @@ export declare const listByJobId: import("convex/server").RegisteredQuery<"publi
     runId?: string | undefined;
     sourceKey?: string | undefined;
     normalizedAt?: number | undefined;
-    createdAt: number;
     repositoryId: import("convex/values").GenericId<"repositories">;
+    createdAt: number;
     jobId: import("convex/values").GenericId<"jobs">;
     slug: string;
     title: string;
-    chapterIndex: number;
     content: string;
-    kind: "yaml" | "chapter" | "tutorial" | "toc";
+    kind: "chapter" | "tutorial" | "toc" | "yaml";
+    chapterIndex: number;
 }[]>>;
 export declare const getBySlug: import("convex/server").RegisteredQuery<"public", {
     jobId: import("convex/values").GenericId<"jobs">;
@@ -53,14 +53,14 @@ export declare const getBySlug: import("convex/server").RegisteredQuery<"public"
     runId?: string | undefined;
     sourceKey?: string | undefined;
     normalizedAt?: number | undefined;
-    createdAt: number;
     repositoryId: import("convex/values").GenericId<"repositories">;
+    createdAt: number;
     jobId: import("convex/values").GenericId<"jobs">;
     slug: string;
     title: string;
-    chapterIndex: number;
     content: string;
-    kind: "yaml" | "chapter" | "tutorial" | "toc";
+    kind: "chapter" | "tutorial" | "toc" | "yaml";
+    chapterIndex: number;
 } | null>>;
 export declare const listByRepository: import("convex/server").RegisteredQuery<"public", {
     repositoryId: import("convex/values").GenericId<"repositories">;
@@ -71,14 +71,14 @@ export declare const listByRepository: import("convex/server").RegisteredQuery<"
     runId?: string | undefined;
     sourceKey?: string | undefined;
     normalizedAt?: number | undefined;
-    createdAt: number;
     repositoryId: import("convex/values").GenericId<"repositories">;
+    createdAt: number;
     jobId: import("convex/values").GenericId<"jobs">;
     slug: string;
     title: string;
-    chapterIndex: number;
     content: string;
-    kind: "yaml" | "chapter" | "tutorial" | "toc";
+    kind: "chapter" | "tutorial" | "toc" | "yaml";
+    chapterIndex: number;
 }[]>>;
 export declare const normalizeExistingDocs: import("convex/server").RegisteredMutation<"public", {
     jobId: import("convex/values").GenericId<"jobs">;
@@ -118,12 +118,12 @@ export declare const exportAll: import("convex/server").RegisteredQuery<"public"
     runId?: string | undefined;
     sourceKey?: string | undefined;
     normalizedAt?: number | undefined;
-    createdAt: number;
     repositoryId: import("convex/values").GenericId<"repositories">;
+    createdAt: number;
     jobId: import("convex/values").GenericId<"jobs">;
     slug: string;
     title: string;
-    chapterIndex: number;
     content: string;
-    kind: "yaml" | "chapter" | "tutorial" | "toc";
+    kind: "chapter" | "tutorial" | "toc" | "yaml";
+    chapterIndex: number;
 }[]>>;

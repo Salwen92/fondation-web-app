@@ -22,9 +22,9 @@ export declare const getRepositoryWithMetadata: import("convex/server").Register
         }[];
     } | undefined;
     stats?: {
+        issues: number;
         stars: number;
         forks: number;
-        issues: number;
     } | undefined;
     userId: import("convex/values").GenericId<"users">;
     githubRepoId: string;
