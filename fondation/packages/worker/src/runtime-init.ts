@@ -10,9 +10,11 @@ export async function initializeProductionAPI(convexUrl: string) {
     if (process.env.NODE_ENV === "production") {
       console.log("🔄 Attempting to load production Convex API...");
       
-      // Check if web API is available in container
+      // Check if web API is available in container - use eval to avoid TypeScript resolution
       try {
-        const { api } = await import("../../web/convex/_generated/api.js");
+        const apiPath = "../../web/convex/_generated/api.js";
+        const dynamicImport = new Function('path', 'return import(path)');
+        const { api } = await dynamicImport(apiPath);
         initializeConvexAPI(api);
         console.log("✅ Production Convex API loaded successfully");
         return true;

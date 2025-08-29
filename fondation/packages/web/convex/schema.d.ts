@@ -178,28 +178,28 @@ declare const _default: import("convex/server").SchemaDefinition<{
         runId?: string | undefined;
         sourceKey?: string | undefined;
         normalizedAt?: number | undefined;
-        slug: string;
-        kind: "yaml" | "chapter" | "tutorial" | "toc";
-        chapterIndex: number;
-        title: string;
-        content: string;
         repositoryId: import("convex/values").GenericId<"repositories">;
         createdAt: number;
         jobId: import("convex/values").GenericId<"jobs">;
+        slug: string;
+        title: string;
+        chapterIndex: number;
+        content: string;
+        kind: "chapter" | "tutorial" | "toc" | "yaml";
     }, {
         jobId: import("convex/values").VId<import("convex/values").GenericId<"jobs">, "required">;
         repositoryId: import("convex/values").VId<import("convex/values").GenericId<"repositories">, "required">;
         slug: import("convex/values").VString<string, "required">;
         title: import("convex/values").VString<string, "required">;
         chapterIndex: import("convex/values").VFloat64<number, "required">;
-        kind: import("convex/values").VUnion<"yaml" | "chapter" | "tutorial" | "toc", [import("convex/values").VLiteral<"chapter", "required">, import("convex/values").VLiteral<"tutorial", "required">, import("convex/values").VLiteral<"toc", "required">, import("convex/values").VLiteral<"yaml", "required">], "required", never>;
+        kind: import("convex/values").VUnion<"chapter" | "tutorial" | "toc" | "yaml", [import("convex/values").VLiteral<"chapter", "required">, import("convex/values").VLiteral<"tutorial", "required">, import("convex/values").VLiteral<"toc", "required">, import("convex/values").VLiteral<"yaml", "required">], "required", never>;
         content: import("convex/values").VString<string, "required">;
         createdAt: import("convex/values").VFloat64<number, "required">;
         updatedAt: import("convex/values").VFloat64<number | undefined, "optional">;
         sourceKey: import("convex/values").VString<string | undefined, "optional">;
         runId: import("convex/values").VString<string | undefined, "optional">;
         normalizedAt: import("convex/values").VFloat64<number | undefined, "optional">;
-    }, "required", "slug" | "kind" | "chapterIndex" | "title" | "content" | "repositoryId" | "createdAt" | "updatedAt" | "runId" | "jobId" | "sourceKey" | "normalizedAt">, {
+    }, "required", "repositoryId" | "createdAt" | "updatedAt" | "runId" | "jobId" | "slug" | "title" | "chapterIndex" | "content" | "sourceKey" | "normalizedAt" | "kind">, {
         by_job: ["jobId", "_creationTime"];
         by_repository: ["repositoryId", "_creationTime"];
         by_source_key: ["sourceKey", "_creationTime"];

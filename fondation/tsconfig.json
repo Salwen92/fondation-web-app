@@ -17,7 +17,6 @@
   },
   "references": [
     { "path": "./packages/shared" },
-    { "path": "./packages/worker" },
     { "path": "./packages/cli" }
   ],
   "files": []
