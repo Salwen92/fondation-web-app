@@ -16,8 +16,8 @@ export class CLIExecutor {
   private cliPath: string;
   
   constructor() {
-    // Path to our integrated Fondation CLI
-    this.cliPath = resolve(__dirname, "../../cli");
+    // Path to our bundled Fondation CLI
+    this.cliPath = resolve(__dirname, "../../cli/dist/cli.bundled.cjs");
   }
 
   /**
@@ -167,23 +167,23 @@ export class CLIExecutor {
         let analyzeCommand: string;
         
         if (isInsideDocker) {
-          // We're already inside Docker - run CLI directly
+          // We're already inside Docker - run bundled CLI directly
           // Use stdbuf to unbuffer output so we see progress messages immediately
-          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 node dist/analyze-all.js "${repoPath}"`;
+          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 node dist/cli.bundled.cjs analyze "${repoPath}" --profile production`;
           analyzeCommand = runCmd;
-          console.log('🎯 Running CLI directly inside Docker container');
+          console.log('🎯 Running bundled CLI directly inside Docker container');
         } else {
-          // External Docker runtime
-          const image = process.env.FONDATION_WORKER_IMAGE ?? "fondation-worker:authed-patched";
+          // External Docker runtime - use authenticated CLI image
+          const image = process.env.FONDATION_WORKER_IMAGE ?? "fondation-cli:auth-cli";
           const repoMount = repoPath;
-          const runCmd = `cd /app/packages/cli && NODE_PATH=/app/node_modules node dist/analyze-all.js /tmp/repo`;
+          const runCmd = `node /app/cli.bundled.cjs analyze /tmp/repo --profile production`;
           
           const dockerCmd =
-            `docker run --rm -u 1001:1001 -e HOME=/home/worker -e NODE_PATH=/app/node_modules ` +
-            `-v "${repoMount}:/tmp/repo" ${image} sh -lc '${runCmd}'`;
+            `docker run --rm -v "${repoMount}:/tmp/repo" -v "${repoMount}/.claude-tutorial-output:/output" ` +
+            `-e CLAUDE_OUTPUT_DIR=/output ${image} sh -c '${runCmd}'`;
           
           analyzeCommand = dockerCmd;
-          console.log('🎯 Using external Docker runtime for analyze command');
+          console.log('🎯 Using external Docker runtime with authenticated CLI image');
         }
         
         console.log(`⚙️  Command: ${analyzeCommand}`);
