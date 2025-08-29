@@ -4,8 +4,8 @@ import { validateConfig } from "./config.js";
 import { CLIExecutor } from "./cli-executor.js";
 import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
-import { api, internal } from "../../web/convex/_generated/api.js";
-import type { Id } from "../../web/convex/_generated/dataModel.js";
+import { api, internal } from "../web/convex/_generated/api.js";
+import type { Id } from "../web/convex/_generated/dataModel.js";
 
 export class PermanentWorker {
   private convex: ConvexClient;
