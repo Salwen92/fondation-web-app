@@ -1,0 +1,43 @@
+# Production Worker Docker Image
+# Builds on authenticated CLI base with worker application
+
+FROM fondation-cli:auth-cli AS base
+
+# Install worker dependencies
+WORKDIR /app
+
+# Copy worker application
+COPY packages/worker/dist/ ./worker/
+COPY packages/worker/package.json ./worker/
+COPY packages/shared/dist/ ./shared/
+
+# Copy CLI bundle and prompts (already in base image at /app)
+# CLI available at: /app/cli.bundled.cjs
+# Prompts available at: /app/prompts/
+
+# Create worker user and directories
+RUN addgroup -g 1001 worker && \
+    adduser -D -u 1001 -G worker worker && \
+    mkdir -p /tmp/fondation && \
+    chown -R worker:worker /app /tmp/fondation
+
+# Set working directory for worker
+WORKDIR /app/worker
+
+# Switch to worker user
+USER worker
+
+# Set production environment
+ENV NODE_ENV=production \
+    TEMP_DIR=/tmp/fondation \
+    CLI_PATH=/app/cli.bundled.cjs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "const http = require('http'); const req = http.request({hostname:'localhost',port:8080,path:'/health'}, res => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1)); req.end();" || exit 1
+
+# Expose health port
+EXPOSE 8080
+
+# Start worker service
+CMD ["node", "index.js"]
