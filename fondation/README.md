@@ -25,12 +25,17 @@ cd fondation
 # Install dependencies
 bun install
 
-# Configure environment
-cp packages/web/.env.example packages/web/.env
-# Edit .env with your configuration
+# Configure environment (single config at root)
+cp .env.example .env.local
+# Edit .env.local with your configuration
 
-# Start development
-bun dev
+# Start Convex development server (required first)
+# NOTE: Convex CLI requires npx, not bun
+npx convex dev
+
+# In separate terminals, start services  
+bun dev:web       # Next.js web app (still using bun for speed)
+bun dev:worker    # Job processing worker (still using bun)
 ```
 
 ### Production Deployment
@@ -72,6 +77,12 @@ See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
 
 ```
 fondation/
+├── convex/           # Convex database functions (shared by all packages)
+│   ├── _generated/   # Auto-generated API types
+│   ├── jobs.ts       # Job management
+│   ├── queue.ts      # Job queue operations
+│   ├── repositories.ts # Repository data
+│   └── schema.ts     # Database schema
 ├── packages/
 │   ├── web/          # Next.js web application
 │   ├── worker/       # Job processing worker
@@ -102,18 +113,20 @@ fondation/
 
 ## Environment Variables
 
-### Web Application
+**Centralized Configuration**: All environment variables are now managed in a single `.env.local` file at the project root, shared by all packages.
+
 ```bash
+# .env.local (root level)
+CONVEX_DEPLOYMENT=dev:your-deployment
 CONVEX_URL=https://your-deployment.convex.cloud
+
+# Web App specific
 NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 NEXTAUTH_SECRET=your-secret
 GITHUB_CLIENT_ID=your-github-app-id
 GITHUB_CLIENT_SECRET=your-github-app-secret
-```
 
-### Worker
-```bash
-CONVEX_URL=https://your-deployment.convex.cloud
+# Worker specific (optional - defaults provided)
 WORKER_ID=worker-1
 POLL_INTERVAL=5000
 MAX_CONCURRENT_JOBS=1
@@ -123,17 +136,25 @@ Note: Claude CLI uses interactive authentication, not API keys.
 
 ## Commands
 
+**Package Manager**: We use **bun** for speed and better dependency management, but **npx** for Convex CLI operations (required by Convex tooling).
+
 ```bash
 # Development
-bun dev           # Start all apps
-bun dev:web       # Web app only
-bun dev:worker    # Worker only
+npx convex dev    # Start Convex dev server (required first)
+bun dev:web       # Next.js web app 
+bun dev:worker    # Job processing worker
 
-# Production
+# Database operations (Convex-specific, requires npx)
+npx convex run jobs:listUserJobs '{"userId": "..."}'
+npx convex data jobs              # View jobs table
+npx convex dashboard              # Open Convex dashboard
+
+# Everything else uses bun (faster)
 bun build         # Build all apps
-bun typecheck     # Type checking
+bun typecheck     # Type checking  
 bun lint          # Linting
 bun format:write  # Format code
+bun install       # Install dependencies
 ```
 
 ## Support

@@ -4,6 +4,8 @@
  * Polls Convex for pending jobs and executes Fondation CLI
  */
 
+// Environment variables loaded from root .env.local by npm scripts
+
 // Local types until workspace resolution is fixed
 type WorkerConfig = {
   workerId: string;
@@ -23,7 +25,6 @@ type JobStatus =
 import { ConvexClient } from "convex/browser";
 import { PermanentWorker } from "./worker.js";
 import { config } from "./config.js";
-import { initializeProductionAPI } from "./runtime-init.js";
 
 async function main() {
   console.log("🚀 Starting Fondation Worker");
@@ -31,8 +32,6 @@ async function main() {
   console.log(`🔄 Poll interval: ${config.pollInterval}ms`);
   console.log(`⏱️  Lease time: ${config.leaseTime}ms`);
   
-  // Initialize production API if available
-  await initializeProductionAPI(config.convexUrl);
   
   // Create Convex client
   const convexClient = new ConvexClient(config.convexUrl);

@@ -8,15 +8,22 @@ You're working on Fondation, an AI-powered course generation system that analyze
 
 ## Architecture
 ```
+convex/         # Shared Convex database functions (consolidated)
+├── _generated/ # Auto-generated API types
+├── jobs.ts     # Job management
+├── queue.ts    # Job queue operations
+└── schema.ts   # Database schema
+
 packages/
-├── web/       # Next.js UI
-├── worker/    # Job processor  
-├── cli/       # Fondation analyzer (uses Claude SDK with OAuth)
-└── shared/    # Shared types (TypeScript project references)
+├── web/        # Next.js UI (imports from ../convex/_generated/api.js)
+├── worker/     # Job processor (imports from ../../../convex/_generated/api.js)
+├── cli/        # Fondation analyzer (uses Claude SDK with OAuth)
+└── shared/     # Shared types (TypeScript project references)
 ```
 
 ## Key Facts
 - **Monorepo with TypeScript Project References** - Build order matters!
+- **Consolidated Convex Structure** - Single `/convex` folder shared by all packages
 - **NO API KEYS** - Uses Claude SDK OAuth authentication
 - **External SDK Architecture** - Claude SDK is NOT bundled (preserves spawn functionality)
 - CLI bundle size: ~476KB
@@ -48,3 +55,6 @@ docker run --rm -v /code:/workspace fondation/cli:authenticated \
 ✅ CLI analyze command fully functional in Docker
 ✅ Authentication persists in image
 ✅ All prompts correctly resolved
+✅ **Convex API integration fixed** - Consolidated to single root /convex folder
+✅ **Worker-Convex communication working** - Real API calls, no more stubs
+✅ **E2E job processing verified** - Complete flow from UI → Worker → Convex
