@@ -1,0 +1,29 @@
+FROM node:20-alpine
+
+# Install bash (required for Claude SDK) and other utilities
+RUN apk add --no-cache bash git curl
+
+WORKDIR /app/cli
+
+# Copy bundled CLI and prompts
+COPY dist/cli.bundled.cjs ./dist/
+COPY dist/prompts ./dist/prompts/
+COPY package.json ./
+
+# Install ONLY Claude SDK as external dependency
+RUN npm init -y --quiet && \
+    npm install --no-save @anthropic-ai/claude-code@latest && \
+    rm -f package-lock.json
+
+# Create workspace and output directories
+RUN mkdir -p /workspace /output
+
+# Set environment
+ENV NODE_ENV=production \
+    SHELL=/bin/bash \
+    HOME=/root
+
+# Verify CLI works
+RUN node dist/cli.bundled.cjs --version
+
+CMD ["/bin/bash"]

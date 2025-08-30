@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
@@ -45,16 +45,26 @@ async function buildCLI() {
         js: `const import_meta_url = require('url').pathToFileURL(__filename).toString();`,
       },
       external: [
-        // Only exclude heavy or platform-specific dependencies
-        '@anthropic-ai/sdk', // Large, changes frequently
-        'react', // Heavy UI dependency
-        'ink', // Heavy UI dependency
-        '@babel/*', // Build-time only
-        'typescript', // Build-time only
-        'esbuild', // Build-time only
-        '@biomejs/*', // Linting
-        'vitest', // Testing
-        '@vitest/*', // Testing
+        // CRITICAL: Keep Claude SDK external to preserve spawn functionality
+        '@anthropic-ai/claude-code',
+        '@anthropic-ai/*', // All Anthropic packages
+        // Native Node modules that don't bundle well
+        'child_process',
+        'fs',
+        'path',
+        'crypto',
+        'os',
+        'util',
+        // Heavy UI dependencies
+        'react',
+        'ink',
+        // Build-time only
+        '@babel/*',
+        'typescript',
+        'esbuild',
+        '@biomejs/*',
+        'vitest',
+        '@vitest/*',
         'node:*', // Node built-ins
       ],
       minify: isProduction,
@@ -84,15 +94,17 @@ async function buildCLI() {
       }
     }
 
-    // Copy prompts directory
+    // Copy ALL prompts directory files
+    const promptsSrc = join(__dirname, '..', 'prompts');
     const promptsDest = join(__dirname, '..', 'dist', 'prompts');
     if (!existsSync(promptsDest)) {
       mkdirSync(promptsDest, { recursive: true });
     }
 
-    const generalPrompt = join(__dirname, '..', 'prompts', 'general.md');
-    if (existsSync(generalPrompt)) {
-      copyFileSync(generalPrompt, join(promptsDest, 'general.md'));
+    // Copy all .md files from prompts directory
+    const promptFiles = readdirSync(promptsSrc).filter(f => f.endsWith('.md'));
+    for (const file of promptFiles) {
+      copyFileSync(join(promptsSrc, file), join(promptsDest, file));
     }
 
     // Make the bundled file executable

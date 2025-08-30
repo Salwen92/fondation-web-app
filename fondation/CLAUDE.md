@@ -10,34 +10,41 @@ You're working on Fondation, an AI-powered course generation system that analyze
 ```
 packages/
 ├── web/       # Next.js UI
-├── worker/    # Job processor (runs in Docker)  
-├── cli/       # Fondation analyzer (uses Claude SDK)
-└── shared/    # Shared types
+├── worker/    # Job processor  
+├── cli/       # Fondation analyzer (uses Claude SDK with OAuth)
+└── shared/    # Shared types (TypeScript project references)
 ```
 
 ## Key Facts
+- **Monorepo with TypeScript Project References** - Build order matters!
 - **NO API KEYS** - Uses Claude SDK OAuth authentication
-- Docker image ready: `fondation-worker:authenticated`
-- Worker polls Convex → Claims job → Runs CLI → Parses output → Saves to Convex
-- CLI generates to `.claude-tutorial-output/` directory
+- **External SDK Architecture** - Claude SDK is NOT bundled (preserves spawn functionality)
+- CLI bundle size: ~476KB
+- Docker image: `fondation/cli:authenticated`
 
-## Common Commands
+## Docker Build & Deployment
+**IMPORTANT**: See `DOCKER_BUILD_GUIDE.md` for the complete, tested build process.
+
+Quick reference:
 ```bash
-# Build TypeScript
-cd packages/worker && npx tsc --build
+# Build from monorepo root (correct order)
+cd fondation && npx tsc --build --force
+cd packages/cli && node scripts/bundle-cli.js --production
 
-# Test CLI locally
-cd packages/cli && bun run src/analyze-all.ts /path/to/repo
+# Docker build & auth
+docker build -f Dockerfile.production -t fondation/cli:latest .
+docker run -d --name auth fondation/cli:latest tail -f /dev/null
+docker exec -it auth npx claude auth
+docker commit auth fondation/cli:authenticated
 
-# Run worker
-docker run -e CONVEX_URL=<url> fondation-worker:authenticated
+# Run analyze
+docker run --rm -v /code:/workspace fondation/cli:authenticated \
+  bash -c "cd /app/cli && node dist/cli.bundled.cjs analyze /workspace --output-dir /workspace"
 ```
 
 ## Current Status
-✅ Monorepo integrated
-✅ Docker authenticated  
-✅ CLI working
-❌ Output parsing not implemented (worker returns empty documents array)
-
-## Memory Access
-Use `mcp__memory__search_nodes` with query "Fondation" to get detailed architecture info.
+✅ Monorepo build process documented
+✅ Docker build working with external SDK
+✅ CLI analyze command fully functional in Docker
+✅ Authentication persists in image
+✅ All prompts correctly resolved

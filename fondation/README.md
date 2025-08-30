@@ -38,8 +38,8 @@ bun dev
 See [OPERATIONS.md](docs/OPERATIONS.md) for detailed deployment instructions.
 
 ```bash
-# Build Docker image
-docker build -f packages/worker/Dockerfile -t fondation-worker .
+# For Docker build and deployment
+# See DOCKER_BUILD_GUIDE.md for complete, tested instructions
 
 # Deploy to any VPS or cloud provider
 ssh your-server

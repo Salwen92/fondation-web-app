@@ -193,22 +193,13 @@ MAX_CONCURRENT_JOBS=1
 
 ## Docker Development
 
-### Building Images
-```bash
-# Build worker image
-docker build -f apps/worker/Dockerfile -t fondation-worker .
+For complete Docker build and deployment instructions, see `DOCKER_BUILD_GUIDE.md` in the repository root.
 
-# Build web app image (when available)
-docker build -f apps/web/Dockerfile -t fondation-web .
-```
-
-### Docker Compose
-```bash
-# Start all services
-docker-compose up
-
-# Start specific service
-docker-compose up worker
+The guide includes:
+- Correct build order for the monorepo
+- Tested Docker configuration  
+- Authentication setup
+- Common mistakes to avoid
 ```
 
 ## Troubleshooting

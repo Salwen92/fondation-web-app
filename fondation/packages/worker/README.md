@@ -72,13 +72,8 @@ docker run -d \
 
 ## Docker Build
 
-```bash
-# From monorepo root
-docker build -f apps/worker/Dockerfile -t fondation-worker .
+For complete Docker build instructions, see `/DOCKER_BUILD_GUIDE.md` in the repository root.
 
-# Or with specific tag
-docker build -f apps/worker/Dockerfile -t fondation-worker:v1.0.0 .
-```
 
 ## Health Checks
 

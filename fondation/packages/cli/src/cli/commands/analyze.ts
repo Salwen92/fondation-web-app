@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { isatty } from 'node:tty';
 import { Command } from 'commander';
 import type { Logger } from 'pino';
@@ -193,7 +194,7 @@ Use "fondation --help" for more information about global options.`,
         showProgress('Generate', 'Generating chapter content');
 
         if (!options.dryRun) {
-          const promptTemplatePath = resolve(process.cwd(), 'prompts/4-write-chapters.md');
+          const promptTemplatePath = resolvePromptPath('prompts/4-write-chapters.md');
 
           await generateChaptersFromYaml(
             abstractionsOutput,
@@ -212,7 +213,7 @@ Use "fondation --help" for more information about global options.`,
         showProgress('Review', 'Reviewing and enhancing chapters');
 
         if (!options.dryRun) {
-          const reviewPromptPath = resolve(process.cwd(), 'prompts/5-review-chapters.md');
+          const reviewPromptPath = resolvePromptPath('prompts/5-review-chapters.md');
 
           await reviewChaptersFromDirectory(
             chaptersDir,
@@ -231,7 +232,7 @@ Use "fondation --help" for more information about global options.`,
         showProgress('Tutorials', 'Generating interactive tutorials');
 
         if (!options.dryRun) {
-          const tutorialPromptPath = resolve(process.cwd(), 'prompts/6-tutorials.md');
+          const tutorialPromptPath = resolvePromptPath('prompts/6-tutorials.md');
 
           await generateTutorialsFromDirectory(
             reviewedChaptersDir,
@@ -269,6 +270,46 @@ Use "fondation --help" for more information about global options.`,
     }
   });
 
+// Helper function to resolve prompt path correctly for both bundled and source
+function resolvePromptPath(promptPath: string): string {
+  // Check if we're in a bundled environment
+  const isBundled = typeof __filename !== 'undefined' && __filename.includes('cli.bundled.cjs');
+  
+  // Try multiple locations for prompts
+  const possiblePaths = [];
+  
+  if (isBundled) {
+    // For bundled CLI, prompts are in dist/prompts
+    const distDir = dirname(__filename);
+    possiblePaths.push(resolve(distDir, promptPath));
+    possiblePaths.push(resolve(distDir, '..', promptPath)); // One level up from dist
+  } else {
+    // For source execution, relative to file location
+    try {
+      possiblePaths.push(resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', promptPath));
+    } catch {
+      // Fallback if import.meta.url is not available
+    }
+  }
+  
+  // Always try current working directory as fallback
+  possiblePaths.push(resolve(process.cwd(), promptPath));
+  
+  // Try direct path if absolute
+  if (promptPath.startsWith('/')) {
+    possiblePaths.push(promptPath);
+  }
+
+  for (const path of possiblePaths) {
+    if (existsSync(path)) {
+      return path;
+    }
+  }
+
+  // Fallback to original behavior
+  return resolve(process.cwd(), promptPath);
+}
+
 // Helper function to run individual prompt steps
 async function runPromptStep(
   promptPath: string,
@@ -280,7 +321,8 @@ async function runPromptStep(
   // Import the SDK directly for this specific use case
   const { query } = await import('@anthropic-ai/claude-code');
 
-  let promptContent = await readFile(resolve(process.cwd(), promptPath), 'utf-8');
+  const resolvedPromptPath = resolvePromptPath(promptPath);
+  let promptContent = await readFile(resolvedPromptPath, 'utf-8');
 
   // Replace variables in the prompt
   for (const [key, value] of Object.entries(variables)) {

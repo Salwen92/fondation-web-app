@@ -30,8 +30,8 @@ export class CLIExecutor {
   private cliPath: string;
   
   constructor() {
-    // Path to our bundled Fondation CLI
-    this.cliPath = resolve(__dirname, "../../cli/dist/cli.bundled.cjs");
+    // Path to our bundled Fondation CLI - use environment variable if available (Docker), otherwise local path
+    this.cliPath = process.env.CLI_PATH || resolve(__dirname, "../../cli/dist/cli.bundled.cjs");
   }
 
   /**
