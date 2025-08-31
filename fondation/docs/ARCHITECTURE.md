@@ -1,237 +1,378 @@
-# Architecture Overview
+# Fondation Architecture
 
-## System Design
+## System Overview
 
-Fondation uses a simple, vendor-agnostic architecture with three main components:
+Fondation is an AI-powered course generation system that analyzes codebases and creates comprehensive educational content. It's built as a **TypeScript monorepo** with four main packages and a shared Convex database.
 
 ```mermaid
-graph TD
-    A[Next.js Web App] --> B[Convex Database]
-    B --> C[Worker Process]
-    C --> D[Claude CLI]
-    D --> E[GitHub]
-    C --> B
+graph TB
+    User[User] --> Web[Next.js Web App]
+    Web --> Convex[(Convex Database)]
+    Convex --> Worker[Worker Service]
+    Worker --> Docker[Docker Container]
+    Docker --> CLI[Fondation CLI]
+    CLI --> Claude[Claude AI API]
+    Claude --> CLI
+    CLI --> Artifacts[Generated Artifacts]
+    Artifacts --> Convex
+    Convex --> Web
 ```
 
-## Components
-
-### 1. Web Application (Next.js)
-- **Location**: `packages/web/`
-- **Purpose**: User interface for repository management and course viewing
-- **Technologies**: Next.js 15 (App Router), React 19, Tailwind CSS, NextAuth
-- **Database**: Convex real-time database with atomic job queue
-- **Import Path**: Course pages are 8 levels deep, require `../../../../../../../../convex/_generated/api`
-
-### 2. Worker Process
-- **Location**: `packages/worker/`
-- **Purpose**: Persistent job processor that polls Convex for work
-- **Technologies**: Node.js, TypeScript
-- **Deployment**: Docker container on any host (VPS, cloud, local)
-- **Key Features**:
-  - Polls Convex every 5 seconds for pending jobs
-  - Atomic job claiming with lease-based locking
-  - Automatic retry with exponential backoff
-  - Health checks and metrics endpoints
-
-### 3. Fondation CLI
-- **Location**: `packages/cli/`
-- **Purpose**: Analyzes codebases and generates course content using Claude AI
-- **Technologies**: TypeScript, Claude SDK with OAuth (external dependency)
-- **Docker Image**: `fondation/cli:authenticated` (pre-authenticated)
-- **Key Features**:
-  - 6-step analysis workflow (4-6 minutes per repository)
-  - External SDK architecture (not bundled, preserves spawn functionality)
-  - YAML abstractions and markdown chapter generation
-  - Interactive OAuth authentication (no API keys)
-
-### 4. Shared Types
-- **Location**: `packages/shared/`
-- **Purpose**: Type-safe schemas shared between all packages
-- **Technologies**: TypeScript, Zod validation
-
-## Data Flow
-
-### Job Creation and Processing
-
-1. **User triggers analysis** in web UI
-2. **Web app creates job** in Convex with `status: "pending"`
-3. **Worker polls Convex** and claims the job atomically
-4. **Worker updates status** through processing stages:
-   - `claimed` → `cloning` → `analyzing` → `gathering` → `completed`
-5. **Worker saves results** to Convex docs collection
-6. **Web app displays results** via real-time Convex subscriptions
-
-### Queue Management
-
-The job queue is implemented directly in Convex with:
-- **Atomic claiming**: Prevents duplicate processing
-- **Lease mechanism**: Jobs have time-limited leases
-- **Heartbeat**: Workers extend leases while processing
-- **Automatic recovery**: Expired leases return jobs to queue
-- **Retry logic**: Failed jobs retry with exponential backoff
-
-## Deployment Architecture
-
-### Production Setup
+## Monorepo Structure
 
 ```
-┌─────────────────────────────────────────┐
-│   Any VPS/Docker Host (Scaleway, etc.)  │
-│                                         │
-│  ┌─────────────────────────────────┐    │
-│  │  fondation/cli:authenticated    │    │
-│  │  - Polls Convex every 5s        │    │
-│  │  - Claims jobs atomically       │    │
-│  │  - Runs 6-step analysis         │    │
-│  │  - Pre-authenticated OAuth      │    │
-│  └─────────────────────────────────┘    │
-│                   ↕                     │
-└─────────────────────────────────────────┘
-                    ↕
-        ┌───────────────────────┐
-        │   Convex Database     │
-        │   - Real-time data    │
-        │   - Atomic job queue  │
-        │   - Lease management  │
-        │   - Auto retry logic  │
-        └───────────────────────┘
-                    ↕
-        ┌───────────────────────┐
-        │   Next.js Web App     │
-        │   - GitHub OAuth      │
-        │   - Real-time UI      │
-        │   - Course viewing    │
-        │   (Vercel/any host)   │
-        └───────────────────────┘
+fondation/
+├── packages/
+│   ├── shared/          # Shared TypeScript types and utilities
+│   ├── web/            # Next.js frontend application
+│   ├── worker/         # Background job processor
+│   └── cli/            # AI-powered analysis CLI tool
+├── convex/             # Centralized database functions
+├── docs/               # Comprehensive documentation
+└── [root config]       # Monorepo orchestration
 ```
 
-### Key Characteristics
+### Why This Structure?
 
-- **No vendor lock-in**: Worker runs on any Docker host
-- **No cold starts**: Worker is always running
-- **Simple scaling**: Add more worker containers
-- **Cost-effective**: ~$4-10/month for VPS
+1. **Single Source of Truth**: Convex at root means all packages reference the same database schema
+2. **Type Safety**: Shared package ensures consistent types across all services
+3. **Independent Scaling**: Each package can be deployed and scaled separately
+4. **Clear Boundaries**: Each package has a specific responsibility
 
-## Security
+## Package Architecture
 
-### Authentication
-- **Web App**: GitHub OAuth via NextAuth (session-based)
-- **Claude CLI**: Interactive OAuth authentication (browser-based, no API keys)
-- **Docker**: Pre-authenticated images (`fondation/cli:authenticated`)
-- **Job Callbacks**: Token-based validation for status updates
-- **Token Expiry**: OAuth tokens last ~90 days, require re-authentication
+### 1. Shared Package (`packages/shared`)
 
-### Data Protection
-- **GitHub tokens**: Encrypted storage in Convex database
-- **Claude credentials**: Committed to Docker image (authenticated state)
-- **Container security**: Non-root user (UID 1001)
-- **Temp cleanup**: Automatic removal of cloned repositories
-- **No API keys**: OAuth-only authentication flow
+**Purpose**: Type definitions and shared utilities
 
-## Monitoring
+```typescript
+// Example shared type
+export interface Repository {
+  id: string;
+  fullName: string;
+  defaultBranch: string;
+  languages?: LanguageStats;
+}
+```
 
-### Health Checks
-- Worker exposes `/health` endpoint on port 8080
-- Includes uptime, memory usage, active jobs
+**Key Features**:
+- TypeScript interfaces used by all packages
+- Utility functions for data transformation
+- Constants and enums
+- No runtime dependencies
 
-### Metrics
-- `/metrics` endpoint provides:
-  - Jobs processed/succeeded/failed
-  - Average processing time
-  - Queue depth
-  - Success rate
+### 2. Web Package (`packages/web`)
 
-## Technology Stack
+**Purpose**: User interface and authentication
 
-### Frontend
+**Tech Stack**:
 - Next.js 15 (App Router)
 - React 19
 - Tailwind CSS
-- Convex React hooks
+- NextAuth.js (GitHub OAuth)
+- Convex React client
 
-### Backend
-- Convex (Database + Real-time)
-- Node.js Worker
-- Claude CLI
-- Git
-
-### Infrastructure
-- Docker containers
-- Any Linux VPS (Scaleway, DigitalOcean, etc.)
-- GitHub for source control
-- Vercel for web hosting (optional)
-
-## Scaling Strategy
-
-### Vertical Scaling
-- Increase worker memory/CPU limits
-- Adjust `MAX_CONCURRENT_JOBS`
-
-### Horizontal Scaling  
-- Deploy multiple worker containers
-- Each with unique `WORKER_ID`
-- Automatic load distribution via queue
-
-## Design Principles
-
-1. **Simplicity**: Minimal moving parts
-2. **Vendor Independence**: No provider-specific code
-3. **Reliability**: Automatic retries and recovery
-4. **Observability**: Health checks and metrics
-5. **Security**: Least privilege, encrypted secrets
-6. **Cost-Effectiveness**: Efficient resource usage
-
-## State Management
-
-### Job States
-
-```mermaid
-stateDiagram-v2
-    [*] --> pending: Created
-    pending --> claimed: Worker claims
-    claimed --> running: Processing starts
-    running --> completed: Success
-    running --> failed: Error (retry)
-    failed --> pending: Retry with backoff
-    failed --> dead: Max retries exceeded
-    running --> pending: Lease expired
+**Key Flows**:
+```
+User Login → GitHub OAuth → Create User → Dashboard
+Repository Selection → Create Job → Monitor Progress → View Course
 ```
 
-### Lease Management
-- Jobs claimed with 5-minute lease
-- Heartbeat every minute extends lease
-- Expired leases automatically reclaimed
-- Prevents zombie jobs
+**Directory Structure**:
+```
+packages/web/
+├── src/
+│   ├── app/           # Next.js App Router pages
+│   ├── components/    # React components
+│   ├── hooks/        # Custom React hooks
+│   ├── lib/          # Utilities
+│   └── server/       # Server-side code
+```
 
-## Error Handling
+### 3. Worker Package (`packages/worker`)
 
-### Retry Policy
-- Maximum 3 attempts per job
-- Exponential backoff: 1s, 2s, 4s
-- Jitter added to prevent thundering herd
-- Dead letter state after max attempts
+**Purpose**: Asynchronous job processing
 
-### Failure Recovery
-- Worker crash: Jobs return to queue after lease expires
-- Network issues: Automatic reconnection
-- Claude auth failure: Manual intervention required
-- Repository access: Retry with backoff
+**Key Responsibilities**:
+1. Poll Convex for pending jobs
+2. Spawn Docker containers for analysis
+3. Update job status in real-time
+4. Handle retries and failures
 
-## Performance
+**Architecture**:
+```typescript
+// Simplified worker loop
+while (true) {
+  const job = await claimNextJob();
+  if (job) {
+    const container = spawnDocker(job);
+    await monitorProgress(container, job);
+    await uploadResults(job);
+  }
+  await sleep(POLL_INTERVAL);
+}
+```
 
-### Typical Metrics
-- **Job pickup latency**: < 5 seconds (polling interval)
-- **Small repository**: 2-5 minutes (all 6 steps)
-- **Large repository**: 10-30 minutes (complex codebases)
-- **Success rate**: 95%+ with retry logic
-- **Concurrent jobs**: 1-2 per worker (configurable)
-- **Memory usage**: 500MB-1.5GB per worker
-- **Docker image size**: ~2GB (includes Node.js + Claude CLI)
+### 4. CLI Package (`packages/cli`)
 
-### Optimization Opportunities
-- **Faster pickup**: Reduce `POLL_INTERVAL` from 5s to 1s
-- **Parallel processing**: Increase `MAX_CONCURRENT_JOBS` (memory permitting)
-- **Dedicated workers**: Large repos on high-memory instances
-- **Horizontal scaling**: Multiple worker containers with unique IDs
-- **Caching**: CLI bundle and dependencies (not results - each analysis is unique)
-- **Monitoring**: Real-time metrics at `/health` and `/metrics` endpoints
+**Purpose**: AI-powered code analysis and course generation
+
+**Architecture Highlights**:
+- **Bundle Strategy**: External Claude SDK (476KB bundle)
+- **Execution**: Runs inside Docker container
+- **Authentication**: OAuth via Claude SDK
+- **UI**: React-based CLI using Ink
+
+**Analysis Pipeline**:
+```
+1. Extract Abstractions → identify key concepts
+2. Analyze Relationships → map dependencies
+3. Determine Order → create learning path
+4. Generate Chapters → create content
+5. Review Chapters → quality check
+6. Create Tutorials → practical exercises
+```
+
+## Data Flow Architecture
+
+### Job Creation Flow
+```
+1. User selects repository in Web UI
+2. Web creates job in Convex with status: "pending"
+3. Worker polls and claims job (status: "claimed")
+4. Worker spawns Docker container with CLI
+5. CLI analyzes repository through 6 steps
+6. Results uploaded to Convex (status: "completed")
+7. Web UI displays generated course
+```
+
+### Real-time Updates
+```
+Worker → Convex mutation → Real-time subscription → Web UI
+        status: "analyzing"                      Updates progress bar
+        progress: "Step 3/6"                     Shows current step
+```
+
+## Import Alias Strategy
+
+### Why Aliases?
+
+**Problem**: Deep relative imports become fragile
+```typescript
+// ❌ Bad - fragile and hard to maintain
+import { api } from '../../../../../../../../convex/_generated/api';
+```
+
+**Solution**: Standardized aliases
+```typescript
+// ✅ Good - clear and maintainable
+import { api } from '@convex/generated/api';
+import { Repository } from '@fondation/shared/types';
+```
+
+### Alias Configuration
+
+**Root `tsconfig.json`**:
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@fondation/*": ["./packages/*/src/*"],
+      "@convex/*": ["./convex/*"]
+    }
+  }
+}
+```
+
+**Package-level Override**:
+```json
+// packages/web/tsconfig.json
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@convex/generated/*": ["../../convex/_generated/*"]
+    }
+  }
+}
+```
+
+## TypeScript Configuration Inheritance
+
+### Hierarchy
+```
+root tsconfig.json (base configuration)
+    ├── packages/shared/tsconfig.json (extends root)
+    ├── packages/web/tsconfig.json (extends root + Next.js specific)
+    ├── packages/worker/tsconfig.json (extends root + Node specific)
+    └── packages/cli/tsconfig.json (extends root + bundler specific)
+```
+
+### Module Resolution Strategy
+
+Different packages require different module resolution:
+
+| Package | Module Resolution | Why |
+|---------|------------------|-----|
+| **shared** | `node` | Standard Node.js package |
+| **web** | `bundler` | Next.js webpack bundling |
+| **worker** | `node` | Node.js runtime |
+| **cli** | `bundler` | Ink (React for CLI) requirements |
+
+## Docker Architecture
+
+### CLI Container Structure
+```dockerfile
+FROM node:20-alpine
+├── Install: bash, git, curl
+├── Copy: cli.bundled.cjs (476KB)
+├── Copy: prompts/ (analysis templates)
+├── Install: @anthropic-ai/claude-code (external)
+└── Entry: Run analysis commands
+```
+
+### Why External SDK?
+1. **Size**: Bundling SDK would triple bundle size
+2. **Spawn Requirements**: SDK needs to spawn processes
+3. **Authentication**: OAuth tokens stored in container
+4. **Updates**: SDK can be updated independently
+
+## Authentication Architecture
+
+### Two-Layer Authentication
+
+1. **User Authentication** (GitHub OAuth)
+   ```
+   User → GitHub → Web App → Convex User Record
+   ```
+
+2. **CLI Authentication** (Claude OAuth)
+   ```
+   CLI → Claude OAuth → Browser → Token Storage
+   ```
+
+### Token Management
+- **GitHub Tokens**: Stored in Convex, used for repository access
+- **Claude Tokens**: Stored in Docker container's filesystem
+- **Session Tokens**: Managed by NextAuth.js
+
+## Database Architecture (Convex)
+
+### Schema Design
+```typescript
+// Simplified schema
+tables: {
+  users: {
+    githubId: string,
+    username: string,
+    githubAccessToken?: string
+  },
+  repositories: {
+    userId: Id<"users">,
+    fullName: string,
+    languages?: LanguageStats
+  },
+  jobs: {
+    repositoryId: Id<"repositories">,
+    status: JobStatus,
+    progress?: string,
+    result?: AnalysisResult
+  }
+}
+```
+
+### Why Convex?
+1. **Real-time**: Built-in subscriptions for live updates
+2. **Type Safety**: Generated TypeScript types
+3. **Serverless**: No infrastructure management
+4. **Transactions**: ACID compliance for job processing
+
+## Performance Optimizations
+
+### Build Performance
+- **Incremental Compilation**: TypeScript project references
+- **Parallel Development**: Concurrently for service startup
+- **Cached Builds**: Preserves .tsbuildinfo files
+- **Optimized Bundles**: Tree-shaking and minification
+
+### Runtime Performance
+- **Lazy Loading**: Next.js dynamic imports
+- **Edge Caching**: Static page generation where possible
+- **Connection Pooling**: Reused database connections
+- **Docker Layers**: Cached base images
+
+## Security Architecture
+
+### Principle of Least Privilege
+- Worker only has job processing permissions
+- CLI runs in isolated Docker container
+- Web app uses read-only queries where possible
+
+### Secret Management
+```
+Development: .env.local files (gitignored)
+Production: Environment variables in deployment platform
+Docker: Build args for non-sensitive config
+```
+
+### Data Protection
+- GitHub tokens encrypted at rest
+- Session cookies httpOnly and secure
+- CORS configured for production domain
+- Input validation at every layer
+
+## Scalability Considerations
+
+### Horizontal Scaling Points
+1. **Web**: Multiple Next.js instances behind load balancer
+2. **Worker**: Multiple workers polling job queue
+3. **CLI**: Parallel Docker containers for analysis
+4. **Database**: Convex handles scaling automatically
+
+### Bottlenecks & Solutions
+| Bottleneck | Solution |
+|------------|----------|
+| Job queue contention | Optimistic locking with retry |
+| Docker container startup | Pre-warmed container pool |
+| Large repository analysis | Streaming processing |
+| Database write throughput | Batched mutations |
+
+## Development vs Production
+
+### Development Architecture
+```
+All services on localhost
+├── Web: http://localhost:3000
+├── Worker: Polls local Convex
+├── Convex: Development deployment
+└── CLI: Direct execution (no Docker)
+```
+
+### Production Architecture
+```
+Distributed services
+├── Web: Vercel Edge Network
+├── Worker: Cloud Run / ECS
+├── Convex: Production deployment
+└── CLI: Authenticated Docker registry
+```
+
+## Future Architecture Considerations
+
+### Potential Enhancements
+1. **Microservices**: Split worker into queue/processor
+2. **Event Sourcing**: Complete audit trail
+3. **Multi-tenancy**: Organization-level isolation
+4. **Caching Layer**: Redis for hot data
+5. **CDN**: Generated courses as static sites
+
+### Scaling Strategies
+1. **Job Priority Queues**: Premium vs free tiers
+2. **Regional Deployments**: Reduce latency
+3. **Batch Processing**: Multiple repos simultaneously
+4. **Incremental Analysis**: Only analyze changes
+
+---
+
+This architecture provides a solid foundation for growth while maintaining simplicity and developer experience. Each component has clear responsibilities and well-defined interfaces, making the system maintainable and extensible.

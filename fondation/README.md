@@ -1,6 +1,12 @@
-# Fondation
+# Fondation 🎓
 
-🚀 **AI-powered course documentation generator for GitHub repositories**
+> AI-powered course generation system that analyzes codebases and creates comprehensive educational content
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![Convex](https://img.shields.io/badge/Convex-Latest-orange)](https://convex.dev/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
+[![Bun](https://img.shields.io/badge/Bun-1.x-black)](https://bun.sh/)
 
 Transform any GitHub repository into comprehensive educational content using Claude AI. Production-ready system with Docker deployment and real-time processing.
 
@@ -13,6 +19,35 @@ Transform any GitHub repository into comprehensive educational content using Cla
 - ⚡ **Fast Processing** - 6-step analysis workflow (4-6 minutes per repository)
 - 📊 **Job Management** - Robust queue system with retry logic and monitoring
 
+## 📚 Documentation
+
+- **[Getting Started](./docs/GETTING_STARTED.md)** - Set up your development environment in 10 minutes
+- **[Architecture](./docs/ARCHITECTURE.md)** - Understand the system design and data flow
+- **[Development](./docs/DEVELOPMENT.md)** - Development workflow and best practices
+- **[Deployment](./docs/DEPLOYMENT.md)** - Deploy to production environments
+- **[Troubleshooting](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Commands](./COMMANDS.md)** - All 50+ available scripts explained
+
+## 🚀 Quick Start
+
+```bash
+# Clone and setup
+git clone https://github.com/your-org/fondation.git
+cd fondation
+bun run setup
+
+# Configure environment
+cp .env.example .env.local
+# Edit .env.local with your GitHub OAuth credentials
+
+# Start development
+bun run dev
+```
+
+Visit http://localhost:3000 to see Fondation in action!
+
+For detailed setup instructions, see [Getting Started](./docs/GETTING_STARTED.md).
+
 ## 🏗️ Architecture
 
 ```
@@ -24,8 +59,6 @@ GitHub Repos → Web UI (Next.js) → Convex DB → Worker (Docker) → Claude C
 - **Backend**: Convex real-time database with atomic job queue
 - **Worker**: Node.js + Docker with lease-based job processing
 - **AI**: Claude SDK with OAuth authentication (no API keys needed)
-
-## 🚀 Quick Start
 
 ### Prerequisites
 - **Node.js 20+**

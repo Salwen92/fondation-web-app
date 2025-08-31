@@ -1,0 +1,367 @@
+# Troubleshooting Guide
+
+This guide covers common issues and their solutions, including the problems we recently fixed during the monorepo standardization.
+
+## Table of Contents
+1. [Build Issues](#build-issues)
+2. [Development Issues](#development-issues)
+3. [Authentication Issues](#authentication-issues)
+4. [Docker Issues](#docker-issues)
+5. [Database Issues](#database-issues)
+6. [Recent Fixes Reference](#recent-fixes-reference)
+
+## Build Issues
+
+### TypeScript Compilation Errors
+
+#### Problem: "Cannot find module 'ink'" in CLI package
+```
+Error: Cannot find module 'ink' or its corresponding type declarations
+```
+
+**Solution**: Update CLI tsconfig.json to use bundler resolution:
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx"
+  }
+}
+```
+
+#### Problem: "Module not found: Can't resolve '@/env'"
+**Solution**: Create missing env.js file:
+```javascript
+// packages/web/src/env.js
+export const env = {
+  GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || "",
+  GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET || "",
+  // ... other variables
+};
+```
+
+#### Problem: Deep relative import paths
+```typescript
+// Bad
+import { api } from '../../../../../../../../convex/_generated/api';
+```
+
+**Solution**: Use standardized aliases:
+```typescript
+// Good
+import { api } from '@convex/generated/api';
+```
+
+### Build Order Issues
+
+#### Problem: "Could not resolve dist/cli.js"
+**Cause**: TypeScript didn't build packages in correct order
+
+**Solution**:
+```bash
+# Build from root with project references
+cd fondation
+npx tsc --build --force
+
+# Or build in dependency order
+cd packages/shared && bun run build
+cd ../cli && bun run build
+cd ../web && bun run build
+cd ../worker && bun run build
+```
+
+### Bundle Size Issues
+
+#### Problem: CLI bundle too large (>1MB)
+**Solution**: Keep Claude SDK external in bundle-cli.js:
+```javascript
+external: [
+  '@anthropic-ai/claude-code',  // MUST be external
+  '@anthropic-ai/*',
+]
+```
+
+## Development Issues
+
+### Port Already in Use
+
+#### Problem: "Port 3000 is already in use"
+**Solution**:
+```bash
+# Find and kill process
+lsof -ti:3000 | xargs kill -9
+
+# Or use different port
+PORT=3001 bun run dev:web
+```
+
+### Convex Connection Issues
+
+#### Problem: "Cannot connect to Convex"
+**Solution**:
+1. Delete Convex lines from .env.local
+2. Run `bun run dev` to auto-create new deployment
+3. Wait for "✓ Connected to Convex deployment"
+
+### Hot Reload Not Working
+
+#### Problem: Changes not reflecting in browser
+**Solution**:
+```bash
+# Clear Next.js cache
+rm -rf packages/web/.next
+bun run dev:web
+```
+
+## Authentication Issues
+
+### GitHub OAuth Failures
+
+#### Problem: "Callback URL mismatch"
+**Solution**: Ensure exact match in GitHub OAuth app:
+```
+Homepage URL: http://localhost:3000
+Authorization callback URL: http://localhost:3000/api/auth/callback/github
+```
+
+### Claude Authentication Issues
+
+#### Problem: "OAuth token has expired" in Docker
+**Solution**: Re-authenticate the container:
+```bash
+docker run -d --name auth fondation/cli:latest tail -f /dev/null
+docker exec -it auth npx claude auth
+# Complete browser flow
+docker commit auth fondation/cli:authenticated
+docker stop auth && docker rm auth
+```
+
+### Session Issues
+
+#### Problem: "Session expired" or login loops
+**Solution**: Generate new AUTH_SECRET:
+```bash
+openssl rand -base64 32
+# Update in .env.local
+```
+
+## Docker Issues
+
+### Build Failures
+
+#### Problem: "No suitable shell found"
+**Cause**: Alpine doesn't have bash by default
+
+**Solution**: Install bash in Dockerfile:
+```dockerfile
+FROM node:20-alpine
+RUN apk add --no-cache bash git curl
+```
+
+### Container Can't Find Prompts
+
+#### Problem: "Prompt file not found"
+**Solution**: Ensure prompts are copied in bundle script:
+```javascript
+const promptFiles = readdirSync(promptsSrc).filter(f => f.endsWith('.md'));
+for (const file of promptFiles) {
+  copyFileSync(join(promptsSrc, file), join(promptsDest, file));
+}
+```
+
+### Analysis Hangs
+
+#### Problem: Analyze command hangs in Docker
+**Checklist**:
+```bash
+# 1. Check authentication
+docker exec <container> ls /root/.claude.json
+
+# 2. Check bash installed
+docker exec <container> bash --version
+
+# 3. Check SDK installed
+docker exec <container> ls node_modules/@anthropic-ai/
+```
+
+## Database Issues
+
+### Convex Function Errors
+
+#### Problem: "Property 'jobs' does not exist on type"
+**Solution**: Use typed references instead of strings:
+```typescript
+// Wrong
+await ctx.scheduler.runAfter(0, "jobs.runWorker", { jobId });
+
+// Correct
+import { internal } from "./_generated/api";
+await ctx.scheduler.runAfter(0, internal.jobs.runWorker, { jobId });
+```
+
+### Job Stuck in Pending
+
+#### Problem: Jobs stay "pending" forever
+**Solution**: Clear stuck jobs:
+```bash
+# From web UI console
+const result = await ctx.runMutation(api.jobs.clearStuckJobs, {
+  repositoryId: repoId
+});
+```
+
+### Real-time Updates Not Working
+
+#### Problem: UI not updating when job status changes
+**Solution**: Check subscription in React component:
+```typescript
+const job = useQuery(api.jobs.getJob, { jobId });
+// Should auto-update when job changes
+```
+
+## Recent Fixes Reference
+
+### What We Fixed in the Monorepo Standardization
+
+1. **CLI Module Resolution** (25+ TypeScript errors)
+   - Changed to "bundler" moduleResolution
+   - Added JSX support
+
+2. **Missing env.js Module**
+   - Created environment configuration file
+   - Fixed web build failures
+
+3. **Convex Type Errors** (13+ errors)
+   - Added internal API imports
+   - Changed actions to internalActions
+   - Replaced string literals with typed references
+
+4. **Next.js 15 Compatibility**
+   - Updated async params handling
+   - Fixed type-only imports
+
+5. **Import Path Standardization** (47 imports)
+   - Eliminated deep relative imports
+   - Established @convex/* aliases
+
+## Environment Variable Issues
+
+### Missing Variables
+
+#### Problem: "GITHUB_CLIENT_ID is not defined"
+**Solution**: Copy and configure .env.example:
+```bash
+cp .env.example .env.local
+# Edit with your values
+```
+
+### Convex Auto-configuration
+
+#### Problem: Convex URLs not set
+**Solution**: Let Convex auto-configure:
+```bash
+# Just run dev, it creates everything
+bun run dev
+# URLs saved to .env.local automatically
+```
+
+## Performance Issues
+
+### Slow Builds
+
+#### Problem: Builds taking too long
+**Solutions**:
+```bash
+# Use incremental compilation
+bun run typecheck  # Creates .tsbuildinfo cache
+
+# Build specific package
+bun run build:web  # Just web, not everything
+
+# Clean if corrupted
+bun run clean:cache
+```
+
+### High Memory Usage
+
+#### Problem: Node running out of memory
+**Solution**:
+```bash
+# Increase Node memory
+NODE_OPTIONS="--max-old-space-size=4096" bun run build
+```
+
+## Worker Issues
+
+### Worker Not Processing Jobs
+
+#### Problem: Jobs stay pending, worker not claiming
+**Checklist**:
+1. Check worker is running: `bun run dev:worker`
+2. Check Convex connection in logs
+3. Verify CONVEX_URL in environment
+4. Check Docker image is authenticated
+
+### Docker Spawn Failures
+
+#### Problem: "Failed to spawn Docker container"
+**Solutions**:
+```bash
+# Check Docker is running
+docker ps
+
+# Check image exists
+docker images | grep fondation
+
+# Check authentication
+docker run --rm fondation/cli:authenticated \
+  node dist/cli.bundled.cjs --version
+```
+
+## Quick Fixes
+
+### Nuclear Reset
+When nothing else works:
+```bash
+# Complete reset
+bun run clean:all
+bun install
+bun run build
+```
+
+### Clear All Caches
+```bash
+rm -rf node_modules/.cache
+rm -rf packages/*/.next
+rm -rf packages/*/dist
+rm -rf packages/*/*.tsbuildinfo
+rm -rf .turbo
+```
+
+### Fresh Convex Deployment
+```bash
+# Delete Convex lines from .env.local
+grep -v CONVEX .env.local > .env.local.tmp
+mv .env.local.tmp .env.local
+
+# Restart to create new deployment
+bun run dev
+```
+
+## Getting Help
+
+If these solutions don't work:
+
+1. **Check logs carefully** - The error message usually hints at the solution
+2. **Search existing issues** - Someone may have had the same problem
+3. **Create minimal reproduction** - Isolate the problem
+4. **Ask for help** with:
+   - Error message
+   - What you tried
+   - Environment details
+   - Relevant code
+
+---
+
+For architecture details, see [Architecture Guide](./ARCHITECTURE.md).
+For development workflow, see [Development Guide](./DEVELOPMENT.md).
