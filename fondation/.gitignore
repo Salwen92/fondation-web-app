@@ -48,3 +48,5 @@ logs/
 convex/
 *.js
 *.js.map
+*.tsbuildinfo
+.turbo/

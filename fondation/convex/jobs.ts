@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query, action } from "./_generated/server";
+import { mutation, query, action, internalAction } from "./_generated/server";
 import { v4 as uuidv4 } from "uuid";
 import { api } from "./_generated/api";
+import { internal } from "./_generated/api";
 
 export const create = mutation({
   args: {
@@ -338,7 +339,7 @@ export const startAnalysis = mutation({
     });
     
     // Schedule the worker action
-    await ctx.scheduler.runAfter(0, "jobs.runWorker", { jobId });
+    await ctx.scheduler.runAfter(0, internal.jobs.runWorker, { jobId });
     
     return { jobId };
   },
@@ -409,19 +410,19 @@ export const setStatus = mutation({
 });
 
 // This action does the actual Docker call (or delegates to your existing worker)
-export const runWorker = action({
+export const runWorker = internalAction({
   args: { jobId: v.id("jobs") },
   handler: async (ctx, args) => {
-    const job = await ctx.runQuery("jobs.getJob", { jobId: args.jobId });
+    const job = await ctx.runQuery(api.jobs.getJob, { jobId: args.jobId });
     if (!job) return;
 
-    await ctx.runMutation("jobs.setStatus", { jobId: args.jobId, status: "running" });
-    await ctx.runMutation("jobs.appendLog", { 
+    await ctx.runMutation(api.jobs.setStatus, { jobId: args.jobId, status: "running" });
+    await ctx.runMutation(api.jobs.appendLog, { 
       jobId: args.jobId, 
       level: "info", 
       msg: "[fondation-worker] image=fondation-worker:authed-patched user=worker(1001) home=/home/worker" 
     });
-    await ctx.runMutation("jobs.appendLog", { 
+    await ctx.runMutation(api.jobs.appendLog, { 
       jobId: args.jobId, 
       level: "info", 
       msg: "[fondation-worker] cmd=\"cd /app/packages/cli && NODE_PATH=/app/node_modules node dist/analyze-all.js <repo>\"" 
@@ -433,7 +434,7 @@ export const runWorker = action({
       
       if (isMockMode) {
         // Mock worker for E2E testing
-        await ctx.runMutation("jobs.appendLog", { 
+        await ctx.runMutation(api.jobs.appendLog, { 
           jobId: args.jobId, 
           level: "info", 
           msg: "[MOCK] Simulating Docker job execution..." 
@@ -449,40 +450,40 @@ export const runWorker = action({
         
         for (let i = 0; i < steps.length; i++) {
           await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
-          await ctx.runMutation("jobs.appendLog", { 
+          await ctx.runMutation(api.jobs.appendLog, { 
             jobId: args.jobId, 
             level: "info", 
             msg: `[step] ${steps[i]} (${i + 1}/${steps.length})` 
           });
         }
         
-        await ctx.runMutation("jobs.appendLog", { 
+        await ctx.runMutation(api.jobs.appendLog, { 
           jobId: args.jobId, 
           level: "info", 
           msg: "✅ Artifacts generated: step1_abstractions.yaml, step2_relationships.yaml, step3_order.yaml, chapters/chapter_0.md" 
         });
         
-        await ctx.runMutation("jobs.setStatus", { jobId: args.jobId, status: "completed" });
+        await ctx.runMutation(api.jobs.setStatus, { jobId: args.jobId, status: "completed" });
       } else {
         // Real worker - integrate with existing worker service
-        await ctx.runMutation("jobs.appendLog", { 
+        await ctx.runMutation(api.jobs.appendLog, { 
           jobId: args.jobId, 
           level: "info", 
           msg: "Spawning real Docker worker (not implemented yet - use WORKER_MODE=mock for testing)" 
         });
-        await ctx.runMutation("jobs.setStatus", { 
+        await ctx.runMutation(api.jobs.setStatus, { 
           jobId: args.jobId, 
           status: "failed", 
           error: "Real worker integration not implemented - use WORKER_MODE=mock" 
         });
       }
     } catch (e: any) {
-      await ctx.runMutation("jobs.appendLog", { 
+      await ctx.runMutation(api.jobs.appendLog, { 
         jobId: args.jobId, 
         level: "error", 
         msg: String(e?.message || e) 
       });
-      await ctx.runMutation("jobs.setStatus", { 
+      await ctx.runMutation(api.jobs.setStatus, { 
         jobId: args.jobId, 
         status: "failed", 
         error: String(e?.message || e) 

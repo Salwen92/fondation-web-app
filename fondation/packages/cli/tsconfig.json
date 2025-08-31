@@ -1,28 +1,17 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "ESNext",
     "outDir": "./dist",
     "rootDir": "./src",
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "jsx": "react-jsx",
     "noEmit": false,
-    "isolatedModules": true,
-    "lib": ["ES2023"],
-    
-    // Relaxed for CLI compatibility
-    "strict": false,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "jsx": "react-jsx",
+    "types": ["node"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
-  "references": [
-    { "path": "../shared" }
-  ]
+  "exclude": ["node_modules", "dist"]
 }

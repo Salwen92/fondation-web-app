@@ -42,9 +42,9 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
   const docsCount = latestJob?.status === "completed" ? latestJob.docsCount ?? 0 : 0;
   
   // Get languages from repository metadata
-  const languages = repo.languages?.all
+  const languages = (repo as any).languages?.all
     ?.slice(0, 3)
-    .map(lang => lang.name) ?? [];
+    .map((lang: any) => lang.name) ?? [];
 
   // Use the job management hook
   const { handleGenerate, handleCancel } = useJobManagement({
@@ -134,7 +134,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
 
             {/* Languages */}
             <div className="flex flex-wrap gap-1 mb-4">
-              {languages.length > 0 ? languages.map((lang) => (
+              {languages.length > 0 ? languages.map((lang: string) => (
                 <span 
                   key={lang}
                   className="px-2 py-1 text-xs rounded-full bg-muted/50 text-muted-foreground"

@@ -2,7 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@convex/generated/api";
-import { Id } from "@convex/generated/dataModel";
+import type { Id } from "@convex/generated/dataModel";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
@@ -11,23 +11,30 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 interface JobDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function JobDetailPage({ params }: JobDetailPageProps) {
   const router = useRouter();
   const [lastLogSeq, setLastLogSeq] = useState<number>(-1);
+  const [jobId, setJobId] = useState<string>("");
   
-  const job = useQuery(api.jobs.getJob, { 
-    jobId: params.id as Id<"jobs"> 
-  });
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setJobId(resolvedParams.id);
+    });
+  }, [params]);
   
-  const logs = useQuery(api.jobs.getLogs, { 
-    jobId: params.id as Id<"jobs">,
+  const job = useQuery(api.jobs.getJob, jobId ? { 
+    jobId: jobId as Id<"jobs"> 
+  } : "skip");
+  
+  const logs = useQuery(api.jobs.getLogs, jobId ? { 
+    jobId: jobId as Id<"jobs">,
     afterSeq: lastLogSeq 
-  });
+  } : "skip");
 
   // Update last log sequence when new logs arrive
   useEffect(() => {

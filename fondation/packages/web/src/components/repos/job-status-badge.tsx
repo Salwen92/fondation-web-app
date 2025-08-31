@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle, X } from "lucide-react";
 import { translateProgress } from "@/lib/translations";
 
-export type JobStatus = "pending" | "cloning" | "analyzing" | "gathering" | "running" | "completed" | "failed" | "canceled";
+export type JobStatus = "pending" | "claimed" | "cloning" | "analyzing" | "gathering" | "running" | "completed" | "failed" | "canceled" | "dead";
 
 interface JobStatusBadgeProps {
   status?: JobStatus;
@@ -18,7 +18,7 @@ interface JobStatusBadgeProps {
 export function JobStatusBadge({ status, progress }: JobStatusBadgeProps) {
   if (!status) return null;
   
-  const isProcessing = ["pending", "cloning", "analyzing", "gathering", "running"].includes(status);
+  const isProcessing = ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(status);
   
   if (isProcessing) {
     return (
@@ -51,6 +51,15 @@ export function JobStatusBadge({ status, progress }: JobStatusBadgeProps) {
       <Badge variant="secondary" className="bg-orange-500/10 text-orange-500">
         <X className="mr-1 h-3 w-3" />
         Annulé
+      </Badge>
+    );
+  }
+  
+  if (status === "dead") {
+    return (
+      <Badge variant="destructive">
+        <X className="mr-1 h-3 w-3" />
+        Mort
       </Badge>
     );
   }
