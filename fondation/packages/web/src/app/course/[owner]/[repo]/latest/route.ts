@@ -26,8 +26,16 @@ export async function GET(
     }
     
     // Get the latest completed job for this repository
+    const repositoryId = repositories[0]?._id;
+    if (!repositoryId) {
+      return NextResponse.json(
+        { error: 'Repository ID not found' },
+        { status: 404 }
+      );
+    }
+    
     const latestJob = await convexClient.query(api.jobs.getLatestCompletedByRepository, {
-      repositoryId: repositories[0]?._id
+      repositoryId
     });
     
     if (!latestJob) {
