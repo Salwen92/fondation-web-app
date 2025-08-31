@@ -108,7 +108,7 @@ fondation/                      # Root monorepo
 │   │   │   ├── analyze.ts    # Main analyzer
 │   │   │   └── prompts/      # AI prompts
 │   │   └── dist/
-│   │       └── cli.bundled.cjs # Bundled CLI
+│   │       └── cli.bundled.mjs # Bundled CLI
 │   │
 │   └── shared/                # Shared types
 │       └── src/
@@ -197,7 +197,7 @@ Build order: `shared` → `cli` → `web`/`worker` (parallel)
 ```dockerfile
 FROM node:20-alpine
 ├── Install dependencies (bash, git, curl)
-├── Copy bundled CLI (dist/cli.bundled.cjs)
+├── Copy bundled CLI (dist/cli.bundled.mjs)
 ├── Copy prompts directory
 ├── Install Claude SDK separately (external)
 └── Authenticate via OAuth (interactive)

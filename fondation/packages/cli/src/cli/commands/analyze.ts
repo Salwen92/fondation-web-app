@@ -265,7 +265,7 @@ Use "fondation --help" for more information about global options.`,
 // Helper function to resolve prompt path correctly for both bundled and source
 function resolvePromptPath(promptPath: string): string {
   // Check if we're in a bundled environment
-  const isBundled = typeof __filename !== 'undefined' && __filename.includes('cli.bundled.cjs');
+  const isBundled = typeof __filename !== 'undefined' && __filename.includes('cli.bundled.mjs');
   
   // Try multiple locations for prompts
   const possiblePaths = [];

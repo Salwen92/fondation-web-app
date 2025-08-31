@@ -20,7 +20,7 @@
       "name": "@fondation-io/fondation",
       "version": "1.0.0-beta.9",
       "bin": {
-        "fondation": "./dist/cli.bundled.cjs",
+        "fondation": "./dist/cli.bundled.mjs",
       },
       "dependencies": {
         "@anthropic-ai/claude-code": "1.0.51",

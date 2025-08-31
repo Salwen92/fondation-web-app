@@ -67,8 +67,8 @@ node scripts/bundle-cli.js --production
 
 ```bash
 # Check bundled CLI
-ls -lh dist/cli.bundled.cjs
-# Should show: -rwxr-xr-x 476K cli.bundled.cjs
+ls -lh dist/cli.bundled.mjs
+# Should show: -rwxr-xr-x 476K cli.bundled.mjs
 
 # Check prompts directory
 ls -la dist/prompts/
@@ -136,7 +136,7 @@ docker run --rm \
   -v /path/to/repository:/workspace \
   -v /path/to/output:/output \
   fondation/cli:authenticated \
-  bash -c "cd /app/cli && node dist/cli.bundled.cjs analyze /workspace --output-dir /output"
+  bash -c "cd /app/cli && node dist/cli.bundled.mjs analyze /workspace --output-dir /output"
 ```
 
 ## Environment Variables

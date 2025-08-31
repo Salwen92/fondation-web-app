@@ -315,7 +315,7 @@ docker images | grep fondation
 
 # Check authentication
 docker run --rm fondation/cli:authenticated \
-  node dist/cli.bundled.cjs --version
+  node dist/cli.bundled.mjs --version
 ```
 
 ## Quick Fixes

@@ -33,7 +33,7 @@ WORKDIR /build/packages/cli
 RUN bun run build
 
 # Bundle the CLI
-RUN bun build dist/cli.js --outfile dist/cli.bundled.cjs --target=node --format=cjs --external @anthropic-ai/claude-code
+RUN bun build dist/cli.js --outfile dist/cli.bundled.mjs --target=node --format=esm --external @anthropic-ai/claude-code
 
 # Copy prompts to dist
 RUN cp -r prompts dist/prompts
@@ -49,7 +49,7 @@ RUN apt-get update && \
 WORKDIR /app/cli
 
 # Copy bundled CLI and prompts from builder
-COPY --from=builder /build/packages/cli/dist/cli.bundled.cjs ./dist/
+COPY --from=builder /build/packages/cli/dist/cli.bundled.mjs ./dist/
 COPY --from=builder /build/packages/cli/dist/prompts ./dist/prompts/
 COPY --from=builder /build/packages/cli/package.json ./
 
@@ -57,10 +57,16 @@ COPY --from=builder /build/packages/cli/package.json ./
 RUN bun add @anthropic-ai/claude-code@latest && \
     # Create symlink for the CLI to find the SDK at the expected location
     mkdir -p /app/node_modules && \
-    ln -s /app/cli/node_modules/@anthropic-ai /app/node_modules/@anthropic-ai
+    ln -s /app/cli/node_modules/@anthropic-ai /app/node_modules/@anthropic-ai && \
+    # Create the expected entrypoints symlink for Claude SDK
+    mkdir -p /app/cli/node_modules/@anthropic-ai/entrypoints && \
+    ln -s /app/cli/node_modules/@anthropic-ai/claude-code/cli.js /app/cli/node_modules/@anthropic-ai/entrypoints/cli.js
 
 # Create workspace and output directories
 RUN mkdir -p /workspace /output
+
+# Create symlink for prompts path resolution (for both source and dist locations)
+RUN ln -sf /app/cli/dist/prompts /app/cli/prompts
 
 # Set environment
 ENV NODE_ENV=production \
@@ -68,6 +74,6 @@ ENV NODE_ENV=production \
     HOME=/root
 
 # Verify CLI works
-RUN bun run dist/cli.bundled.cjs --version
+RUN node dist/cli.bundled.mjs --version
 
 CMD ["/bin/bash"]

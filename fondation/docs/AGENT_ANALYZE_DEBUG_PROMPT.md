@@ -45,7 +45,7 @@ The analyze command catches errors but doesn't log them properly, making debuggi
 2. Either fix it or use the manual bundle command:
 ```bash
 cd packages/cli
-bun build dist/cli.js --outfile dist/cli.bundled.cjs --target=node --format=cjs --external @anthropic-ai/claude-code
+bun build dist/cli.js --outfile dist/cli.bundled.mjs --target=node --format=esm --external @anthropic-ai/claude-code
 cp -r src/prompts dist/prompts
 ```
 
@@ -106,7 +106,7 @@ docker run --rm \
   -v /tmp/test-repo:/workspace \
   -v /tmp/output:/output \
   fondation/cli:test-auth \
-  bash -c "cd /app/cli && node dist/cli.bundled.cjs analyze /workspace --steps extract --output-dir /output"
+  bash -c "cd /app/cli && node dist/cli.bundled.mjs analyze /workspace --steps extract --output-dir /output"
 ```
 
 ## Expected Outcomes

@@ -159,11 +159,11 @@ See [Development Guide](docs/DEVELOPMENT.md) for complete workflow documentation
 ### Build and Deploy
 
 ```bash
-# Build CLI image
-bun run docker:build
+# Build CLI image from monorepo root
+bun run build:docker
 
-# Authenticate with Claude
-docker run -it fondation/cli:latest npx claude auth
+# Authenticate with Claude (using bunx in Bun image)
+docker run -it fondation/cli:latest bunx claude auth
 
 # Deploy worker
 docker run -d \

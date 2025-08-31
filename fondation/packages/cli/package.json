@@ -40,7 +40,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "files": [
-    "dist/cli.bundled.cjs",
+    "dist/cli.bundled.mjs",
     "prompts/**/*",
     "schemas/**/*",
     "package.json",

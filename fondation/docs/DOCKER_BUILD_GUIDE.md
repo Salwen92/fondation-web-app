@@ -34,6 +34,10 @@ We use the official Bun Docker images (`oven/bun`) instead of Node.js Alpine ima
 
 2. **Build the Docker image:**
    ```bash
+   # Using the automated script (recommended)
+   bun run build:docker
+   
+   # Or manually with Docker CLI
    docker build -f packages/cli/Dockerfile.production \
      -t fondation/cli:latest \
      -t fondation/cli:$(date +%Y-%m-%d) \
@@ -93,6 +97,29 @@ Since we're using Bun images, traditional npm/npx commands won't work. Use these
    docker stop fondation-auth && docker rm fondation-auth
    ```
 
+### Persistent Authentication (Recommended)
+
+To avoid re-authenticating every time, mount the Claude authentication directory as a volume:
+
+```bash
+# Create a persistent directory for Claude auth
+mkdir -p ~/.claude-docker-auth
+
+# Run container with auth volume mounted
+docker run -d \
+  --name fondation-persistent \
+  -v ~/.claude-docker-auth:/root/.config/claude \
+  fondation/cli:latest tail -f /dev/null
+
+# Authenticate once (credentials will persist)
+docker exec -it fondation-persistent bunx claude auth
+
+# Use the authenticated container
+docker exec fondation-persistent node dist/cli.bundled.mjs analyze /workspace --output-dir /output
+```
+
+The authentication will persist across container restarts as long as the volume is mounted.
+
 ## Common Issues and Solutions
 
 ### Issue 1: "npx: executable file not found"
@@ -115,7 +142,7 @@ Since we're using Bun images, traditional npm/npx commands won't work. Use these
 
 ### Basic Test
 ```bash
-docker run --rm fondation/cli:latest bun run dist/cli.bundled.cjs --version
+docker run --rm fondation/cli:latest node dist/cli.bundled.mjs --version
 ```
 
 ### Analyze Command Test
@@ -129,7 +156,7 @@ docker run --rm \
   -v /tmp/test-repo:/workspace \
   -v /tmp/output:/output \
   fondation/cli:authenticated \
-  bash -c "cd /app/cli && bun run dist/cli.bundled.cjs analyze /workspace --output-dir /output"
+  bash -c "cd /app/cli && node dist/cli.bundled.mjs analyze /workspace --output-dir /output"
 ```
 
 ## Production Deployment
@@ -184,6 +211,10 @@ docker image prune -f
 3. **Multi-stage builds** keep the final image size reasonable
 4. **Document platform-specific issues** for team members on different architectures
 5. **Test authentication** before marking an image as production-ready
+6. **Understand execution methods**:
+   - `bun run script-name` - Runs npm scripts defined in package.json
+   - `node file.mjs` - Directly executes a bundled JavaScript file
+   - Use `node` for bundled executables, `bun run` for development scripts
 
 ## References
 

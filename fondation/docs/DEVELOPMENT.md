@@ -65,8 +65,7 @@ bun run build         # Compile TypeScript
 ```bash
 cd packages/cli
 bun run dev           # Interactive development
-bun run build         # Compile TypeScript
-bun run build:cli     # Create bundle for Docker
+bun run build         # Compile TypeScript and create bundle
 ```
 
 **Common tasks:**
@@ -153,7 +152,7 @@ bun run e2e           # Build + start all services
 
 1. **Verbose Mode**
    ```bash
-   node dist/cli.bundled.cjs analyze /workspace --verbose
+   node dist/cli.bundled.mjs analyze /workspace --verbose
    ```
 
 2. **Interactive Debugging**
