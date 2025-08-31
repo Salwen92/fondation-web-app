@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAction, useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 import { RepoCard } from "./repo-card";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { type Id } from "../../../convex/_generated/dataModel";
+import { type Id } from "../../../../../convex/_generated/dataModel";
 import { logger } from "@/lib/logger";
 import { withRetry } from "@/lib/retry";
 import { getUserFriendlyError } from "@/lib/error-messages";

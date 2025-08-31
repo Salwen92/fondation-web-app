@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "../../../../../../convex/_generated/api";
 import { safeObfuscate, safeDeobfuscate } from "@/lib/simple-crypto";
 import { logger } from "@/lib/logger";
 import { z } from "zod";

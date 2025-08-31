@@ -11,9 +11,14 @@ COPY dist/prompts ./dist/prompts/
 COPY package.json ./
 
 # Install ONLY Claude SDK as external dependency
+# Install in both locations to handle different path resolutions
 RUN npm init -y --quiet && \
     npm install --no-save @anthropic-ai/claude-code@latest && \
-    rm -f package-lock.json
+    rm -f package-lock.json && \
+    mkdir -p /app/node_modules && \
+    ln -s /app/cli/node_modules/@anthropic-ai /app/node_modules/@anthropic-ai && \
+    mkdir -p node_modules/@anthropic-ai/entrypoints && \
+    ln -s ../claude-code/cli.js node_modules/@anthropic-ai/entrypoints/cli.js
 
 # Create workspace and output directories
 RUN mkdir -p /workspace /output

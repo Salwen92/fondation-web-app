@@ -17,7 +17,7 @@ export declare const claimOne: import("convex/server").RegisteredMutation<"publi
  * Update job status and extend lease (heartbeat)
  */
 export declare const heartbeat: import("convex/server").RegisteredMutation<"public", {
-    status?: "running" | "cloning" | "analyzing" | "gathering" | undefined;
+    status?: "cloning" | "analyzing" | "gathering" | "running" | undefined;
     progress?: string | undefined;
     currentStep?: number | undefined;
     leaseMs?: number | undefined;

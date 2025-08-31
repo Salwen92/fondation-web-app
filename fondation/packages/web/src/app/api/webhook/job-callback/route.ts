@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { logger } from "@/lib/logger";
 import { jobCallbackSchema } from "@/lib/api-validation";

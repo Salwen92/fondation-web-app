@@ -34,8 +34,8 @@ export declare const listByJobId: import("convex/server").RegisteredQuery<"publi
     runId?: string | undefined;
     sourceKey?: string | undefined;
     normalizedAt?: number | undefined;
-    repositoryId: import("convex/values").GenericId<"repositories">;
     createdAt: number;
+    repositoryId: import("convex/values").GenericId<"repositories">;
     jobId: import("convex/values").GenericId<"jobs">;
     slug: string;
     title: string;
@@ -53,8 +53,8 @@ export declare const getBySlug: import("convex/server").RegisteredQuery<"public"
     runId?: string | undefined;
     sourceKey?: string | undefined;
     normalizedAt?: number | undefined;
-    repositoryId: import("convex/values").GenericId<"repositories">;
     createdAt: number;
+    repositoryId: import("convex/values").GenericId<"repositories">;
     jobId: import("convex/values").GenericId<"jobs">;
     slug: string;
     title: string;
@@ -71,8 +71,8 @@ export declare const listByRepository: import("convex/server").RegisteredQuery<"
     runId?: string | undefined;
     sourceKey?: string | undefined;
     normalizedAt?: number | undefined;
-    repositoryId: import("convex/values").GenericId<"repositories">;
     createdAt: number;
+    repositoryId: import("convex/values").GenericId<"repositories">;
     jobId: import("convex/values").GenericId<"jobs">;
     slug: string;
     title: string;
@@ -118,8 +118,8 @@ export declare const exportAll: import("convex/server").RegisteredQuery<"public"
     runId?: string | undefined;
     sourceKey?: string | undefined;
     normalizedAt?: number | undefined;
-    repositoryId: import("convex/values").GenericId<"repositories">;
     createdAt: number;
+    repositoryId: import("convex/values").GenericId<"repositories">;
     jobId: import("convex/values").GenericId<"jobs">;
     slug: string;
     title: string;

@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { promisify } from "util";
 import { resolve, join } from "path";
 import { existsSync, readFileSync, readdirSync, statSync } from "fs";
@@ -188,9 +188,9 @@ export class CLIExecutor {
           console.log('🎯 Running bundled CLI directly inside Docker container');
         } else {
           // External Docker runtime - use authenticated CLI image
-          const image = process.env.FONDATION_WORKER_IMAGE ?? "fondation-cli:auth-cli";
+          const image = process.env.FONDATION_WORKER_IMAGE ?? "fondation/cli:authenticated";
           const repoMount = repoPath;
-          const runCmd = `node /app/cli.bundled.cjs analyze /tmp/repo --profile production`;
+          const runCmd = `cd /app/cli && node dist/cli.bundled.cjs analyze /tmp/repo --profile production`;
           
           const dockerCmd =
             `docker run --rm -v "${repoMount}:/tmp/repo" -v "${repoMount}/.claude-tutorial-output:/output" ` +
@@ -201,6 +201,7 @@ export class CLIExecutor {
         }
         
         console.log(`⚙️  Command: ${analyzeCommand}`);
+        console.log(`[DEBUG] Starting Docker process at ${new Date().toISOString()}`);
         
         // Track the 6-step analysis workflow
         const workflowSteps = [
@@ -213,16 +214,23 @@ export class CLIExecutor {
         ];
         let currentStepIndex = 0;
         
-        const child = exec(analyzeCommand, {
-          timeout: 3600000, // 60 minutes timeout
-          maxBuffer: 50 * 1024 * 1024, // 50MB buffer
+        // Use spawn instead of exec for better streaming and control
+        console.log(`[DEBUG] Using spawn to execute command`);
+        const child = spawn('sh', ['-c', analyzeCommand], {
           env: {
             ...process.env,
             HOME: '/home/worker',
             NODE_PATH: '/app/node_modules',
             // Let CLI use default .claude-tutorial-output directory in repo
           },
+          stdio: ['pipe', 'pipe', 'pipe']
         });
+        
+        // Set timeout manually since spawn doesn't have timeout option
+        const timeout = setTimeout(() => {
+          console.error(`[DEBUG] Process timeout after 60 minutes`);
+          child.kill('SIGTERM');
+        }, 3600000);
         
         let stdout = "";
         let stderr = "";
@@ -230,6 +238,7 @@ export class CLIExecutor {
         child.stdout?.on("data", (data) => {
           const text = data.toString();
           stdout += text;
+          console.log(`[DEBUG] STDOUT received ${data.length} bytes`);
           console.log(`[Fondation CLI] ${text.trim()}`);
           
           // Parse progress messages from CLI output
@@ -275,36 +284,80 @@ export class CLIExecutor {
         });
         
         child.stderr?.on("data", (data) => {
-          stderr += data.toString();
-          console.error(`⚠️  Fondation CLI stderr: ${data.toString()}`);
+          const text = data.toString();
+          stderr += text;
+          console.log(`[DEBUG] STDERR received ${data.length} bytes`);
+          console.error(`⚠️  Fondation CLI stderr: ${text}`);
         });
         
+        // Track if we've already resolved/rejected to avoid double handling
+        let hasFinished = false;
+        
         child.on("error", (error) => {
-          console.error(`❌ CLI spawn error:`, error);
-          reject(new Error(`Failed to spawn Fondation CLI: ${error.message}`));
+          console.log(`[DEBUG] Process error event at ${new Date().toISOString()}`);
+          if (!hasFinished) {
+            hasFinished = true;
+            clearTimeout(timeout);
+            console.error(`❌ CLI spawn error:`, error);
+            reject(new Error(`Failed to spawn Fondation CLI: ${error.message}`));
+          }
+        });
+        
+        // Handle unexpected exits (Docker container dying, etc.)
+        child.on("exit", (code, signal) => {
+          console.log(`[DEBUG] Process exit event at ${new Date().toISOString()}, code: ${code}, signal: ${signal}`);
+          console.log(`[DEBUG] Total stdout length: ${stdout.length}, stderr length: ${stderr.length}`);
+          // Only handle error cases in exit, let close handle success
+          if (!hasFinished && (code !== 0 || signal)) {
+            hasFinished = true;
+            clearTimeout(timeout);
+            const errorMsg = signal 
+              ? `Docker process killed with signal ${signal}. Last output: ${stderr || stdout || 'No output captured'}`
+              : `Docker process exited with code ${code}. Error: ${stderr || 'No stderr'}\nOutput: ${stdout || 'No stdout'}`;
+            console.error(`❌ ${errorMsg}`);
+            reject(new Error(errorMsg));
+          }
         });
         
         child.on("close", async (code) => {
-          if (code === 0) {
-            console.log(`✅ Fondation CLI execution successful`);
-            
-            // Parse the generated files from the output directory
-            const documents = await this.parseOutputFiles(repoPath);
-            
-            resolve({
-              success: true,
-              documents,
-              metadata: { 
-                rawOutput: stdout,
-                cliPath: this.cliPath,
-                command: analyzeCommand,
-                documentsCount: documents?.length || 0
-              },
-            });
-          } else {
-            const errorMsg = `Fondation CLI exited with code ${code}: ${stderr || stdout}`;
-            console.error(`❌ ${errorMsg}`);
-            reject(new Error(errorMsg));
+          console.log(`[DEBUG] Process close event at ${new Date().toISOString()}, code: ${code}`);
+          if (!hasFinished) {
+            hasFinished = true;
+            clearTimeout(timeout);
+            if (code === 0) {
+              console.log(`✅ Fondation CLI execution successful`);
+              
+              // Parse the generated files from the output directory with timeout
+              let documents: CLIResult['documents'] = [];
+              try {
+                // Add a timeout for parsing to prevent hanging
+                const parsePromise = this.parseOutputFiles(repoPath);
+                const timeoutPromise = new Promise<CLIResult['documents']>((_, reject) => {
+                  setTimeout(() => reject(new Error('parseOutputFiles timeout after 30s')), 30000);
+                });
+                
+                documents = await Promise.race([parsePromise, timeoutPromise]);
+                console.log(`✅ Successfully parsed ${documents?.length || 0} documents`);
+              } catch (parseError) {
+                console.error(`⚠️ Error parsing output files (non-fatal):`, parseError);
+                // Continue with empty documents array - files were still generated
+              }
+              
+              resolve({
+                success: true,
+                documents,
+                metadata: { 
+                  rawOutput: stdout,
+                  cliPath: this.cliPath,
+                  command: analyzeCommand,
+                  documentsCount: documents?.length || 0
+                },
+              });
+            } else {
+              const errorMsg = `Fondation CLI exited with code ${code}: ${stderr || stdout || 'No output captured'}`;
+              console.error(`❌ ${errorMsg}`);
+              reject(new Error(errorMsg));
+            }
           }
         });
         

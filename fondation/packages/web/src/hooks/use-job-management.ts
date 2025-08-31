@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 import { toast } from "sonner";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Id } from "../../../../convex/_generated/dataModel";
 
 interface UseJobManagementOptions {
   repositoryId: Id<"repositories">;

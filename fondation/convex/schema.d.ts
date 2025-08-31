@@ -84,9 +84,9 @@ declare const _default: import("convex/server").SchemaDefinition<{
     }, {}, {}>;
     jobs: import("convex/server").TableDefinition<import("convex/values").VObject<{
         error?: string | undefined;
+        runAt?: number | undefined;
         attempts?: number | undefined;
         maxAttempts?: number | undefined;
-        runAt?: number | undefined;
         lockedBy?: string | undefined;
         leaseUntil?: number | undefined;
         dedupeKey?: string | undefined;
@@ -111,16 +111,16 @@ declare const _default: import("convex/server").SchemaDefinition<{
             rejected: number;
             deleted: number;
         } | undefined;
+        createdAt: number;
         userId: import("convex/values").GenericId<"users">;
         repositoryId: import("convex/values").GenericId<"repositories">;
+        status: "pending" | "claimed" | "cloning" | "analyzing" | "gathering" | "running" | "completed" | "failed" | "canceled" | "dead";
         prompt: string;
-        status: "pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead";
         callbackToken: string;
-        createdAt: number;
     }, {
         userId: import("convex/values").VId<import("convex/values").GenericId<"users">, "required">;
         repositoryId: import("convex/values").VId<import("convex/values").GenericId<"repositories">, "required">;
-        status: import("convex/values").VUnion<"pending" | "claimed" | "running" | "cloning" | "analyzing" | "gathering" | "completed" | "failed" | "canceled" | "dead", [import("convex/values").VLiteral<"pending", "required">, import("convex/values").VLiteral<"claimed", "required">, import("convex/values").VLiteral<"cloning", "required">, import("convex/values").VLiteral<"analyzing", "required">, import("convex/values").VLiteral<"gathering", "required">, import("convex/values").VLiteral<"running", "required">, import("convex/values").VLiteral<"completed", "required">, import("convex/values").VLiteral<"failed", "required">, import("convex/values").VLiteral<"canceled", "required">, import("convex/values").VLiteral<"dead", "required">], "required", never>;
+        status: import("convex/values").VUnion<"pending" | "claimed" | "cloning" | "analyzing" | "gathering" | "running" | "completed" | "failed" | "canceled" | "dead", [import("convex/values").VLiteral<"pending", "required">, import("convex/values").VLiteral<"claimed", "required">, import("convex/values").VLiteral<"cloning", "required">, import("convex/values").VLiteral<"analyzing", "required">, import("convex/values").VLiteral<"gathering", "required">, import("convex/values").VLiteral<"running", "required">, import("convex/values").VLiteral<"completed", "required">, import("convex/values").VLiteral<"failed", "required">, import("convex/values").VLiteral<"canceled", "required">, import("convex/values").VLiteral<"dead", "required">], "required", never>;
         prompt: import("convex/values").VString<string, "required">;
         callbackToken: import("convex/values").VString<string, "required">;
         runAt: import("convex/values").VFloat64<number | undefined, "optional">;
@@ -166,7 +166,7 @@ declare const _default: import("convex/server").SchemaDefinition<{
             rejected: import("convex/values").VFloat64<number, "required">;
             deleted: import("convex/values").VFloat64<number, "required">;
         }, "optional", "inserted" | "updated" | "skipped" | "rejected" | "deleted">;
-    }, "required", "error" | "userId" | "repositoryId" | "prompt" | "status" | "callbackToken" | "attempts" | "maxAttempts" | "createdAt" | "runAt" | "lockedBy" | "leaseUntil" | "dedupeKey" | "lastError" | "updatedAt" | "completedAt" | "progress" | "currentStep" | "totalSteps" | "result" | "docsCount" | "cancelRequested" | "runId" | "regenerationStats" | "result.data" | "result.success" | "result.message" | "regenerationStats.inserted" | "regenerationStats.updated" | "regenerationStats.skipped" | "regenerationStats.rejected" | "regenerationStats.deleted">, {
+    }, "required", "error" | "createdAt" | "userId" | "repositoryId" | "status" | "prompt" | "callbackToken" | "runAt" | "attempts" | "maxAttempts" | "lockedBy" | "leaseUntil" | "dedupeKey" | "lastError" | "updatedAt" | "completedAt" | "progress" | "currentStep" | "totalSteps" | "result" | "docsCount" | "cancelRequested" | "runId" | "regenerationStats" | "result.data" | "result.success" | "result.message" | "regenerationStats.inserted" | "regenerationStats.updated" | "regenerationStats.skipped" | "regenerationStats.rejected" | "regenerationStats.deleted">, {
         by_user: ["userId", "_creationTime"];
         by_repository: ["repositoryId", "_creationTime"];
         by_status_runAt: ["status", "runAt", "_creationTime"];
@@ -178,8 +178,8 @@ declare const _default: import("convex/server").SchemaDefinition<{
         runId?: string | undefined;
         sourceKey?: string | undefined;
         normalizedAt?: number | undefined;
-        repositoryId: import("convex/values").GenericId<"repositories">;
         createdAt: number;
+        repositoryId: import("convex/values").GenericId<"repositories">;
         jobId: import("convex/values").GenericId<"jobs">;
         slug: string;
         title: string;
@@ -199,7 +199,7 @@ declare const _default: import("convex/server").SchemaDefinition<{
         sourceKey: import("convex/values").VString<string | undefined, "optional">;
         runId: import("convex/values").VString<string | undefined, "optional">;
         normalizedAt: import("convex/values").VFloat64<number | undefined, "optional">;
-    }, "required", "repositoryId" | "createdAt" | "updatedAt" | "runId" | "jobId" | "slug" | "title" | "chapterIndex" | "content" | "sourceKey" | "normalizedAt" | "kind">, {
+    }, "required", "createdAt" | "repositoryId" | "updatedAt" | "runId" | "jobId" | "slug" | "title" | "chapterIndex" | "content" | "sourceKey" | "normalizedAt" | "kind">, {
         by_job: ["jobId", "_creationTime"];
         by_repository: ["repositoryId", "_creationTime"];
         by_source_key: ["sourceKey", "_creationTime"];

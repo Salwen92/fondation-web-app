@@ -241,6 +241,8 @@ export class ChapterGenerator {
       if (!abortController.signal.aborted) {
         abortController.abort();
       }
+      console.error('[CHAPTER-GENERATOR] Error in generateChapter:', error);
+      console.error('[CHAPTER-GENERATOR] Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
 

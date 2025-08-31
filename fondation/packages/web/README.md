@@ -1,19 +1,16 @@
 # Fondation Web App
 
-AI-powered documentation generation platform that analyzes GitHub repositories and creates comprehensive course materials using Claude AI.
+Next.js web application for the Fondation AI-powered course generation platform. Provides GitHub OAuth authentication, repository management, job queue monitoring, and course viewing interfaces.
 
 ## 🚀 Quick Start
 
 ```bash
-# Install dependencies
-bun install
+# From monorepo root:
+npx convex dev        # Start Convex database (required first)
 
-# Start development services
-bunx convex dev        # Backend (Convex)
+# In separate terminal:
+cd packages/web
 bun run dev           # Frontend (http://localhost:3000)
-
-# Or run both:
-bun run dev:all
 ```
 
 ## 📋 Prerequisites
@@ -26,17 +23,19 @@ bun run dev:all
 ## 🏗️ Architecture
 
 ```
-USER → NEXT.JS → CONVEX DB (Queue) ← WORKER (Docker) → CLAUDE CLI
-   ↑                ↑                        ↓
-   └────────────────┴──────── STATUS ────────┘
+GitHub OAuth → Next.js UI → Convex DB → Worker (Docker) → Claude CLI
+     ↓           ↓              ↓           ↓
+  User Auth  Job Creation   Job Queue   Analysis
+                              ↓
+                    Real-time Status Updates
 ```
 
 ### Components
 
-- **Frontend**: Next.js 15 with TypeScript, Tailwind CSS
-- **Backend**: Convex real-time database with job queue
-- **Worker**: Docker container polling Convex for jobs
-- **AI**: Claude CLI for content generation
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS
+- **Database**: Convex real-time database with atomic job queue
+- **Authentication**: NextAuth with GitHub OAuth
+- **Real-time**: Convex subscriptions for live job status updates
 
 ## 🔧 Configuration
 
@@ -49,70 +48,87 @@ cp .env.example .env.local
 ```
 
 Required variables:
-- `AUTH_SECRET`: NextAuth secret (generate with `npx auth secret`)
-- `GITHUB_CLIENT_ID`: GitHub OAuth app ID
-- `GITHUB_CLIENT_SECRET`: GitHub OAuth app secret
-- `NEXT_PUBLIC_CONVEX_URL`: Convex deployment URL
-- `WORKER_GATEWAY_URL`: Worker service URL (optional, for production)
+```bash
+# Authentication
+AUTH_SECRET=                      # Generate with: npx auth secret
+GITHUB_CLIENT_ID=                 # GitHub OAuth app client ID
+GITHUB_CLIENT_SECRET=             # GitHub OAuth app client secret
+
+# Database
+NEXT_PUBLIC_CONVEX_URL=           # https://your-deployment.convex.cloud
+
+# Optional
+WORKER_GATEWAY_URL=               # Worker health endpoint (production only)
+```
 
 ### GitHub OAuth Setup
 
-1. Go to GitHub Settings > Developer settings > OAuth Apps
+1. Go to GitHub Settings → Developer settings → OAuth Apps
 2. Create new OAuth App with:
-   - Homepage URL: `http://localhost:3000`
-   - Callback URL: `http://localhost:3000/api/auth/callback/github`
+   - **Application name**: `Fondation Local Dev`
+   - **Homepage URL**: `http://localhost:3000`
+   - **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github`
+3. Copy Client ID and Client Secret to `.env.local`
 
 ## 📁 Project Structure
 
 ```
-apps/web/
+packages/web/
 ├── src/
-│   ├── app/             # Next.js app router pages
-│   ├── components/      # React components
-│   ├── hooks/          # Custom React hooks
-│   └── lib/            # Utilities and helpers
-├── convex/             # Convex backend
-│   ├── _generated/     # Auto-generated types
-│   ├── schema.ts       # Database schema
-│   ├── queue.ts        # Job queue implementation
-│   └── jobs.ts         # Job management
-├── public/             # Static assets
-└── styles/             # Global styles
+│   ├── app/                    # Next.js app router pages
+│   │   ├── api/               # API routes
+│   │   ├── auth/              # Authentication pages
+│   │   ├── course/            # Course viewing pages
+│   │   │   └── [owner]/[repo]/[jobId]/  # 8 levels deep!
+│   │   └── dashboard/         # Main dashboard
+│   ├── components/            # React components
+│   │   ├── auth/             # Auth components
+│   │   ├── dashboard/        # Dashboard components
+│   │   └── repos/            # Repository components
+│   ├── hooks/                # Custom React hooks
+│   └── lib/                  # Utilities and helpers
+├── public/                   # Static assets
+└── package.json              # Dependencies and scripts
 ```
 
-## 🗄️ Database Schema
+## 🗄️ Database (Convex)
+
+### Database Location
+**IMPORTANT**: Convex database is at monorepo root (`/convex/`), not in web package.
 
 ### Core Tables
+- **users**: GitHub authenticated users with OAuth tokens
+- **repositories**: GitHub repositories with access metadata
+- **jobs**: Processing queue with atomic claiming and lease-based locking
+- **docs**: Generated course content and analysis results
 
-- **users**: GitHub authenticated users
-- **repositories**: GitHub repositories
-- **jobs**: Processing queue with status tracking
-- **docs**: Generated documentation
-
-### Job Queue
-
-Jobs use atomic claiming with lease-based locking:
-- Status progression: `pending` → `claimed` → `processing` → `completed`
-- Automatic retry with exponential backoff (5s → 10min)
-- Lease expiration recovery for failed workers
+### Job States
+- `pending` → `claimed` → `running` → `completed`
+- Failed jobs retry with exponential backoff
+- Expired leases return jobs to queue automatically
 
 ## 🚀 Development
 
 ### Local Development
 
-```bash
-# Start Convex backend
-bunx convex dev
+**Prerequisites**: Convex must be running first!
 
-# In another terminal, start Next.js
+```bash
+# Terminal 1: Start Convex (from monorepo root)
+npx convex dev
+
+# Terminal 2: Start web app
+cd packages/web
 bun run dev
 
 # Access at http://localhost:3000
 ```
 
-### Testing
+### Quality Assurance
 
 ```bash
+cd packages/web
+
 # Type checking
 bun run typecheck
 
@@ -120,42 +136,78 @@ bun run typecheck
 bun run lint
 
 # Format code
-bun run format
+bun run format:write
+
+# Build for production
+bun run build
 ```
 
 ## 🐳 Production Deployment
 
 ### Web App (Vercel)
 
-```bash
-# Deploy to Vercel
-vercel deploy
-```
+1. Connect GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard:
+   - `AUTH_SECRET`
+   - `GITHUB_CLIENT_ID` 
+   - `GITHUB_CLIENT_SECRET`
+   - `NEXT_PUBLIC_CONVEX_URL`
+3. Deploy automatically on push to main branch
 
-### Worker (Docker)
+### Worker Deployment
 
-See [Worker Documentation](../worker/README.md) for deployment instructions.
+See `DOCKER_BUILD_GUIDE.md` and `CLAUDE.md` for complete worker deployment instructions.
 
 ## 🔑 Security
 
-- OAuth authentication via GitHub
-- Session-based auth with NextAuth
-- Secure token validation for job callbacks
-- Environment variables for sensitive data
+- **GitHub OAuth**: Secure authentication without storing passwords
+- **NextAuth Sessions**: Encrypted session tokens
+- **Job Callbacks**: Token-based validation for status updates
+- **Environment Variables**: All secrets stored in `.env.local`
+- **HTTPS Only**: Production requires secure connections
 
 ## 📚 API Routes
 
-- `/api/auth/*` - NextAuth endpoints
-- `/api/analyze-proxy` - Job submission proxy
-- `/api/webhook/job-callback` - Job status updates
-- `/api/jobs/[id]/cancel` - Job cancellation
+- `/api/auth/*` - NextAuth authentication endpoints
+- `/api/auth/store-token` - Store GitHub OAuth tokens in Convex
+- `/api/jobs/[id]/cancel` - Cancel running jobs
+- `/api/jobs/[id]/status` - Get job status
+- `/api/webhook/job-callback` - Worker job status callbacks
+- `/api/clear-stuck-jobs` - Admin utility for stuck jobs
+
+## ⚠️ Important Notes
+
+### Course Page Import Paths
+Course pages are **8 levels deep** in the directory structure:
+```
+packages/web/src/app/course/[owner]/[repo]/[jobId]/
+```
+
+To import from Convex at monorepo root, use:
+```typescript
+// ✅ CORRECT (8 levels up)
+import { api } from '../../../../../../../../convex/_generated/api';
+
+// ❌ WRONG (too few levels)
+import { api } from '../../convex/_generated/api';
+```
+
+### Job Processing
+- Jobs are created via UI but processed by separate Worker service
+- Status updates happen via Convex real-time subscriptions
+- Worker must use authenticated Docker image: `fondation/cli:authenticated`
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create feature branch
-3. Make your changes
-4. Submit pull request
+See `CONTRIBUTING.md` for detailed development setup and guidelines.
+
+## 🔗 Related Documentation
+
+- `README.md` - Main project overview
+- `DOCKER_BUILD_GUIDE.md` - Worker deployment
+- `CLAUDE.md` - E2E testing guide
+- `CONTRIBUTING.md` - Development setup
+- `../worker/README.md` - Worker service details
 
 ## 📄 License
 

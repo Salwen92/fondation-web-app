@@ -1,6 +1,6 @@
 # Fondation Worker
 
-Persistent job processor that polls Convex for pending jobs and executes the Fondation/Claude CLI.
+Docker-based job processor that polls Convex for pending jobs and executes the Fondation CLI with Claude AI analysis. Runs as a persistent container with lease-based job claiming and automatic retry logic.
 
 ## Architecture
 
@@ -15,12 +15,12 @@ The worker is a long-running Node.js process that:
 ## Local Development
 
 ```bash
-# From monorepo root
-bun dev:worker
+# From monorepo root (requires Convex running)
+npx convex dev  # Terminal 1
 
-# Or directly
-cd apps/worker
-bun dev
+# In separate terminal:
+cd packages/worker
+bun run dev     # Terminal 2
 ```
 
 ## Environment Variables
@@ -29,50 +29,58 @@ bun dev
 # Required
 CONVEX_URL=https://your-deployment.convex.cloud
 
+# Docker-specific (production)
+FONDATION_WORKER_IMAGE=fondation/cli:authenticated  # Docker image with Claude auth
+
 # Optional
 WORKER_ID=worker-1                  # Unique worker ID (auto-generated if not set)
-POLL_INTERVAL=5000                  # Job polling interval in ms
-LEASE_TIME=300000                   # Job lease duration in ms (5 minutes)
-HEARTBEAT_INTERVAL=60000           # Lease heartbeat interval in ms (1 minute)
-MAX_CONCURRENT_JOBS=1               # Maximum concurrent jobs
+POLL_INTERVAL=5000                  # Job polling interval in ms (default: 5s)
+LEASE_TIME=300000                   # Job lease duration in ms (default: 5 minutes)
+HEARTBEAT_INTERVAL=60000           # Lease heartbeat interval in ms (default: 1 minute)
+MAX_CONCURRENT_JOBS=1               # Maximum concurrent jobs per worker
 TEMP_DIR=/tmp/fondation            # Temporary directory for cloned repos
 ```
 
 ## Claude CLI Authentication
 
-The worker uses the Claude CLI which requires manual authentication:
+⚠️ **CRITICAL**: The worker requires a pre-authenticated Docker image. See `DOCKER_BUILD_GUIDE.md` for complete setup.
 
-### First-Time Setup
+### Quick Setup
 
 ```bash
-# Run container interactively
-docker run -it \
-  -v /srv/claude-creds:/home/worker/.claude \
-  fondation-worker \
-  /bin/sh
+# 1. Build base CLI image
+docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
 
-# Inside container, authenticate with Claude
-claude login
+# 2. Create authentication container
+docker run -d --name auth fondation/cli:latest tail -f /dev/null
 
-# Exit container
-exit
+# 3. Authenticate interactively (requires browser)
+docker exec -it auth npx claude auth
+
+# 4. Commit authenticated image
+docker commit auth fondation/cli:authenticated
+docker rm -f auth
 ```
 
 ### Production Deployment
 
 ```bash
-# Run with mounted credentials (read-only)
+# Deploy worker with authenticated image
 docker run -d \
   --name fondation-worker \
   --restart unless-stopped \
-  -v /srv/claude-creds:/home/worker/.claude:ro \
   -e CONVEX_URL=https://your-deployment.convex.cloud \
-  fondation-worker
+  -e WORKER_ID=worker-1 \
+  fondation/cli:authenticated
 ```
 
 ## Docker Build
 
-For complete Docker build instructions, see `/DOCKER_BUILD_GUIDE.md` in the repository root.
+⚠️ **IMPORTANT**: Docker images must be rebuilt after code changes!
+
+For complete instructions, see:
+- `DOCKER_BUILD_GUIDE.md` - Docker build process
+- `CLAUDE.md` - E2E testing and troubleshooting
 
 
 ## Health Checks
@@ -99,52 +107,113 @@ Run multiple workers by deploying additional containers:
 docker run -d \
   --name worker-1 \
   -e WORKER_ID=worker-1 \
-  -e CONVEX_URL=... \
-  fondation-worker
+  -e CONVEX_URL=https://your-deployment.convex.cloud \
+  fondation/cli:authenticated
 
-# Worker 2
+# Worker 2  
 docker run -d \
   --name worker-2 \
   -e WORKER_ID=worker-2 \
-  -e CONVEX_URL=... \
-  fondation-worker
+  -e CONVEX_URL=https://your-deployment.convex.cloud \
+  fondation/cli:authenticated
 ```
 
 ## Troubleshooting
 
 ### Worker not picking up jobs
-- Check Convex connection: `CONVEX_URL` must be correct
-- Verify jobs exist with `status: "pending"`
-- Check worker logs: `docker logs fondation-worker`
+```bash
+# Check worker logs
+docker logs -f fondation-worker
+
+# Verify Convex connection
+curl -f $CONVEX_URL/_system/version
+
+# Check for pending jobs in Convex dashboard
+npx convex dashboard
+```
 
 ### Claude CLI authentication issues
-- Re-authenticate: Mount credential directory and run `claude login`
-- Check credential persistence: Verify `/home/worker/.claude` is mounted
-- Ensure credentials are readable by worker user (UID 1001)
+```bash
+# Test authentication
+docker run --rm fondation/cli:authenticated sh -c 'npx claude -p "test"'
 
-### Repository clone failures
-- Verify GitHub access for public repos
-- For private repos: Ensure GitHub token is available in Convex
-- Check disk space in `/tmp/fondation`
+# Re-authenticate if needed
+docker run -d --name auth fondation/cli:latest tail -f /dev/null
+docker exec -it auth npx claude auth
+docker commit auth fondation/cli:authenticated
+docker rm -f auth
+```
 
-### Memory issues
-- Monitor with `/metrics` endpoint
-- Adjust Docker memory limits if needed
-- Reduce `MAX_CONCURRENT_JOBS` for memory-constrained environments
+### Step 4+ Analysis Failures
+⚠️ **Common Issue**: Docker image built before code fixes
+
+```bash
+# 1. Rebuild CLI bundle
+cd packages/cli && npm run build:cli
+
+# 2. Rebuild Docker image
+docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
+
+# 3. Re-authenticate (see above)
+```
+
+### Job Processing Issues
+```bash
+# Check job states in Convex
+npx convex data jobs
+
+# Clear stuck jobs (admin)
+curl -X POST http://localhost:3000/api/clear-stuck-jobs
+
+# Monitor job progression
+tail -f /var/log/worker.log | grep -E "Step [0-9]/6"
+```
 
 ## Monitoring
 
-### Logs
+### Real-time Monitoring
 ```bash
-docker logs -f fondation-worker
+# Worker logs with step tracking
+docker logs -f fondation-worker | grep -E "(Step [0-9]/6|ERROR|Authentication)"
+
+# Health and metrics (worker exposes :8080)
+curl -s http://localhost:8080/health | jq
+curl -s http://localhost:8080/metrics | jq
+
+# Watch job progression in Convex
+watch -n 2 'npx convex run jobs:listJobs | head -20'
 ```
 
-### Metrics
+### Performance Monitoring
 ```bash
-watch -n 5 'curl -s localhost:8080/metrics | jq .'
+# Container resource usage
+docker stats fondation-worker
+
+# Disk usage (temp files)
+du -sh /tmp/fondation/*
+
+# Memory usage by process
+docker exec fondation-worker top -o %MEM
 ```
 
-### Health
-```bash
-watch -n 10 'curl -s localhost:8080/health | jq .status'
-```
+## Key Features
+
+### Atomic Job Processing
+- **Lease-based locking**: Jobs claimed with 5-minute leases
+- **Heartbeat system**: Extends lease every minute while processing
+- **Automatic recovery**: Expired leases return jobs to queue
+- **Retry logic**: Failed jobs retry with exponential backoff (5s → 10min)
+
+### 6-Step Analysis Workflow
+1. **Extract abstractions** (~60s) - Identify core components
+2. **Analyze relationships** (~60s) - Map dependencies 
+3. **Determine order** (~30s) - Structure learning sequence
+4. **Generate chapters** (~60s) - Create course content
+5. **Review chapters** (~40s) - Enhance material
+6. **Create tutorials** (~40s) - Build interactive experiences
+
+### Health & Monitoring
+- Health endpoint: `http://localhost:8080/health`
+- Metrics endpoint: `http://localhost:8080/metrics`
+- Real-time job status updates via Convex
+- Automatic cleanup of temporary files

@@ -18,8 +18,9 @@ graph TD
 ### 1. Web Application (Next.js)
 - **Location**: `packages/web/`
 - **Purpose**: User interface for repository management and course viewing
-- **Technologies**: Next.js 15, React 19, Tailwind CSS, NextAuth
-- **Database**: Convex for real-time data and job queue
+- **Technologies**: Next.js 15 (App Router), React 19, Tailwind CSS, NextAuth
+- **Database**: Convex real-time database with atomic job queue
+- **Import Path**: Course pages are 8 levels deep, require `../../../../../../../../convex/_generated/api`
 
 ### 2. Worker Process
 - **Location**: `packages/worker/`
@@ -34,12 +35,14 @@ graph TD
 
 ### 3. Fondation CLI
 - **Location**: `packages/cli/`
-- **Purpose**: Analyzes codebases and generates course content
-- **Technologies**: TypeScript, Claude SDK (@anthropic-ai/claude-code)
+- **Purpose**: Analyzes codebases and generates course content using Claude AI
+- **Technologies**: TypeScript, Claude SDK with OAuth (external dependency)
+- **Docker Image**: `fondation/cli:authenticated` (pre-authenticated)
 - **Key Features**:
-  - 6-step analysis workflow
-  - Generates YAML abstractions and markdown chapters
-  - Uses Claude AI for content generation
+  - 6-step analysis workflow (4-6 minutes per repository)
+  - External SDK architecture (not bundled, preserves spawn functionality)
+  - YAML abstractions and markdown chapter generation
+  - Interactive OAuth authentication (no API keys)
 
 ### 4. Shared Types
 - **Location**: `packages/shared/`
@@ -72,29 +75,34 @@ The job queue is implemented directly in Convex with:
 ### Production Setup
 
 ```
-┌─────────────────────────┐
-│   Scaleway Instance     │
-│   (or any VPS/Docker)   │
-│                         │
-│  ┌──────────────────┐   │
-│  │  Docker Worker   │   │
-│  │   - Polls jobs   │   │
-│  │   - Runs CLI     │   │
-│  └──────────────────┘   │
-│           ↕             │
-└─────────────────────────┘
-            ↕
-    ┌──────────────┐
-    │    Convex    │
-    │   Database   │
-    │   & Queue    │
-    └──────────────┘
-            ↕
-    ┌──────────────┐
-    │   Next.js    │
-    │   Web App    │
-    │  (Vercel)    │
-    └──────────────┘
+┌─────────────────────────────────────────┐
+│   Any VPS/Docker Host (Scaleway, etc.)  │
+│                                         │
+│  ┌─────────────────────────────────┐    │
+│  │  fondation/cli:authenticated    │    │
+│  │  - Polls Convex every 5s        │    │
+│  │  - Claims jobs atomically       │    │
+│  │  - Runs 6-step analysis         │    │
+│  │  - Pre-authenticated OAuth      │    │
+│  └─────────────────────────────────┘    │
+│                   ↕                     │
+└─────────────────────────────────────────┘
+                    ↕
+        ┌───────────────────────┐
+        │   Convex Database     │
+        │   - Real-time data    │
+        │   - Atomic job queue  │
+        │   - Lease management  │
+        │   - Auto retry logic  │
+        └───────────────────────┘
+                    ↕
+        ┌───────────────────────┐
+        │   Next.js Web App     │
+        │   - GitHub OAuth      │
+        │   - Real-time UI      │
+        │   - Course viewing    │
+        │   (Vercel/any host)   │
+        └───────────────────────┘
 ```
 
 ### Key Characteristics
@@ -107,15 +115,18 @@ The job queue is implemented directly in Convex with:
 ## Security
 
 ### Authentication
-- **Web**: GitHub OAuth via NextAuth
-- **Claude CLI**: Manual interactive authentication (not API key)
-- **Jobs**: Callback tokens for secure updates
+- **Web App**: GitHub OAuth via NextAuth (session-based)
+- **Claude CLI**: Interactive OAuth authentication (browser-based, no API keys)
+- **Docker**: Pre-authenticated images (`fondation/cli:authenticated`)
+- **Job Callbacks**: Token-based validation for status updates
+- **Token Expiry**: OAuth tokens last ~90 days, require re-authentication
 
 ### Data Protection
-- GitHub tokens encrypted in Convex
-- Claude credentials mounted read-only
-- Non-root Docker container
-- Temporary files cleaned after each job
+- **GitHub tokens**: Encrypted storage in Convex database
+- **Claude credentials**: Committed to Docker image (authenticated state)
+- **Container security**: Non-root user (UID 1001)
+- **Temp cleanup**: Automatic removal of cloned repositories
+- **No API keys**: OAuth-only authentication flow
 
 ## Monitoring
 
@@ -209,14 +220,18 @@ stateDiagram-v2
 ## Performance
 
 ### Typical Metrics
-- Job pickup latency: < 5 seconds
-- Small repo analysis: 2-5 minutes
-- Large repo analysis: 10-30 minutes
-- Concurrent jobs: 1-2 per worker
-- Memory usage: 500MB-1.5GB
+- **Job pickup latency**: < 5 seconds (polling interval)
+- **Small repository**: 2-5 minutes (all 6 steps)
+- **Large repository**: 10-30 minutes (complex codebases)
+- **Success rate**: 95%+ with retry logic
+- **Concurrent jobs**: 1-2 per worker (configurable)
+- **Memory usage**: 500MB-1.5GB per worker
+- **Docker image size**: ~2GB (includes Node.js + Claude CLI)
 
 ### Optimization Opportunities
-- Reduce poll interval for faster pickup
-- Increase concurrent jobs for parallel processing
-- Cache CLI results for repeated analyses
-- Use dedicated workers for large repos
+- **Faster pickup**: Reduce `POLL_INTERVAL` from 5s to 1s
+- **Parallel processing**: Increase `MAX_CONCURRENT_JOBS` (memory permitting)
+- **Dedicated workers**: Large repos on high-memory instances
+- **Horizontal scaling**: Multiple worker containers with unique IDs
+- **Caching**: CLI bundle and dependencies (not results - each analysis is unique)
+- **Monitoring**: Real-time metrics at `/health` and `/metrics` endpoints

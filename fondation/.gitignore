@@ -45,3 +45,6 @@ temp/
 # Logs
 logs/
 *.log
+convex/
+*.js
+*.js.map
