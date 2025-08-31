@@ -82,7 +82,7 @@ export class ChapterReviewer {
         return null;
       }
 
-      const chapterNum = Number.parseInt(match[1] ?? '0');
+      const chapterNum = Number.parseInt(match[1] ?? '0', 10);
       const chapterInfo = sortedChapters.find((ch) => ch.index === chapterNum);
 
       if (!chapterInfo) {
@@ -159,8 +159,8 @@ export class ChapterReviewer {
     return files
       .filter((file) => file.startsWith('chapter_') && file.endsWith('.md'))
       .sort((a, b) => {
-        const numA = Number.parseInt(a.match(/chapter_(\d+)_/)?.[1] || '0');
-        const numB = Number.parseInt(b.match(/chapter_(\d+)_/)?.[1] || '0');
+        const numA = Number.parseInt(a.match(/chapter_(\d+)_/)?.[1] || '0', 10);
+        const numB = Number.parseInt(b.match(/chapter_(\d+)_/)?.[1] || '0', 10);
         return numA - numB;
       });
   }

@@ -3,45 +3,66 @@
   "compilerOptions": {
     /* Override for Next.js */
     "moduleResolution": "bundler",
-    
     /* Base Options: */
     "target": "es2022",
     "allowJs": true,
     "moduleDetection": "force",
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-
     /* Strictness */
     "noUncheckedIndexedAccess": true,
     "checkJs": true,
-
     /* Bundled projects */
-    "lib": ["dom", "dom.iterable", "ES2022"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "ES2022"
+    ],
     "noEmit": true,
     "module": "ESNext",
     "jsx": "preserve",
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "incremental": true,
     "composite": true,
-
     /* Path Aliases - inherit from root + local */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@fondation/shared/*": ["../shared/src/*"],
-      "@fondation/web/*": ["./src/*"],
-      "@fondation/worker/*": ["../worker/src/*"],
-      "@fondation/cli/*": ["../cli/src/*"],
-      "@convex/*": ["../../convex/*"],
-      "@convex/generated/*": ["../../convex/_generated/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@fondation/shared/*": [
+        "../shared/src/*"
+      ],
+      "@fondation/web/*": [
+        "./src/*"
+      ],
+      "@fondation/worker/*": [
+        "../worker/src/*"
+      ],
+      "@fondation/cli/*": [
+        "../cli/src/*"
+      ],
+      "@convex/*": [
+        "../../convex/*"
+      ],
+      "@convex/generated/*": [
+        "../../convex/_generated/*"
+      ]
     }
   },
   "include": [
-    "next-env.d.ts",
+    "**/*.cjs",
+    "**/*.js",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.cjs",
-    "**/*.js"
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }
