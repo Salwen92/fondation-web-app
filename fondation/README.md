@@ -1,269 +1,225 @@
-# Fondation 🎓
+# Fondation - AI-Powered Documentation Generator 🎓
 
-> AI-powered course generation system that analyzes codebases and creates comprehensive educational content
+<div align="center">
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
-[![Convex](https://img.shields.io/badge/Convex-Latest-orange)](https://convex.dev/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
-[![Bun](https://img.shields.io/badge/Bun-1.x-black)](https://bun.sh/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://react.dev/)
+[![Convex](https://img.shields.io/badge/Convex-Latest-f97316?logo=convex)](https://convex.dev/)
+[![Claude](https://img.shields.io/badge/Claude-AI-purple?logo=anthropic)](https://claude.ai/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ed?logo=docker)](https://www.docker.com/)
+[![Bun](https://img.shields.io/badge/Bun-1.2+-black?logo=bun)](https://bun.sh/)
 
-Transform any GitHub repository into comprehensive educational content using Claude AI. Production-ready system with Docker deployment and real-time processing.
+**Transform any GitHub repository into comprehensive, AI-generated educational content in minutes.**
+
+[Getting Started](docs/GETTING_STARTED.md) • [Documentation](docs/) • [Demo](#demo) • [Contributing](#contributing)
+
+</div>
 
 ## ✨ Features
 
-- 📚 **Smart Analysis** - AI analyzes codebases and generates structured courses
-- 🔄 **Real-time Updates** - Live status tracking with WebSocket connections
-- 🔐 **GitHub Integration** - Secure OAuth authentication and repository access
-- 🐳 **Production Ready** - Docker deployment with automatic scaling
-- ⚡ **Fast Processing** - 6-step analysis workflow (4-6 minutes per repository)
-- 📊 **Job Management** - Robust queue system with retry logic and monitoring
+### 🤖 AI-Powered Analysis
+- **6-Step Deep Analysis**: Extracts abstractions, analyzes relationships, determines learning order
+- **Claude AI Integration**: Uses Anthropic's Claude for intelligent content generation
+- **OAuth Authentication**: No API keys needed - uses secure OAuth flow
 
-## 📚 Documentation
+### 🚀 Real-Time Processing
+- **Live Progress Updates**: WebSocket-based real-time status tracking
+- **Atomic Job Queue**: Prevents duplicate work with lease-based claiming
+- **Smart Retries**: Exponential backoff (5s → 10min) for resilient processing
 
-- **[Getting Started](./docs/GETTING_STARTED.md)** - Set up your development environment in 10 minutes
-- **[Architecture](./docs/ARCHITECTURE.md)** - Understand the system design and data flow
-- **[Development](./docs/DEVELOPMENT.md)** - Development workflow and best practices
-- **[Deployment](./docs/DEPLOYMENT.md)** - Deploy to production environments
-- **[Troubleshooting](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Commands](./COMMANDS.md)** - All 50+ available scripts explained
+### 📚 Comprehensive Output
+- **Structured Courses**: Organized chapters with clear learning progression
+- **Interactive Tutorials**: Hands-on exercises for practical learning
+- **Beautiful Rendering**: Markdown with syntax highlighting and diagrams
+
+### 🛠️ Production Ready
+- **Docker Deployment**: Consistent execution environment
+- **Horizontal Scaling**: Add workers as needed
+- **Health Monitoring**: Built-in health checks and logging
+- **TypeScript Throughout**: Full type safety across all packages
+
+## 🏗️ Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend** | Next.js 15, React 19, TypeScript | Modern web UI with App Router |
+| **Styling** | Tailwind CSS, Radix UI | Beautiful, accessible components |
+| **Database** | Convex | Real-time data synchronization |
+| **Backend** | Node.js Worker Service | Job processing and orchestration |
+| **AI Engine** | Claude SDK (Anthropic) | Content generation and analysis |
+| **Auth** | NextAuth + GitHub OAuth | Secure user authentication |
+| **Infrastructure** | Docker, Bun Workspace | Containerization and package management |
+| **Code Quality** | Biome, TypeScript | Linting and type checking |
 
 ## 🚀 Quick Start
 
+Get up and running in 5 minutes:
+
 ```bash
-# Clone and setup
+# 1. Clone the repository
 git clone https://github.com/your-org/fondation.git
 cd fondation
+
+# 2. Install and build
 bun run setup
 
-# Configure environment
+# 3. Configure environment
 cp .env.example .env.local
 # Edit .env.local with your GitHub OAuth credentials
 
-# Start development
+# 4. Start development
 bun run dev
+
+# 5. Open browser
+open http://localhost:3000
 ```
 
-Visit http://localhost:3000 to see Fondation in action!
+See [Getting Started Guide](docs/GETTING_STARTED.md) for detailed setup instructions.
 
-For detailed setup instructions, see [Getting Started](./docs/GETTING_STARTED.md).
+## 📖 Documentation
 
-## 🏗️ Architecture
+### Core Guides
+- 📘 [**Getting Started**](docs/GETTING_STARTED.md) - 5-minute setup guide
+- 🏗️ [**Architecture Overview**](docs/ARCHITECTURE.md) - System design and data flow
+- 💻 [**Development Guide**](docs/DEVELOPMENT.md) - Development workflow and best practices
+- 🚀 [**Deployment Guide**](docs/DEPLOYMENT.md) - Production deployment instructions
+- 🔧 [**Troubleshooting**](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- 📡 [**API Reference**](docs/API.md) - Complete API documentation
 
-```
-GitHub Repos → Web UI (Next.js) → Convex DB → Worker (Docker) → Claude CLI → Generated Courses
-```
-
-**Modern Stack:**
-- **Frontend**: Next.js 15, React 19, Tailwind CSS, NextAuth
-- **Backend**: Convex real-time database with atomic job queue
-- **Worker**: Node.js + Docker with lease-based job processing
-- **AI**: Claude SDK with OAuth authentication (no API keys needed)
-
-### Prerequisites
-- **Node.js 20+**
-- **Bun** (latest)
-- **Docker** 
-- **Convex Account**
-- **GitHub OAuth App**
-
-### Development Setup
-
-```bash
-# 1. Clone repository
-git clone https://github.com/your-org/fondation.git
-cd fondation
-
-# 2. Install dependencies
-bun install
-
-# 3. Set up environment
-cp packages/web/.env.example packages/web/.env.local
-# Configure your GitHub OAuth app and Convex deployment
-
-# 4. Start services (3 terminals)
-npx convex dev                    # Terminal 1: Database
-cd packages/web && bun run dev    # Terminal 2: Web UI (http://localhost:3000)
-cd packages/worker && bun run dev # Terminal 3: Job processor
-```
-
-### Production Deployment
-
-See **[DOCKER_BUILD_GUIDE.md](DOCKER_BUILD_GUIDE.md)** for complete deployment instructions.
-
-```bash
-# Quick deploy to any VPS
-ssh your-server
-curl -fsSL https://raw.githubusercontent.com/your-org/fondation/main/deploy/vps-setup.sh | bash
-```
+### Additional Resources
+- 🔐 [Security Guide](docs/SECURITY.md) - Security best practices
+- 📊 [Configuration Audit](docs/CONFIGURATION_AUDIT.md) - Configuration standardization
+- 📋 [Commands Reference](COMMANDS.md) - All available scripts explained
 
 ## 📁 Project Structure
 
 ```
 fondation/
-├── convex/              # Shared Convex database (root level)
-│   ├── _generated/      # Auto-generated API types
-│   ├── jobs.ts          # Job management
-│   ├── queue.ts         # Atomic job queue
-│   ├── docs.ts          # Document storage
-│   └── schema.ts        # Database schema
+├── convex/                 # Database functions (shared)
 ├── packages/
-│   ├── web/             # Next.js web application
-│   ├── worker/          # Docker job processor
-│   ├── cli/             # Fondation CLI (code analyzer)
-│   └── shared/          # Shared types and utilities
-├── docs/                # Documentation
-├── deploy/              # Deployment scripts
-├── DOCKER_BUILD_GUIDE.md # Complete Docker setup guide
-└── CLAUDE.md            # Ultimate development & testing guide
+│   ├── web/               # Next.js frontend
+│   ├── worker/            # Job processor service
+│   ├── cli/               # AI analyzer (Docker)
+│   └── shared/            # Shared types & utils
+├── docs/                  # Documentation
+└── package.json          # Root orchestration
 ```
 
-## 💡 How It Works
+## 🎯 Key Features in Detail
 
-### 6-Step Analysis Workflow
-1. **Extract Abstractions** (~60s) - Identify core components and patterns
-2. **Analyze Relationships** (~60s) - Map dependencies and interactions  
-3. **Determine Order** (~30s) - Structure optimal learning sequence
-4. **Generate Chapters** (~60s) - Create detailed course content
-5. **Review Chapters** (~40s) - Enhance and refine material
-6. **Create Tutorials** (~40s) - Build interactive learning experiences
+### Intelligent Analysis Pipeline
+1. **Extract Abstractions** - Identify core components and patterns
+2. **Analyze Relationships** - Map dependencies and interactions
+3. **Determine Order** - Structure optimal learning sequence
+4. **Generate Chapters** - Create detailed course content
+5. **Review & Enhance** - Refine and improve material
+6. **Create Tutorials** - Build interactive exercises
 
-### Job Processing
-- **Atomic claiming** prevents duplicate work
-- **Lease-based locking** handles worker failures
-- **Exponential backoff** for smart retries (5s → 10min)
-- **Real-time status** updates via Convex subscriptions
+### Real-Time Architecture
+- **WebSocket Updates**: Live progress tracking
+- **Atomic Operations**: Prevent race conditions
+- **Lease-Based Claims**: Handle worker failures gracefully
+- **Auto-Scaling**: Database scales automatically with load
 
-## 🔑 Key Benefits
+### Security First
+- **OAuth Only**: No API keys in code
+- **Encrypted Tokens**: Secure credential storage
+- **Docker Isolation**: Sandboxed execution
+- **CSRF Protection**: Built-in security headers
 
-### For Developers
-- **No vendor lock-in** - Deploy anywhere Docker runs
-- **No cold starts** - Always-on worker processes
-- **Simple scaling** - Add workers as needed
-- **Cost effective** - ~$4-10/month VPS hosting
+## 🧪 Development
 
-### For Users  
-- **Instant insights** - Understand any codebase quickly
-- **Structured learning** - From basics to advanced concepts
-- **Interactive tutorials** - Hands-on coding exercises
-- **Real-time progress** - Live updates during generation
+### Available Scripts
 
-## 🛠️ Development
-
-### Commands
 ```bash
 # Development
-npx convex dev           # Start database (required first)
-bun run dev:web         # Next.js web app  
-bun run dev:worker      # Job processor
+bun run dev              # Start all services
+bun run dev:web         # Start web only
+bun run dev:worker      # Start worker only
 
-# Database operations
-npx convex dashboard    # Open Convex dashboard
-npx convex data jobs    # View jobs table
-npx convex run jobs:listUserJobs '{"userId": "user123"}'
+# Building
+bun run build           # Build all packages
+bun run typecheck       # Check TypeScript
+bun run lint            # Run linting
 
-# Quality assurance
-bun run typecheck      # TypeScript checking
-bun run lint           # Code linting
-bun run format:write   # Code formatting
+# Testing
+bun run test            # Run tests
+bun run e2e             # E2E tests
+
+# Utilities
+bun run clean           # Clean build artifacts
+bun run setup           # Initial setup
 ```
 
-### Testing & Debugging
-See **[CLAUDE.md](CLAUDE.md)** for the complete testing guide including:
-- Docker authentication setup
-- E2E testing procedures  
-- Common troubleshooting
-- Import path resolution
-- Performance optimization
+See [Development Guide](docs/DEVELOPMENT.md) for complete workflow documentation.
 
 ## 🐳 Docker Deployment
 
-### Worker Authentication
+### Build and Deploy
+
 ```bash
-# Build and authenticate (one-time setup)
-docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
-docker run -d --name auth fondation/cli:latest tail -f /dev/null
-docker exec -it auth npx claude auth  # Interactive OAuth login
-docker commit auth fondation/cli:authenticated
+# Build CLI image
+bun run docker:build
+
+# Authenticate with Claude
+docker run -it fondation/cli:latest npx claude auth
 
 # Deploy worker
 docker run -d \
   --name fondation-worker \
-  -e CONVEX_URL=https://your-deployment.convex.cloud \
-  -e FONDATION_WORKER_IMAGE=fondation/cli:authenticated \
+  -e CONVEX_URL=your-convex-url \
   fondation/cli:authenticated
 ```
 
-## 📚 Documentation
+See [Deployment Guide](docs/DEPLOYMENT.md) for production deployment.
 
-| File | Description |
-|------|-------------|
-| **[CLAUDE.md](CLAUDE.md)** | 📋 **Ultimate development & testing guide** |
-| **[DOCKER_BUILD_GUIDE.md](DOCKER_BUILD_GUIDE.md)** | 🐳 Complete Docker deployment instructions |
-| **[CONTRIBUTING.md](CONTRIBUTING.md)** | 🤝 Development guidelines and setup |
-| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | 🏗️ System design and components |
-| **[docs/SECURITY.md](docs/SECURITY.md)** | 🔐 Security measures and practices |
+## 📊 Performance
 
-## ⚡ Performance
-
-### Typical Metrics
-- **Job pickup latency**: < 5 seconds
-- **Small repository**: 2-5 minutes analysis
-- **Large repository**: 10-30 minutes analysis
-- **Success rate**: 95%+ with retry logic
-- **Memory usage**: 500MB-1.5GB per worker
-
-### Scaling
-- **Vertical**: Increase worker memory/CPU, adjust `MAX_CONCURRENT_JOBS`
-- **Horizontal**: Deploy multiple workers with unique IDs
-
-## 🔐 Security
-
-- **OAuth Authentication** - No API keys stored
-- **Encrypted Secrets** - GitHub tokens secured in Convex
-- **Non-root Containers** - Least privilege Docker execution
-- **Temporary Cleanup** - Auto-removal of processed files
-- **Secure Callbacks** - Token-based job status updates
-
-## 🚨 Important Notes
-
-### ✅ What Works
-- **Complete E2E workflow** from GitHub → Generated Course
-- **All 6 analysis steps** working with proper Docker authentication
-- **Real-time UI updates** with job progress tracking
-- **Production deployment** tested and documented
-
-### ⚠️ Critical Requirements
-- **Docker images must be rebuilt** after code changes
-- **OAuth tokens expire** (~90 days) - re-authenticate when needed
-- **Course page imports** need correct paths to convex at monorepo root
-- **Worker requires proper image**: `fondation/cli:authenticated`
-
-## 📊 Status
-
-🎉 **FULLY OPERATIONAL END-TO-END**
-
-- ✅ Monorepo build process working
-- ✅ Docker authentication & deployment tested
-- ✅ All 6-step CLI analysis completing successfully  
-- ✅ Convex integration with real API calls
-- ✅ Complete UI → Worker → Database → Generated Course flow
-- ✅ Production-ready with comprehensive documentation
+| Metric | Value |
+|--------|-------|
+| **Job Pickup** | < 5 seconds |
+| **Small Repo** | 2-5 minutes |
+| **Large Repo** | 10-30 minutes |
+| **Success Rate** | 95%+ |
+| **Bundle Size** | ~476KB (CLI) |
+| **Memory Usage** | 500MB-1.5GB |
 
 ## 🤝 Contributing
 
-1. Check **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup instructions
-2. Review **[CLAUDE.md](CLAUDE.md)** for testing procedures
-3. Fork repository and create feature branch
-4. Follow code style and run quality checks
-5. Submit pull request with clear description
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+1. Fork the repository
+2. Create your feature branch
+3. Follow our code style (Biome)
+4. Write tests for new features
+5. Submit a pull request
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Anthropic](https://anthropic.com) for Claude AI
+- [Convex](https://convex.dev) for real-time database
+- [Vercel](https://vercel.com) for Next.js and hosting
+- All our contributors and users
+
+## 🔗 Links
+
+- [Documentation](docs/)
+- [Issue Tracker](https://github.com/your-org/fondation/issues)
+- [Discussions](https://github.com/your-org/fondation/discussions)
+- [Changelog](CHANGELOG.md)
 
 ---
 
-**Ready to transform your repositories into courses?** 🚀
+<div align="center">
 
-[Get Started](packages/web/) • [Deploy](DOCKER_BUILD_GUIDE.md) • [Contribute](CONTRIBUTING.md)
+**Built with ❤️ by the Fondation Team**
+
+[Website](https://fondation.dev) • [Twitter](https://twitter.com/fondation) • [Discord](https://discord.gg/fondation)
+
+</div>
