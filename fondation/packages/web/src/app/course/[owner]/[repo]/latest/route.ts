@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { ConvexHttpClient } from 'convex/browser';
-import { api } from '../../../../../../convex/_generated/api';
+import { api } from '@convex/generated/api';
 import { logger } from '@/lib/logger';
 
 const convexClient = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);

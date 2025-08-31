@@ -1,8 +1,8 @@
 'use client';
 
 import { useQuery } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
-import { type Id } from '../../../../convex/_generated/dataModel';
+import { api } from '@convex/generated/api';
+import { type Id } from '@convex/generated/dataModel';
 import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

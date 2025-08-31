@@ -1,5 +1,5 @@
 import { Book, ExternalLink } from "lucide-react";
-import { type Id } from "../../../convex/_generated/dataModel";
+import { type Id } from "@convex/generated/dataModel";
 
 interface RepoCardHeaderProps {
   repo: {

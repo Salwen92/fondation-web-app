@@ -7,10 +7,10 @@ import {
   ExternalLink,
   FileText,
 } from "lucide-react";
-import { type Id } from "../../../../../convex/_generated/dataModel";
+import { type Id } from "@convex/generated/dataModel";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@convex/generated/api";
 import { useRouter } from "next/navigation";
 import { JobStatusBadge } from "./job-status-badge";
 import { ProgressBar } from "./progress-bar";

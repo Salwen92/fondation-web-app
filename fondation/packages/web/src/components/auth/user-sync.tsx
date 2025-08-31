@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useMutation } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@convex/generated/api";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 
