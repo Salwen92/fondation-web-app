@@ -3,8 +3,8 @@ import { validateConfig } from "./config.js";
 import { CLIExecutor } from "./cli-executor.js";
 import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
-import { api } from "../../../convex/_generated/api.js";
-import type { Id } from "../../../convex/_generated/dataModel.js";
+import { api } from "@convex/generated/api";
+import type { Id } from "@convex/generated/dataModel";
 
 // Use local types until workspace resolution is fixed
 type WorkerConfig = {

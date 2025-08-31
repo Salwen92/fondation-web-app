@@ -31,8 +31,8 @@ export declare const heartbeat: import("convex/server").RegisteredMutation<"publ
  */
 export declare const complete: import("convex/server").RegisteredMutation<"public", {
     result?: string | {
-        data?: string | undefined;
         message?: string | undefined;
+        data?: string | undefined;
         success: boolean;
     } | null | undefined;
     docsCount?: number | undefined;

@@ -83,7 +83,6 @@ declare const _default: import("convex/server").SchemaDefinition<{
         by_user: ["userId", "_creationTime"];
     }, {}, {}>;
     jobs: import("convex/server").TableDefinition<import("convex/values").VObject<{
-        error?: string | undefined;
         runAt?: number | undefined;
         attempts?: number | undefined;
         maxAttempts?: number | undefined;
@@ -97,10 +96,11 @@ declare const _default: import("convex/server").SchemaDefinition<{
         currentStep?: number | undefined;
         totalSteps?: number | undefined;
         result?: string | {
-            data?: string | undefined;
             message?: string | undefined;
+            data?: string | undefined;
             success: boolean;
         } | null | undefined;
+        error?: string | undefined;
         docsCount?: number | undefined;
         cancelRequested?: boolean | undefined;
         runId?: string | undefined;
@@ -137,18 +137,18 @@ declare const _default: import("convex/server").SchemaDefinition<{
         currentStep: import("convex/values").VFloat64<number | undefined, "optional">;
         totalSteps: import("convex/values").VFloat64<number | undefined, "optional">;
         result: import("convex/values").VUnion<string | {
-            data?: string | undefined;
             message?: string | undefined;
+            data?: string | undefined;
             success: boolean;
         } | null | undefined, [import("convex/values").VObject<{
-            data?: string | undefined;
             message?: string | undefined;
+            data?: string | undefined;
             success: boolean;
         }, {
             success: import("convex/values").VBoolean<boolean, "required">;
             message: import("convex/values").VString<string | undefined, "optional">;
             data: import("convex/values").VString<string | undefined, "optional">;
-        }, "required", "data" | "success" | "message">, import("convex/values").VString<string, "required">, import("convex/values").VNull<null, "required">], "optional", "data" | "success" | "message">;
+        }, "required", "success" | "message" | "data">, import("convex/values").VString<string, "required">, import("convex/values").VNull<null, "required">], "optional", "success" | "message" | "data">;
         error: import("convex/values").VString<string | undefined, "optional">;
         docsCount: import("convex/values").VFloat64<number | undefined, "optional">;
         cancelRequested: import("convex/values").VBoolean<boolean | undefined, "optional">;
@@ -166,7 +166,7 @@ declare const _default: import("convex/server").SchemaDefinition<{
             rejected: import("convex/values").VFloat64<number, "required">;
             deleted: import("convex/values").VFloat64<number, "required">;
         }, "optional", "inserted" | "updated" | "skipped" | "rejected" | "deleted">;
-    }, "required", "error" | "createdAt" | "userId" | "repositoryId" | "status" | "prompt" | "callbackToken" | "runAt" | "attempts" | "maxAttempts" | "lockedBy" | "leaseUntil" | "dedupeKey" | "lastError" | "updatedAt" | "completedAt" | "progress" | "currentStep" | "totalSteps" | "result" | "docsCount" | "cancelRequested" | "runId" | "regenerationStats" | "result.data" | "result.success" | "result.message" | "regenerationStats.inserted" | "regenerationStats.updated" | "regenerationStats.skipped" | "regenerationStats.rejected" | "regenerationStats.deleted">, {
+    }, "required", "createdAt" | "userId" | "repositoryId" | "status" | "prompt" | "callbackToken" | "runAt" | "attempts" | "maxAttempts" | "lockedBy" | "leaseUntil" | "dedupeKey" | "lastError" | "updatedAt" | "completedAt" | "progress" | "currentStep" | "totalSteps" | "result" | "error" | "docsCount" | "cancelRequested" | "runId" | "regenerationStats" | "result.success" | "result.message" | "result.data" | "regenerationStats.inserted" | "regenerationStats.updated" | "regenerationStats.skipped" | "regenerationStats.rejected" | "regenerationStats.deleted">, {
         by_user: ["userId", "_creationTime"];
         by_repository: ["repositoryId", "_creationTime"];
         by_status_runAt: ["status", "runAt", "_creationTime"];

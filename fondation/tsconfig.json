@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "lib": ["ES2022"],
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "declaration": true,
     "strict": true,
     "esModuleInterop": true,
@@ -11,13 +11,21 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "composite": true,
+    "baseUrl": ".",
     "paths": {
-      "@fondation/shared": ["./packages/shared/src/index.ts"]
+      "@fondation/shared/*": ["./packages/shared/src/*"],
+      "@fondation/web/*": ["./packages/web/src/*"],
+      "@fondation/worker/*": ["./packages/worker/src/*"],
+      "@fondation/cli/*": ["./packages/cli/src/*"],
+      "@convex/*": ["./convex/*"],
+      "@convex/generated/*": ["./convex/_generated/*"]
     }
   },
   "references": [
     { "path": "./packages/shared" },
-    { "path": "./packages/cli" }
+    { "path": "./packages/cli" },
+    { "path": "./packages/web" },
+    { "path": "./packages/worker" }
   ],
   "files": []
 }
