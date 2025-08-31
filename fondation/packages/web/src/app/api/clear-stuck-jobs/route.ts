@@ -13,7 +13,7 @@ interface ClearJobsRequest {
 
 export const POST = withValidation(
   clearStuckJobsSchema,
-  async (req: NextRequest, body: ClearJobsRequest) => {
+  async (_req: NextRequest, body: ClearJobsRequest) => {
     try {
       const { repositoryFullName } = body;
       

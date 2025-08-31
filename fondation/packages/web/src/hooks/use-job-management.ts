@@ -56,7 +56,7 @@ export function useJobManagement({
   };
 
   const handleCancel = async () => {
-    if (!latestJob) return;
+    if (!latestJob) { return; }
     
     try {
       const response = await fetch(`/api/jobs/${latestJob._id}/cancel`, {

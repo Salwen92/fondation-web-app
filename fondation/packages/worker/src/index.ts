@@ -27,10 +27,6 @@ import { PermanentWorker } from "./worker.js";
 import { config } from "./config.js";
 
 async function main() {
-  console.log("🚀 Starting Fondation Worker");
-  console.log(`📍 Worker ID: ${config.workerId}`);
-  console.log(`🔄 Poll interval: ${config.pollInterval}ms`);
-  console.log(`⏱️  Lease time: ${config.leaseTime}ms`);
   
   
   // Create Convex client
@@ -40,41 +36,35 @@ async function main() {
   
   // Graceful shutdown handlers
   process.on("SIGTERM", async () => {
-    console.log("⏹️  Received SIGTERM, shutting down gracefully...");
     await worker.stop();
     process.exit(0);
   });
   
   process.on("SIGINT", async () => {
-    console.log("⏹️  Received SIGINT, shutting down gracefully...");
     await worker.stop();
     process.exit(0);
   });
   
   // Handle uncaught errors
-  process.on("uncaughtException", (error) => {
-    console.error("❌ Uncaught exception:", error);
+  process.on("uncaughtException", (_error) => {
     process.exit(1);
   });
   
-  process.on("unhandledRejection", (reason, promise) => {
-    console.error("❌ Unhandled rejection at:", promise, "reason:", reason);
+  process.on("unhandledRejection", (_reason, _promise) => {
     process.exit(1);
   });
   
   // Start the worker
   try {
     await worker.start();
-  } catch (error) {
-    console.error("❌ Failed to start worker:", error);
+  } catch (_error) {
     process.exit(1);
   }
 }
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    console.error("❌ Fatal error:", error);
+  main().catch((_error) => {
     process.exit(1);
   });
 }

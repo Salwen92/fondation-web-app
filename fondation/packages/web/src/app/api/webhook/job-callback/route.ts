@@ -102,7 +102,7 @@ export const POST = withValidation(
         if (kind === "chapter") {
           const match = file.path?.match(/(\d+)/);
           if (match?.[1]) {
-            chapterIndex = parseInt(match[1], 10);
+            chapterIndex = Number.parseInt(match[1], 10);
           }
         }
 

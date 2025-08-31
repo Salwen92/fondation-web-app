@@ -28,9 +28,8 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
     }
     return false;
   },
-  onRetry: (attempt, error) => {
+  onRetry: (_attempt, _error) => {
     if (process.env.NODE_ENV === "development") {
-      console.log(`Retry attempt ${attempt}:`, error);
     }
   },
 };

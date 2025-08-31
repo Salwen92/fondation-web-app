@@ -7,7 +7,7 @@ import {
   ExternalLink,
   FileText,
 } from "lucide-react";
-import { type Id } from "@convex/generated/dataModel";
+import type { Id } from "@convex/generated/dataModel";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/generated/api";
@@ -16,7 +16,6 @@ import { JobStatusBadge } from "./job-status-badge";
 import { ProgressBar } from "./progress-bar";
 import { JobActions } from "./job-actions";
 import { useJobManagement } from "@/hooks/use-job-management";
-import { translateStatus, getStatusEmoji } from "@/lib/translations";
 
 interface RepoCardProps {
   repo: {
@@ -74,8 +73,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
       
       // Navigate to job detail page
       router.push(`/jobs/${jobId}`);
-    } catch (error) {
-      console.error("Failed to start test analysis:", error);
+    } catch (_error) {
     }
   };
 

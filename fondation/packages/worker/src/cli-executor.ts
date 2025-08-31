@@ -1,10 +1,10 @@
-import { exec, spawn } from "child_process";
-import { promisify } from "util";
-import { resolve, join } from "path";
-import { existsSync, readFileSync, readdirSync, statSync } from "fs";
+import { exec, spawn } from "node:child_process";
+import { promisify } from "node:util";
+import { resolve, join } from "node:path";
+import { existsSync, readFileSync, readdirSync, } from "node:fs";
 import * as yaml from "js-yaml";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
 
 // Local type definitions to avoid shared package dependency
 type CLIResult = {
@@ -24,7 +24,7 @@ type CLIResult = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const execAsync = promisify(exec);
+const _execAsync = promisify(exec);
 
 export class CLIExecutor {
   private cliPath: string;
@@ -42,7 +42,6 @@ export class CLIExecutor {
     const outputDir = join(repoPath, ".claude-tutorial-output");
     
     if (!existsSync(outputDir)) {
-      console.warn(`⚠️  Output directory not found: ${outputDir}`);
       return documents;
     }
 
@@ -67,9 +66,7 @@ export class CLIExecutor {
               kind: yamlFile.kind,
               chapterIndex: -1 // YAML files don't have chapter index
             });
-            console.log(`✅ Parsed ${yamlFile.path}`);
-          } catch (err) {
-            console.error(`❌ Failed to parse ${yamlFile.path}:`, err);
+          } catch (_err) {
           }
         }
       }
@@ -97,7 +94,6 @@ export class CLIExecutor {
             kind: "chapter",
             chapterIndex: i
           });
-          console.log(`✅ Parsed chapter: ${fileName}`);
         }
       }
 
@@ -123,7 +119,6 @@ export class CLIExecutor {
             kind: "chapter",
             chapterIndex: i
           });
-          console.log(`✅ Parsed reviewed chapter: ${fileName}`);
         }
       }
 
@@ -149,15 +144,11 @@ export class CLIExecutor {
             kind: "tutorial",
             chapterIndex: i
           });
-          console.log(`✅ Parsed tutorial: ${fileName}`);
         }
       }
-
-      console.log(`📚 Total documents parsed: ${documents.length}`);
       return documents;
 
-    } catch (error) {
-      console.error(`❌ Error parsing output files:`, error);
+    } catch (_error) {
       return documents;
     }
   }
@@ -170,8 +161,6 @@ export class CLIExecutor {
     }
   ): Promise<CLIResult> {
     return new Promise(async (resolve, reject) => {
-      console.log(`🚀 Executing Fondation CLI for: ${repoPath}`);
-      console.log(`📦 CLI Path: ${this.cliPath}`);
       
       try {
         // Check if we're already inside Docker container
@@ -185,7 +174,6 @@ export class CLIExecutor {
           // Use stdbuf to unbuffer output so we see progress messages immediately
           const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 node dist/cli.bundled.cjs analyze "${repoPath}" --profile production`;
           analyzeCommand = runCmd;
-          console.log('🎯 Running bundled CLI directly inside Docker container');
         } else {
           // External Docker runtime - use authenticated CLI image
           const image = process.env.FONDATION_WORKER_IMAGE ?? "fondation/cli:authenticated";
@@ -197,11 +185,7 @@ export class CLIExecutor {
             `-e CLAUDE_OUTPUT_DIR=/output ${image} sh -c '${runCmd}'`;
           
           analyzeCommand = dockerCmd;
-          console.log('🎯 Using external Docker runtime with authenticated CLI image');
         }
-        
-        console.log(`⚙️  Command: ${analyzeCommand}`);
-        console.log(`[DEBUG] Starting Docker process at ${new Date().toISOString()}`);
         
         // Track the 6-step analysis workflow
         const workflowSteps = [
@@ -212,10 +196,7 @@ export class CLIExecutor {
           "Reviewing chapters",
           "Creating tutorials"
         ];
-        let currentStepIndex = 0;
-        
-        // Use spawn instead of exec for better streaming and control
-        console.log(`[DEBUG] Using spawn to execute command`);
+        let _currentStepIndex = 0;
         const child = spawn('sh', ['-c', analyzeCommand], {
           env: {
             ...process.env,
@@ -228,7 +209,6 @@ export class CLIExecutor {
         
         // Set timeout manually since spawn doesn't have timeout option
         const timeout = setTimeout(() => {
-          console.error(`[DEBUG] Process timeout after 60 minutes`);
           child.kill('SIGTERM');
         }, 3600000);
         
@@ -238,8 +218,6 @@ export class CLIExecutor {
         child.stdout?.on("data", (data) => {
           const text = data.toString();
           stdout += text;
-          console.log(`[DEBUG] STDOUT received ${data.length} bytes`);
-          console.log(`[Fondation CLI] ${text.trim()}`);
           
           // Parse progress messages from CLI output
           const lines = text.split("\n");
@@ -254,9 +232,9 @@ export class CLIExecutor {
               // Step 1: Extract abstractions
               const stepMatch = trimmedLine.match(/^Step (\d+):/i);
               if (stepMatch) {
-                const stepNum = parseInt(stepMatch[1]) - 1;
+                const stepNum = Number.parseInt(stepMatch[1], 10) - 1;
                 if (stepNum >= 0 && stepNum < workflowSteps.length) {
-                  currentStepIndex = stepNum;
+                  _currentStepIndex = stepNum;
                   const progressMsg = `Step ${stepNum + 1}/6: ${workflowSteps[stepNum]}`;
                   options.onProgress?.(progressMsg).catch(console.error);
                 }
@@ -270,7 +248,7 @@ export class CLIExecutor {
               // Detect action words and map to workflow steps
               for (let i = 0; i < workflowSteps.length; i++) {
                 if (trimmedLine.toLowerCase().includes(workflowSteps[i].toLowerCase().split(" ")[0])) {
-                  currentStepIndex = i;
+                  _currentStepIndex = i;
                   const progressMsg = `Step ${i + 1}/6: ${workflowSteps[i]}`;
                   options.onProgress?.(progressMsg).catch(console.error);
                   break;
@@ -286,27 +264,21 @@ export class CLIExecutor {
         child.stderr?.on("data", (data) => {
           const text = data.toString();
           stderr += text;
-          console.log(`[DEBUG] STDERR received ${data.length} bytes`);
-          console.error(`⚠️  Fondation CLI stderr: ${text}`);
         });
         
         // Track if we've already resolved/rejected to avoid double handling
         let hasFinished = false;
         
         child.on("error", (error) => {
-          console.log(`[DEBUG] Process error event at ${new Date().toISOString()}`);
           if (!hasFinished) {
             hasFinished = true;
             clearTimeout(timeout);
-            console.error(`❌ CLI spawn error:`, error);
             reject(new Error(`Failed to spawn Fondation CLI: ${error.message}`));
           }
         });
         
         // Handle unexpected exits (Docker container dying, etc.)
         child.on("exit", (code, signal) => {
-          console.log(`[DEBUG] Process exit event at ${new Date().toISOString()}, code: ${code}, signal: ${signal}`);
-          console.log(`[DEBUG] Total stdout length: ${stdout.length}, stderr length: ${stderr.length}`);
           // Only handle error cases in exit, let close handle success
           if (!hasFinished && (code !== 0 || signal)) {
             hasFinished = true;
@@ -314,18 +286,15 @@ export class CLIExecutor {
             const errorMsg = signal 
               ? `Docker process killed with signal ${signal}. Last output: ${stderr || stdout || 'No output captured'}`
               : `Docker process exited with code ${code}. Error: ${stderr || 'No stderr'}\nOutput: ${stdout || 'No stdout'}`;
-            console.error(`❌ ${errorMsg}`);
             reject(new Error(errorMsg));
           }
         });
         
         child.on("close", async (code) => {
-          console.log(`[DEBUG] Process close event at ${new Date().toISOString()}, code: ${code}`);
           if (!hasFinished) {
             hasFinished = true;
             clearTimeout(timeout);
             if (code === 0) {
-              console.log(`✅ Fondation CLI execution successful`);
               
               // Parse the generated files from the output directory with timeout
               let documents: CLIResult['documents'] = [];
@@ -337,9 +306,7 @@ export class CLIExecutor {
                 });
                 
                 documents = await Promise.race([parsePromise, timeoutPromise]);
-                console.log(`✅ Successfully parsed ${documents?.length || 0} documents`);
-              } catch (parseError) {
-                console.error(`⚠️ Error parsing output files (non-fatal):`, parseError);
+              } catch (_parseError) {
                 // Continue with empty documents array - files were still generated
               }
               
@@ -355,14 +322,12 @@ export class CLIExecutor {
               });
             } else {
               const errorMsg = `Fondation CLI exited with code ${code}: ${stderr || stdout || 'No output captured'}`;
-              console.error(`❌ ${errorMsg}`);
               reject(new Error(errorMsg));
             }
           }
         });
         
       } catch (error) {
-        console.error(`❌ Failed to setup Fondation CLI execution:`, error);
         reject(error);
       }
     });

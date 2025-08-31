@@ -17,7 +17,7 @@ export function calculateRetryDelay(
   policy: RetryPolicy
 ): number {
   const exponentialDelay = Math.min(
-    policy.baseDelayMs * Math.pow(policy.backoffMultiplier, attempt - 1),
+    policy.baseDelayMs * policy.backoffMultiplier ** (attempt - 1),
     policy.maxDelayMs
   );
   

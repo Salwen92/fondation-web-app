@@ -16,7 +16,7 @@ interface JobStatusBadgeProps {
  * Shows appropriate icon and translated text based on status
  */
 export function JobStatusBadge({ status, progress }: JobStatusBadgeProps) {
-  if (!status) return null;
+  if (!status) { return null; }
   
   const isProcessing = ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(status);
   

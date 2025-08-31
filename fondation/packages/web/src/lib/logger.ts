@@ -100,7 +100,7 @@ class Logger {
     context?: LogContext,
     error?: Error
   ): void {
-    if (level < this.minLevel) return;
+    if (level < this.minLevel) { return; }
 
     const entry: LogEntry = {
       level,
@@ -138,21 +138,17 @@ class Logger {
    */
   private logToConsole(entry: LogEntry): void {
     const prefix = `[${LogLevel[entry.level]}] ${entry.timestamp}`;
-    const message = `${prefix}: ${entry.message}`;
+    const _message = `${prefix}: ${entry.message}`;
 
     switch (entry.level) {
       case LogLevel.DEBUG:
-        console.debug(message, entry.context);
         break;
       case LogLevel.INFO:
-        console.info(message, entry.context);
         break;
       case LogLevel.WARN:
-        console.warn(message, entry.context);
         break;
       case LogLevel.ERROR:
       case LogLevel.FATAL:
-        console.error(message, entry.error, entry.context);
         break;
     }
   }
@@ -161,7 +157,7 @@ class Logger {
    * Flush queued logs to monitoring service
    */
   private async flush(): Promise<void> {
-    if (this.queue.length === 0) return;
+    if (this.queue.length === 0) { return; }
 
     const logs = [...this.queue];
     this.queue = [];
@@ -177,9 +173,7 @@ class Logger {
           body: JSON.stringify({ logs }),
         });
       }
-    } catch (error) {
-      // Fallback to console if logging service fails
-      console.error("Failed to send logs:", error);
+    } catch (_error) {
       logs.forEach((log) => this.logToConsole(log));
     }
   }

@@ -6,7 +6,12 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc --project .",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit --project ."
+    "typecheck": "tsc --noEmit --project .",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint src/ --write --unsafe",
+    "format:check": "biome format src/ --check",
+    "format:write": "biome format src/ --write",
+    "check": "biome check src/ && tsc --noEmit"
   },
   "dependencies": {
     "convex": "^1.26.1",

@@ -75,7 +75,7 @@ export const uiTranslations = {
  * Translate job status to French
  */
 export function translateStatus(status: string | undefined): string {
-  if (!status) return uiTranslations.unknown;
+  if (!status) { return uiTranslations.unknown; }
   
   const normalizedStatus = status.toLowerCase() as keyof typeof jobStatusTranslations;
   return jobStatusTranslations[normalizedStatus] ?? status;
@@ -86,7 +86,7 @@ export function translateStatus(status: string | undefined): string {
  * Handles partial matches and keyword detection
  */
 export function translateProgress(progress: string | undefined): string {
-  if (!progress) return uiTranslations.processing;
+  if (!progress) { return uiTranslations.processing; }
   
   const lowerProgress = progress.toLowerCase();
   

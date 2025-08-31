@@ -1,4 +1,4 @@
-import { ConvexClient } from "convex/browser";
+import type { ConvexClient } from "convex/browser";
 import { validateConfig } from "./config.js";
 import { CLIExecutor } from "./cli-executor.js";
 import { RepoManager } from "./repo-manager.js";
@@ -93,23 +93,18 @@ export class PermanentWorker {
     // Start health server
     this.healthServer.listen(8080);
     
-    console.log("✅ Worker started and ready");
-    console.log("🔍 Polling for jobs...");
-    
     // Main polling loop
     while (this.isRunning) {
       try {
         await this.pollAndProcess();
         await this.sleep(this.config.pollInterval);
-      } catch (error) {
-        console.error("❌ Error in polling loop:", error);
+      } catch (_error) {
         await this.sleep(this.config.pollInterval * 2); // Backoff on error
       }
     }
   }
   
   async stop(): Promise<void> {
-    console.log("🛑 Stopping worker...");
     this.isRunning = false;
     
     // Wait for active jobs to complete (with timeout)
@@ -117,19 +112,15 @@ export class PermanentWorker {
     const start = Date.now();
     
     while (this.activeJobs.size > 0 && Date.now() - start < timeout) {
-      console.log(`⏳ Waiting for ${this.activeJobs.size} active jobs to complete...`);
       await this.sleep(1000);
     }
     
     if (this.activeJobs.size > 0) {
-      console.warn(`⚠️  ${this.activeJobs.size} jobs still active after timeout`);
     }
     
     // Cleanup
     await this.repoManager.cleanupAll();
     this.healthServer.stop();
-    
-    console.log("✅ Worker stopped");
   }
   
   private async pollAndProcess(): Promise<void> {
@@ -156,8 +147,6 @@ export class PermanentWorker {
           status: "claimed" as JobStatus,
           maxAttempts: 3,
         };
-        
-        console.log(`📝 Claimed job: ${job.id}`);
         this.lastJobTime = Date.now();
         this.activeJobs.add(job.id);
         
@@ -167,8 +156,7 @@ export class PermanentWorker {
             this.activeJobs.delete(job.id);
           });
       }
-    } catch (error) {
-      console.error("❌ Error claiming job:", error);
+    } catch (_error) {
     }
   }
   
@@ -184,8 +172,6 @@ export class PermanentWorker {
       if (!repository) {
         throw new Error(`Repository ${job.repositoryId} not found`);
       }
-      
-      console.log(`🔧 Processing job ${job.id} for repository: ${repository.fullName}`);
       
       // Start heartbeat to maintain lease
       const heartbeatInterval = this.startHeartbeat(job.id);
@@ -222,8 +208,6 @@ export class PermanentWorker {
         
         this.stats.succeeded++;
         this.stats.totalTime += duration;
-        
-        console.log(`✅ Job ${job.id} completed in ${Math.round(duration / 1000)}s`);
       } finally {
         // Stop heartbeat
         clearInterval(heartbeatInterval);
@@ -232,7 +216,6 @@ export class PermanentWorker {
         await this.repoManager.cleanup(job.id);
       }
     } catch (error) {
-      console.error(`❌ Job ${job.id} failed:`, error);
       await this.failJob(job.id, error instanceof Error ? error.message : String(error));
       this.stats.failed++;
     } finally {
@@ -248,9 +231,7 @@ export class PermanentWorker {
           workerId: this.config.workerId,
           leaseMs: this.config.leaseTime,
         });
-        console.log(`💓 Heartbeat for job ${jobId}`);
-      } catch (error) {
-        console.error(`❌ Heartbeat failed for job ${jobId}:`, error);
+      } catch (_error) {
       }
     }, this.config.heartbeatInterval);
   }
@@ -266,19 +247,16 @@ export class PermanentWorker {
       status: status as "cloning" | "analyzing" | "gathering" | "running",
       progress,
     });
-    console.log(`📊 Job ${jobId}: ${status} - ${progress || ""}`);
   }
   
   private async updateJobProgress(jobId: string, progress: string): Promise<void> {
     // Extract step number from progress messages like "Step 1/6: Extracting abstractions"
     const stepMatch = progress.match(/Step (\d+)\/(\d+):/);
-    let currentStep = undefined;
+    let currentStep ;
     
     if (stepMatch) {
-      currentStep = parseInt(stepMatch[1]);
-      console.log(`📈 Job ${jobId}: ${progress} (Step ${currentStep})`);
+      currentStep = Number.parseInt(stepMatch[1], 10);
     } else {
-      console.log(`📈 Job ${jobId}: ${progress}`);
     }
     
     try {
@@ -288,8 +266,7 @@ export class PermanentWorker {
         progress,
         currentStep,
       });
-    } catch (error) {
-      console.error(`⚠️ Failed to update progress for job ${jobId}:`, error);
+    } catch (_error) {
     }
   }
   
@@ -303,19 +280,12 @@ export class PermanentWorker {
       data: result.documents?.length ? `${result.documents.length} documents` : undefined,
     };
     
-    console.log(`✅ Completing job ${jobId} with:`, { 
-      success: simpleResult.success,
-      message: simpleResult.message,
-      docsCount: result.documents?.length || 0 
-    });
-    
     await this.convex.mutation(api.queue.complete, {
       jobId: jobId as Id<"jobs">,
       workerId: this.config.workerId,
       result: simpleResult,
       docsCount: result.documents?.length || 0,
     });
-    console.log(`✅ Job ${jobId} completed successfully`);
   }
   
   private async failJob(jobId: string, error: string): Promise<void> {
@@ -324,21 +294,14 @@ export class PermanentWorker {
       workerId: this.config.workerId,
       error,
     });
-    console.log(`❌ Job ${jobId} failed: ${error}`);
   }
   
   private async saveResults(job: Job, result: any): Promise<void> {
-    console.log(`💾 Saving results for job ${job.id}`);
     
     // Check if we have documents to save
     if (!result.documents || result.documents.length === 0) {
-      console.warn(`⚠️  No documents to save for job ${job.id}`);
       return;
     }
-    
-    console.log(`📄 Saving ${result.documents.length} documents to Convex...`);
-    
-    try {
       // Call the Convex mutation to upsert documents
       await this.convex.mutation(api.docs.upsertFromJob, {
         jobId: job.id as Id<"jobs">,
@@ -357,12 +320,6 @@ export class PermanentWorker {
           generatedAt: Date.now(),
         },
       });
-      
-      console.log(`✅ Successfully saved ${result.documents.length} documents`);
-    } catch (error) {
-      console.error(`❌ Failed to save documents:`, error);
-      throw error; // Re-throw to mark job as failed
-    }
   }
   
   private sleep(ms: number): Promise<void> {

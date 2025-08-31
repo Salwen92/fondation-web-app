@@ -1,4 +1,4 @@
-import { createServer, IncomingMessage, ServerResponse } from "http";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 // Local type until workspace resolution is fixed
 type HealthCheck = {
   status: "healthy" | "degraded" | "unhealthy";
@@ -26,7 +26,7 @@ type HealthCheck = {
     freeMemory: number;
   };
 };
-import os from "os";
+import os from "node:os";
 
 interface WorkerInterface {
   isHealthy: boolean;
@@ -56,9 +56,6 @@ export class HealthServer {
     });
     
     this.server.listen(port, () => {
-      console.log(`🏥 Health server listening on port ${port}`);
-      console.log(`   GET /health - Health check`);
-      console.log(`   GET /metrics - Worker metrics`);
     });
   }
   
@@ -66,7 +63,6 @@ export class HealthServer {
     if (this.server) {
       this.server.close();
       this.server = null;
-      console.log("🏥 Health server stopped");
     }
   }
   

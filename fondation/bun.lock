@@ -8,6 +8,7 @@
         "isomorphic-dompurify": "^2.26.0",
       },
       "devDependencies": {
+        "@biomejs/biome": "^2.2.2",
         "@types/node": "^20.14.10",
         "concurrently": "^9.2.1",
         "convex": "^1.26.2",

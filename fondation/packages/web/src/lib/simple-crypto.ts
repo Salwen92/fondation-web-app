@@ -12,7 +12,7 @@ import { logger } from "./logger";
  * Production should implement proper AES-256 encryption
  */
 export function obfuscateToken(token: string): string {
-  if (!token) return token;
+  if (!token) { return token; }
   
   // Simple base64 encoding with a prefix to indicate it's obfuscated
   const obfuscated = Buffer.from(token, 'utf-8').toString('base64');
@@ -24,7 +24,7 @@ export function obfuscateToken(token: string): string {
  * Reverse of the obfuscation process
  */
 export function deobfuscateToken(obfuscatedToken: string): string {
-  if (!obfuscatedToken) return obfuscatedToken;
+  if (!obfuscatedToken) { return obfuscatedToken; }
   
   if (obfuscatedToken.startsWith('obf_')) {
     try {
@@ -51,7 +51,7 @@ export function isObfuscated(token: string): boolean {
  * Safe obfuscation - only obfuscate if not already obfuscated
  */
 export function safeObfuscate(token: string): string {
-  if (!token) return token;
+  if (!token) { return token; }
   
   if (isObfuscated(token)) {
     return token; // Already obfuscated
@@ -64,7 +64,7 @@ export function safeObfuscate(token: string): string {
  * Safe deobfuscation - handles both obfuscated and plain tokens
  */
 export function safeDeobfuscate(token: string): string {
-  if (!token) return token;
+  if (!token) { return token; }
   
   if (isObfuscated(token)) {
     return deobfuscateToken(token);

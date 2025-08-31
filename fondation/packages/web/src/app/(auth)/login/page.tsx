@@ -1,4 +1,4 @@
-import { type Metadata } from "next";
+import type { Metadata } from "next";
 import { LoginCard } from "@/components/auth/login-card";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";

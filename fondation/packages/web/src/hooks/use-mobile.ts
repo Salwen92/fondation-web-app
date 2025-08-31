@@ -60,7 +60,7 @@ export function useSwipe(
   };
 
   const onTouchEnd = () => {
-    if (touchStart === null || touchEnd === null) return;
+    if (touchStart === null || touchEnd === null) { return; }
     
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;

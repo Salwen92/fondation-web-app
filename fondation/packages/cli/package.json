@@ -10,7 +10,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint src/",
-    "lint:fix": "biome lint --write --unsafe src/",
+    "lint:fix": "biome lint src/ --write --unsafe",
     "format": "biome format --write src/",
     "format:check": "biome check src/",
     "check": "biome check --write src/",

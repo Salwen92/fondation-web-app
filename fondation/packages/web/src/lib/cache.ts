@@ -155,7 +155,7 @@ export function useCachedQuery<T>(
   });
 
   const refetch = React.useCallback(async () => {
-    if (options?.enabled === false) return;
+    if (options?.enabled === false) { return; }
 
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 

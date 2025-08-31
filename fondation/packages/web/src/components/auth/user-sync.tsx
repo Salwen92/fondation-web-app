@@ -13,7 +13,7 @@ export function UserSync() {
 
   useEffect(() => {
     const syncUser = async () => {
-      if (session?.user && session.user.githubId) {
+      if (session?.user?.githubId) {
         try {
           await createOrUpdateUser({
             githubId: session.user.githubId,

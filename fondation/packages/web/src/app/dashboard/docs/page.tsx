@@ -2,7 +2,7 @@
 
 import { useQuery } from 'convex/react';
 import { api } from '@convex/generated/api';
-import { type Id } from '@convex/generated/dataModel';
+import type { Id } from '@convex/generated/dataModel';
 import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -92,7 +92,7 @@ export default function DocsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {completedJobs.map((job, index) => {
           const repo = repoMap.get(job.repositoryId);
-          if (!repo) return null;
+          if (!repo) { return null; }
           
           return (
             <motion.div

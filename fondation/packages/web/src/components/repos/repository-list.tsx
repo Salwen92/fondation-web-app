@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { type Id } from "@convex/generated/dataModel";
+import type { Id } from "@convex/generated/dataModel";
 import { logger } from "@/lib/logger";
 import { withRetry } from "@/lib/retry";
 import { getUserFriendlyError } from "@/lib/error-messages";

@@ -27,7 +27,7 @@ export async function GET(
     
     // Get the latest completed job for this repository
     const latestJob = await convexClient.query(api.jobs.getLatestCompletedByRepository, {
-      repositoryId: repositories[0]!._id
+      repositoryId: repositories[0]?._id
     });
     
     if (!latestJob) {

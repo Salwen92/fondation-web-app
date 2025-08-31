@@ -101,7 +101,7 @@ export function OnboardingModal({ isOpen, onClose, userName }: OnboardingModalPr
               <div className="p-3 rounded-lg bg-primary/10">
                 {(() => {
                   const step = ONBOARDING_STEPS[currentStep];
-                  if (!step) return null;
+                  if (!step) { return null; }
                   const Icon = step.icon;
                   return <Icon className="h-6 w-6 text-primary" />;
                 })()}

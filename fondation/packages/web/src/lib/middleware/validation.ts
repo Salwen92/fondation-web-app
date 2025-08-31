@@ -4,8 +4,8 @@
  */
 
 import { type NextRequest, NextResponse } from "next/server";
-import { type z } from "zod";
-import { validateRequest, formatValidationError } from "@/lib/api-validation";
+import type { z } from "zod";
+import { formatValidationError } from "@/lib/api-validation";
 import { logger } from "@/lib/logger";
 
 /**

@@ -19,4 +19,4 @@ export type DocumentId = string;
 // Job and progress types (should already be in types.ts)
 import type { CLIResult, ProgressUpdate } from './types.js';
 
-export { CLIResult, ProgressUpdate };
+export type { CLIResult, ProgressUpdate };

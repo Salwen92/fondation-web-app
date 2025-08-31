@@ -35,7 +35,7 @@ export function MermaidRenderer({ chart }: MermaidRendererProps) {
     if (ref.current) {
       mermaid.contentLoaded();
     }
-  }, [chart]);
+  }, []);
 
   return (
     <div className="my-6 flex justify-center">

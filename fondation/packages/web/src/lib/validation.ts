@@ -159,9 +159,9 @@ export function validateNumber(
   }
 ): ValidationResult {
   const errors: string[] = [];
-  const num = typeof value === "string" ? parseFloat(value) : value;
+  const num = typeof value === "string" ? Number.parseFloat(value) : value;
 
-  if (isNaN(num)) {
+  if (Number.isNaN(num)) {
     errors.push("Valeur numérique invalide");
   } else {
     if (options?.integer && !Number.isInteger(num)) {

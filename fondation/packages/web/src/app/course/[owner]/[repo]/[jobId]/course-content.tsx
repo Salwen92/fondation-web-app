@@ -98,7 +98,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
 
   // Handle regenerate
   const handleRegenerate = async () => {
-    if (!repository) return;
+    if (!repository) { return; }
     
     setIsRegenerating(true);
     try {
