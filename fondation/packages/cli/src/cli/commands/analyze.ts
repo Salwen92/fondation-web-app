@@ -337,15 +337,29 @@ async function runPromptStep(
   // Find the Claude Code executable path
   // In Docker/bundled environments, force the known path
   let claudeCodePath: string | undefined;
-  if (existsSync('/app/node_modules/@anthropic-ai/claude-code/cli.js')) {
-    // Docker environment - use explicit path
-    claudeCodePath = '/app/node_modules/@anthropic-ai/claude-code/cli.js';
-  } else {
+  
+  // Check multiple possible locations for the Claude CLI
+  const possiblePaths = [
+    '/app/cli/node_modules/@anthropic-ai/claude-code/cli.js',  // Bun Docker environment
+    '/app/node_modules/@anthropic-ai/claude-code/cli.js',      // Legacy Docker environment
+    './node_modules/@anthropic-ai/claude-code/cli.js',         // Relative path
+  ];
+  
+  for (const path of possiblePaths) {
+    if (existsSync(path)) {
+      claudeCodePath = path;
+      logger.debug('Found Claude Code executable', { path });
+      break;
+    }
+  }
+  
+  if (!claudeCodePath) {
     // Development environment - try to resolve
     try {
       claudeCodePath = require.resolve('@anthropic-ai/claude-code/cli.js');
     } catch {
       // Let the SDK use its default path resolution
+      logger.debug('Claude Code executable path not found, using SDK default resolution');
     }
   }
 
