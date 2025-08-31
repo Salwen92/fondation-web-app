@@ -4,10 +4,10 @@
   "description": "CLI tool to run prompts using Claude Code SDK",
   "main": "dist/index.js",
   "bin": {
-    "fondation": "./dist/cli.bundled.cjs"
+    "fondation": "./dist/cli.bundled.mjs"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/bundle-cli-bun.js --production",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint src/",
     "lint:fix": "biome lint src/ --write --unsafe",
@@ -19,10 +19,8 @@
     "cli": "bun run src/cli.ts",
     "cli:dev": "bun --watch src/cli.ts",
     "cli:dist": "node dist/cli.js",
-    "build:cli": "node scripts/bundle-cli.js --production",
-    "build:cli:dev": "node scripts/bundle-cli.js",
-    "build:cli:simple": "bun run build && cp -r prompts dist/",
-    "prebuild:cli": "bun run build",
+    "build:dev": "tsc && node scripts/bundle-cli-bun.js",
+    "build:bundle-only": "node scripts/bundle-cli-bun.js --production",
     "generate-chapters": "bun run src/generate-chapters.ts",
     "review-chapters": "bun run src/review-chapters.ts",
     "generate-tutorials": "bun run src/generate-tutorials.ts",

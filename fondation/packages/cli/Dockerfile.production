@@ -54,7 +54,10 @@ COPY --from=builder /build/packages/cli/dist/prompts ./dist/prompts/
 COPY --from=builder /build/packages/cli/package.json ./
 
 # Install ONLY Claude SDK as external dependency
-RUN bun add @anthropic-ai/claude-code@latest
+RUN bun add @anthropic-ai/claude-code@latest && \
+    # Create symlink for the CLI to find the SDK at the expected location
+    mkdir -p /app/node_modules && \
+    ln -s /app/cli/node_modules/@anthropic-ai /app/node_modules/@anthropic-ai
 
 # Create workspace and output directories
 RUN mkdir -p /workspace /output

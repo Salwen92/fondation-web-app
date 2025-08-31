@@ -42,7 +42,6 @@ export const analyzeCommand = new Command('analyze')
     5,
   )
   .option('-s, --steps <steps>', 'run specific steps only (comma-separated)')
-  .option('--dry-run', 'show what would be done without doing it')
   .addHelpText(
     'after',
     `
@@ -58,7 +57,7 @@ Examples:
   $ fondation analyze ./src
   $ fondation analyze ./src --profile production
   $ fondation analyze ./src --output-dir ./analysis --verbose
-  $ fondation analyze ./src --steps extract,analyze --dry-run
+  $ fondation analyze ./src --steps extract,analyze
   
 Use "fondation --help" for more information about global options.`,
   )
@@ -90,16 +89,11 @@ Use "fondation --help" for more information about global options.`,
       output: outputDir,
       steps: steps.join(', '),
       model: options.model || config.model,
-      dryRun: options.dryRun || false,
     });
-
-    if (options.dryRun) {
-      logger.info('DRY RUN MODE - No files will be created or modified');
-    }
 
     try {
       // Ensure output directory exists
-      if (!options.dryRun && !existsSync(outputDir)) {
+      if (!existsSync(outputDir)) {
         await mkdir(outputDir, { recursive: true });
         logger.debug('Created output directory', { path: outputDir });
       }
@@ -129,18 +123,16 @@ Use "fondation --help" for more information about global options.`,
       if (steps.includes('extract')) {
         showProgress('Extract', 'Extracting core abstractions from codebase');
 
-        if (!options.dryRun) {
-          await runPromptStep(
-            'prompts/1-abstractions.md',
-            projectDir,
-            { OUTPUT_PATH: abstractionsOutput },
-            options.model || config.model,
-            logger,
-          );
+        await runPromptStep(
+          'prompts/1-abstractions.md',
+          projectDir,
+          { OUTPUT_PATH: abstractionsOutput },
+          options.model || config.model,
+          logger,
+        );
 
-          if (!existsSync(abstractionsOutput)) {
-            throw new Error('Failed to create abstractions file');
-          }
+        if (!existsSync(abstractionsOutput)) {
+          throw new Error('Failed to create abstractions file');
         }
       }
 
@@ -148,21 +140,19 @@ Use "fondation --help" for more information about global options.`,
       if (steps.includes('analyze')) {
         showProgress('Analyze', 'Analyzing relationships between components');
 
-        if (!options.dryRun) {
-          await runPromptStep(
-            'prompts/2-analyze-relationshipt.md',
-            projectDir,
-            {
-              OUTPUT_PATH: relationshipsOutput,
-              ABSTRACTIONS_PATH: abstractionsOutput,
-            },
-            options.model || config.model,
-            logger,
-          );
+        await runPromptStep(
+          'prompts/2-analyze-relationshipt.md',
+          projectDir,
+          {
+            OUTPUT_PATH: relationshipsOutput,
+            ABSTRACTIONS_PATH: abstractionsOutput,
+          },
+          options.model || config.model,
+          logger,
+        );
 
-          if (!existsSync(relationshipsOutput)) {
-            throw new Error('Failed to create relationships file');
-          }
+        if (!existsSync(relationshipsOutput)) {
+          throw new Error('Failed to create relationships file');
         }
       }
 
@@ -170,22 +160,20 @@ Use "fondation --help" for more information about global options.`,
       if (steps.includes('order')) {
         showProgress('Order', 'Determining optimal chapter order');
 
-        if (!options.dryRun) {
-          await runPromptStep(
-            'prompts/3-order-chapters.md',
-            projectDir,
-            {
-              OUTPUT_PATH: chapterOrderOutput,
-              ABSTRACTIONS_PATH: abstractionsOutput,
-              RELATIONSHIPS_PATH: relationshipsOutput,
-            },
-            options.model || config.model,
-            logger,
-          );
+        await runPromptStep(
+          'prompts/3-order-chapters.md',
+          projectDir,
+          {
+            OUTPUT_PATH: chapterOrderOutput,
+            ABSTRACTIONS_PATH: abstractionsOutput,
+            RELATIONSHIPS_PATH: relationshipsOutput,
+          },
+          options.model || config.model,
+          logger,
+        );
 
-          if (!existsSync(chapterOrderOutput)) {
-            throw new Error('Failed to create chapter order file');
-          }
+        if (!existsSync(chapterOrderOutput)) {
+          throw new Error('Failed to create chapter order file');
         }
       }
 
@@ -193,78 +181,82 @@ Use "fondation --help" for more information about global options.`,
       if (steps.includes('generate-chapters')) {
         showProgress('Generate', 'Generating chapter content');
 
-        if (!options.dryRun) {
-          const promptTemplatePath = resolvePromptPath('prompts/4-write-chapters.md');
+        const promptTemplatePath = resolvePromptPath('prompts/4-write-chapters.md');
 
-          await generateChaptersFromYaml(
-            abstractionsOutput,
-            relationshipsOutput,
-            chapterOrderOutput,
-            chaptersDir,
-            promptTemplatePath,
-            projectDir,
-            options.overwrite || false,
-          );
-        }
+        await generateChaptersFromYaml(
+          abstractionsOutput,
+          relationshipsOutput,
+          chapterOrderOutput,
+          chaptersDir,
+          promptTemplatePath,
+          projectDir,
+          options.overwrite || false,
+        );
       }
 
       // Step 5: Review chapters
       if (steps.includes('review-chapters')) {
         showProgress('Review', 'Reviewing and enhancing chapters');
 
-        if (!options.dryRun) {
-          const reviewPromptPath = resolvePromptPath('prompts/5-review-chapters.md');
+        const reviewPromptPath = resolvePromptPath('prompts/5-review-chapters.md');
 
-          await reviewChaptersFromDirectory(
-            chaptersDir,
-            abstractionsOutput,
-            chapterOrderOutput,
-            reviewedChaptersDir,
-            reviewPromptPath,
-            projectDir,
-            options.overwrite || false,
-          );
-        }
+        await reviewChaptersFromDirectory(
+          chaptersDir,
+          abstractionsOutput,
+          chapterOrderOutput,
+          reviewedChaptersDir,
+          reviewPromptPath,
+          projectDir,
+          options.overwrite || false,
+        );
       }
 
       // Step 6: Generate tutorials
       if (steps.includes('generate-tutorials')) {
         showProgress('Tutorials', 'Generating interactive tutorials');
 
-        if (!options.dryRun) {
-          const tutorialPromptPath = resolvePromptPath('prompts/6-tutorials.md');
+        const tutorialPromptPath = resolvePromptPath('prompts/6-tutorials.md');
 
-          await generateTutorialsFromDirectory(
-            reviewedChaptersDir,
-            abstractionsOutput,
-            chapterOrderOutput,
-            tutorialsDir,
-            tutorialPromptPath,
-            projectDir,
-            options.overwrite || false,
-          );
-        }
+        await generateTutorialsFromDirectory(
+          reviewedChaptersDir,
+          abstractionsOutput,
+          chapterOrderOutput,
+          tutorialsDir,
+          tutorialPromptPath,
+          projectDir,
+          options.overwrite || false,
+        );
       }
 
       // Summary
       const duration = timer.elapsed();
       logger.info('Analysis complete!', { duration: `${duration}ms` });
 
-      if (!options.dryRun) {
-        logger.info('Output summary:');
-        logger.info(`  Core abstractions: ${abstractionsOutput}`);
-        logger.info(`  Relationships: ${relationshipsOutput}`);
-        logger.info(`  Chapter order: ${chapterOrderOutput}`);
-        logger.info(`  Generated chapters: ${chaptersDir}/`);
-        logger.info(`  Reviewed chapters: ${reviewedChaptersDir}/`);
-        logger.info(`  Interactive tutorials: ${tutorialsDir}/`);
-      }
+      logger.info('Output summary:');
+      logger.info(`  Core abstractions: ${abstractionsOutput}`);
+      logger.info(`  Relationships: ${relationshipsOutput}`);
+      logger.info(`  Chapter order: ${chapterOrderOutput}`);
+      logger.info(`  Generated chapters: ${chaptersDir}/`);
+      logger.info(`  Reviewed chapters: ${reviewedChaptersDir}/`);
+      logger.info(`  Interactive tutorials: ${tutorialsDir}/`);
     } catch (error) {
+      // Log error with multiple approaches to ensure it's visible
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
       logger.error('Analysis failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
+        error: errorMessage,
+        stack: errorStack,
         fullError: JSON.stringify(error, null, 2),
       });
+      
+      // Also log to console directly to ensure visibility
+      console.error('ANALYSIS ERROR:', errorMessage);
+      if (errorStack) {
+        console.error('STACK TRACE:', errorStack);
+      }
+      console.error('FULL ERROR OBJECT:', error);
+      
       logger.debug('Full error details', { error });
       process.exit(1);
     }
