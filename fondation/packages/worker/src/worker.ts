@@ -1,5 +1,5 @@
 import type { ConvexClient } from "convex/browser";
-import { validateConfig } from "./config.js";
+// validateConfig is now passed from main
 import { CLIExecutor } from "./cli-executor.js";
 import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
@@ -80,7 +80,7 @@ export class PermanentWorker {
   }
   
   constructor(public config: WorkerConfig, convexClient: ConvexClient) {
-    validateConfig();
+    // validateConfig is now called in main before creating worker
     this.convex = convexClient;
     this.cliExecutor = new CLIExecutor(); // No arguments needed - uses integrated CLI
     this.repoManager = new RepoManager(config.tempDir);
@@ -91,7 +91,7 @@ export class PermanentWorker {
     this.isRunning = true;
     
     // Start health server
-    this.healthServer.listen(8080);
+    this.healthServer.listen(8081); // Use different port to avoid conflicts
     
     // Main polling loop
     while (this.isRunning) {

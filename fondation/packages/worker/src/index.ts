@@ -4,7 +4,26 @@
  * Polls Convex for pending jobs and executes Fondation CLI
  */
 
-// Environment variables loaded from root .env.local by npm scripts
+// Load environment variables from root .env.local
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+// Load .env.local from monorepo root
+try {
+  const envPath = join(import.meta.dirname, '../../../.env.local');
+  console.log('Loading env from:', envPath);
+  const envFile = readFileSync(envPath, 'utf8');
+  console.log('Env file contents:', envFile);
+  for (const line of envFile.split('\n')) {
+    const [key, value] = line.split('=');
+    if (key && value && !process.env[key]) {
+      process.env[key] = value;
+      console.log(`Set ${key}=${value}`);
+    }
+  }
+} catch (error) {
+  console.warn('Could not load .env.local:', error);
+}
 
 // Local types until workspace resolution is fixed
 type WorkerConfig = {
@@ -24,14 +43,21 @@ type JobStatus =
   | "failed" | "canceled" | "dead";
 import { ConvexClient } from "convex/browser";
 import { PermanentWorker } from "./worker.js";
-import { config } from "./config.js";
 
 async function main() {
+  console.log("Main function called");
   
+  // Import config functions after env vars are loaded
+  const { createConfig, validateConfig } = await import("./config.js");
+  const config = createConfig();
+  console.log("Config:", config);
+  validateConfig(config);
   
   // Create Convex client
+  console.log("Creating Convex client with URL:", config.convexUrl);
   const convexClient = new ConvexClient(config.convexUrl);
   
+  console.log("Creating worker...");
   const worker = new PermanentWorker(config, convexClient);
   
   // Graceful shutdown handlers
@@ -46,18 +72,22 @@ async function main() {
   });
   
   // Handle uncaught errors
-  process.on("uncaughtException", (_error) => {
+  process.on("uncaughtException", (error) => {
+    console.error("Uncaught Exception:", error);
     process.exit(1);
   });
   
-  process.on("unhandledRejection", (_reason, _promise) => {
+  process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
     process.exit(1);
   });
   
   // Start the worker
   try {
+    console.log("Starting worker...");
     await worker.start();
-  } catch (_error) {
+  } catch (error) {
+    console.error("Worker failed to start:", error);
     process.exit(1);
   }
 }

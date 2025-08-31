@@ -31,7 +31,7 @@ export class CLIExecutor {
   
   constructor() {
     // Path to our bundled Fondation CLI - use environment variable if available (Docker), otherwise local path
-    this.cliPath = process.env.CLI_PATH || resolve(__dirname, "../../cli/dist/cli.bundled.cjs");
+    this.cliPath = process.env.CLI_PATH || resolve(__dirname, "../../cli/dist/cli.bundled.mjs");
   }
 
   /**
@@ -172,13 +172,13 @@ export class CLIExecutor {
         if (isInsideDocker) {
           // We're already inside Docker - run bundled CLI directly
           // Use stdbuf to unbuffer output so we see progress messages immediately
-          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 node dist/cli.bundled.cjs analyze "${repoPath}" --profile production`;
+          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 node dist/cli.bundled.mjs analyze "${repoPath}" --profile production`;
           analyzeCommand = runCmd;
         } else {
           // External Docker runtime - use authenticated CLI image
           const image = process.env.FONDATION_WORKER_IMAGE ?? "fondation/cli:authenticated";
           const repoMount = repoPath;
-          const runCmd = `cd /app/cli && node dist/cli.bundled.cjs analyze /tmp/repo --profile production`;
+          const runCmd = `cd /app/cli && node dist/cli.bundled.mjs analyze /tmp/repo --profile production`;
           
           const dockerCmd =
             `docker run --rm -v "${repoMount}:/tmp/repo" -v "${repoMount}/.claude-tutorial-output:/output" ` +
@@ -224,7 +224,34 @@ export class CLIExecutor {
           for (const line of lines) {
             const trimmedLine = line.trim();
             
-            // Detect various progress patterns
+            // Try to parse JSON logs from Docker container
+            if (trimmedLine.startsWith("{") && trimmedLine.includes('"msg"')) {
+              try {
+                const logData = JSON.parse(trimmedLine);
+                const msg = logData.msg || "";
+                
+                // Map Docker log messages to progress steps
+                if (msg.includes("Starting codebase analysis")) {
+                  options.onProgress?.("Step 0/6: Initializing analysis").catch(console.error);
+                } else if (msg.includes("Extracting core abstractions")) {
+                  options.onProgress?.("Step 1/6: Extracting abstractions").catch(console.error);
+                } else if (msg.includes("Analyzing relationships")) {
+                  options.onProgress?.("Step 2/6: Analyzing relationships").catch(console.error);
+                } else if (msg.includes("Determining optimal chapter order")) {
+                  options.onProgress?.("Step 3/6: Ordering chapters").catch(console.error);
+                } else if (msg.includes("Generating chapter content")) {
+                  options.onProgress?.("Step 4/6: Generating content").catch(console.error);
+                } else if (msg.includes("Reviewing and enhancing")) {
+                  options.onProgress?.("Step 5/6: Reviewing content").catch(console.error);
+                } else if (msg.includes("Analysis complete")) {
+                  options.onProgress?.("Step 6/6: Completing analysis").catch(console.error);
+                }
+              } catch (_err) {
+                // Not JSON, fall through to other patterns
+              }
+            }
+            
+            // Detect various progress patterns (fallback for non-JSON)
             if (trimmedLine.includes("[PROGRESS]")) {
               const progress = trimmedLine.replace("[PROGRESS]", "").trim();
               options.onProgress?.(progress).catch(console.error);
