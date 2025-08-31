@@ -1,24 +1,60 @@
-FROM node:20-alpine
+# Multi-stage build for Fondation CLI
+# IMPORTANT: We use official Bun images instead of node:alpine because:
+# 1. Bun doesn't have official Alpine ARM64 binaries (breaks on Apple Silicon)
+# 2. The oven/bun images handle all platform compatibility issues
+# 3. Use `bunx` or `bun x` instead of `npx` for running commands
+# See docs/DOCKER_BUILD_GUIDE.md for detailed information
 
-# Install bash (required for Claude SDK) and other utilities
-RUN apk add --no-cache bash git curl
+# Stage 1: Build with official Bun image
+FROM oven/bun:1.2.5 AS builder
+
+WORKDIR /build
+
+# Copy package files for all workspace packages
+COPY package.json bun.lock ./
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/cli/package.json ./packages/cli/
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY packages/shared ./packages/shared
+COPY packages/cli ./packages/cli
+COPY tsconfig.json ./
+COPY biome.json ./
+
+# Build shared package first (dependency)
+WORKDIR /build/packages/shared
+RUN bun run build
+
+# Build CLI package
+WORKDIR /build/packages/cli
+RUN bun run build
+
+# Bundle the CLI
+RUN bun build dist/cli.js --outfile dist/cli.bundled.cjs --target=node --format=cjs --external @anthropic-ai/claude-code
+
+# Copy prompts to dist
+RUN cp -r prompts dist/prompts
+
+# Stage 2: Runtime with slim Bun image
+FROM oven/bun:1.2.5-slim
+
+# Install bash and curl for Claude SDK and git for repository access
+RUN apt-get update && \
+    apt-get install -y bash curl git && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app/cli
 
-# Copy bundled CLI and prompts
-COPY dist/cli.bundled.cjs ./dist/
-COPY dist/prompts ./dist/prompts/
-COPY package.json ./
+# Copy bundled CLI and prompts from builder
+COPY --from=builder /build/packages/cli/dist/cli.bundled.cjs ./dist/
+COPY --from=builder /build/packages/cli/dist/prompts ./dist/prompts/
+COPY --from=builder /build/packages/cli/package.json ./
 
 # Install ONLY Claude SDK as external dependency
-# Install in both locations to handle different path resolutions
-RUN npm init -y --quiet && \
-    npm install --no-save @anthropic-ai/claude-code@latest && \
-    rm -f package-lock.json && \
-    mkdir -p /app/node_modules && \
-    ln -s /app/cli/node_modules/@anthropic-ai /app/node_modules/@anthropic-ai && \
-    mkdir -p node_modules/@anthropic-ai/entrypoints && \
-    ln -s ../claude-code/cli.js node_modules/@anthropic-ai/entrypoints/cli.js
+RUN bun add @anthropic-ai/claude-code@latest
 
 # Create workspace and output directories
 RUN mkdir -p /workspace /output
@@ -29,6 +65,6 @@ ENV NODE_ENV=production \
     HOME=/root
 
 # Verify CLI works
-RUN node dist/cli.bundled.cjs --version
+RUN bun run dist/cli.bundled.cjs --version
 
 CMD ["/bin/bash"]

@@ -103,7 +103,10 @@ docker ps | grep fondation-auth
 
 ```bash
 # Run interactive authentication
-docker exec -it fondation-auth npx claude auth
+# IMPORTANT: Use bunx instead of npx with Bun-based images
+docker exec -it fondation-auth bunx claude auth
+# OR
+docker exec -it fondation-auth bun x claude auth
 
 # Follow prompts:
 # 1. URL shown: https://claude.ai/authorize?...
