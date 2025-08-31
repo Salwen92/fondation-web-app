@@ -64,8 +64,8 @@ async function buildCLI() {
     }
     
     // Check bundle was created and get size
-    if (existsSync('dist/cli.bundled.cjs')) {
-      const stats = readFileSync('dist/cli.bundled.cjs');
+    if (existsSync('dist/cli.bundled.mjs')) {
+      const stats = readFileSync('dist/cli.bundled.mjs');
       const sizeKB = (stats.length / 1024).toFixed(2);
       const sizeMB = (stats.length / 1024 / 1024).toFixed(2);
       console.log(`📦 Bundle created: ${sizeKB}KB (${sizeMB}MB)`);
