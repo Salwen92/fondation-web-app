@@ -14,12 +14,12 @@
     "check": "biome check src/ && tsc --noEmit"
   },
   "dependencies": {
-    "convex": "^1.26.1",
+    "convex": "^1.26.2",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.14.10",
+    "@types/node": "^20.19.4",
     "tsx": "^4.0.0",
     "typescript": "^5.8.2"
   }
