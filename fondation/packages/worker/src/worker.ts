@@ -4,8 +4,7 @@ import { CLIExecutor } from "./cli-executor.js";
 import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
 import { api } from "@convex/generated/api";
-import { getSimpleCrypto } from "./simple-crypto";
-const safeDeobfuscate = getSimpleCrypto();
+import { safeDecrypt, maskSensitiveData } from "./encryption";
 
 // Type aliases for IDs to avoid import issues
 type JobId = string;
@@ -237,7 +236,7 @@ export class PermanentWorker {
 
         // Deobfuscate the token if found
         if (userGithubToken) {
-          userGithubToken = safeDeobfuscate(userGithubToken);
+          userGithubToken = safeDecrypt(userGithubToken);
         }
 
         // Fallback to environment token if user token not found
