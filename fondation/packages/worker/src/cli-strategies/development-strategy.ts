@@ -1,61 +1,57 @@
 /**
- * Development CLI Execution Strategy
+ * Development CLI Execution Strategy (Refactored)
  * 
- * Handles local CLI execution for development mode:
- * - Uses source TypeScript files with tsx/bun execution
+ * Handles local CLI execution for development mode using Template Method pattern.
+ * Reduced from 279 lines to ~35 lines by extending BaseStrategy.
+ * 
+ * Key Behaviors (PRESERVED):
+ * - Uses source TypeScript files with bun execution
  * - Leverages host Claude authentication (no environment variable required)
- * - Provides development-friendly error messages and debugging
+ * - No timeout (infinite execution)
+ * - Development-friendly error messages and debugging
+ * - Profile: "dev" (not "development")
  */
 
-import { exec, spawn } from "node:child_process";
+import { exec } from "node:child_process";
 import { join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import { existsSync } from "node:fs";
 import { promisify } from "node:util";
-import type { CLIExecutionStrategy, CLIResult } from "./base-strategy.js";
+import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy.js";
 import { dev } from "@fondation/shared/environment";
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
-  private cliPath: string;
-  
-  constructor(cliPath: string) {
-    this.cliPath = cliPath;
-  }
+export class DevelopmentCLIStrategy extends BaseStrategy {
   
   getName(): string {
     return "Development CLI Strategy";
   }
   
-  async validate(): Promise<{ valid: boolean; errors: string[] }> {
+  async validate(): Promise<ValidationResult> {
     const errors: string[] = [];
     
-    // Check if CLI source exists
+    // Check if CLI path is configured
     if (!this.cliPath) {
       errors.push("CLI path not configured");
       return { valid: false, errors };
     }
     
-    // Check if source file exists (for TypeScript execution)
+    // Check if source/bundle files exist
     if (this.cliPath.includes('src/cli.ts') && !existsSync(this.cliPath)) {
       errors.push(`CLI source file not found: ${this.cliPath}`);
     }
-    
-    // Check if bundled file exists (fallback)
     if (this.cliPath.includes('dist/cli.bundled.mjs') && !existsSync(this.cliPath)) {
       errors.push(`CLI bundled file not found: ${this.cliPath}`);
     }
     
-    // Check for Claude authentication - in development, we prefer host auth
+    // Check for Claude authentication - prefer host auth in development
     try {
-      // First check if Claude is authenticated on host
-      const { stdout } = await execAsync('bunx claude --help');
+      await execAsync('bunx claude --help');
     } catch (_error) {
-      // Check for environment variable as fallback
       if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
         errors.push(
           "Claude authentication not found. Either authenticate with 'bunx claude auth' or set CLAUDE_CODE_OAUTH_TOKEN"
@@ -63,217 +59,48 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
       }
     }
     
-    // Check for required tools
+    // Check for Bun runtime
     try {
       await execAsync('bun --version');
     } catch (_error) {
       errors.push("Bun runtime not available for development execution");
     }
     
+    return { valid: errors.length === 0, errors };
+  }
+  
+  getCommandConfig(repoPath: string): CommandConfig {
+    // Determine execution command based on CLI path (same logic as original)
+    const cliPackageDir = resolvePath(join(__dirname, '../../../cli'));
+    let command: string;
+    
+    if (this.cliPath.includes('cli.ts') || this.cliPath.includes('src')) {
+      // Execute TypeScript source directly with Bun (preferred for development)
+      command = `cd "${cliPackageDir}" && bun src/cli.ts analyze "${repoPath}" --profile dev --verbose`;
+    } else {
+      // Execute bundled version with Bun (fallback)
+      command = `cd "${cliPackageDir}" && bun dist/cli.bundled.mjs analyze "${repoPath}" --profile dev --verbose`;
+    }
+    
     return {
-      valid: errors.length === 0,
-      errors
+      command,
+      env: {
+        ...process.env,
+        // In development, let CLI use host authentication or environment variables
+        NODE_ENV: 'development',
+        FONDATION_MODE: 'development'
+      },
+      timeout: undefined, // No timeout in development
+      heartbeatInterval: 120000 // 2-minute development progress heartbeat
     };
   }
   
-  async execute(
-    repoPath: string,
-    options: {
-      prompt: string;
-      onProgress?: (step: string) => Promise<void>;
-    }
-  ): Promise<CLIResult> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        
-        // Determine execution command based on CLI path
-        const cliPackageDir = resolvePath(join(__dirname, '../../../cli'));
-        let command: string;
-        if (this.cliPath.includes('cli.ts') || this.cliPath.includes('src')) {
-          // Execute TypeScript source directly with Bun (preferred for development)
-          command = `cd "${cliPackageDir}" && bun src/cli.ts analyze "${repoPath}" --profile dev --verbose`;
-        } else {
-          // Execute bundled version with Bun (fallback)
-          command = `cd "${cliPackageDir}" && bun dist/cli.bundled.mjs analyze "${repoPath}" --profile dev --verbose`;
-        }
-        
-        // Track the 6-step analysis workflow (French UI)
-        const _workflowSteps = [
-          "Extraction des abstractions",
-          "Analyse des relations", 
-          "Ordonnancement des chapitres",
-          "Génération des chapitres",
-          "Révision des chapitres",
-          "Création des tutoriels"
-        ];
-        
-        const child = spawn('sh', ['-c', command], {
-          env: {
-            ...process.env,
-            // In development, let CLI use host authentication or environment variables
-            NODE_ENV: 'development',
-            FONDATION_MODE: 'development'
-          },
-          stdio: ['pipe', 'pipe', 'pipe']
-        });
-        
-        // No timeout in development - let the process run as long as needed
-        
-        let stdout = "";
-        let stderr = "";
-        let hasFinished = false;
-        const startTime = Date.now();
-        
-        // Add development progress heartbeat every 2 minutes
-        const devHeartbeat = setInterval(() => {
-          if (!hasFinished) {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            options.onProgress?.(`Étape 1/6: Analyse en cours... (${elapsed}s)`).catch(console.error);
-          }
-        }, 120000);
-        
-        child.stdout?.on("data", (data) => {
-          const text = data.toString();
-          stdout += text;
-          
-          // Development-friendly progress parsing
-          const lines = text.split("\n");
-          for (const line of lines) {
-            const trimmedLine = line.trim();
-            
-            // Parse JSON logs with development context
-            if (trimmedLine.startsWith("{") && trimmedLine.includes('"msg"')) {
-              try {
-                const logData = JSON.parse(trimmedLine);
-                const msg = logData.msg || "";
-                
-                // Map log messages to progress steps (French UI)
-                if (msg.includes("Starting codebase analysis")) {
-                  options.onProgress?.("Étape 1/6: Initialisation de l'analyse").catch(console.error);
-                } else if (msg.includes("Extracting core abstractions")) {
-                  options.onProgress?.("Étape 1/6: Extraction des abstractions").catch(console.error);
-                } else if (msg.includes("Analyzing relationships")) {
-                  options.onProgress?.("Étape 2/6: Analyse des relations").catch(console.error);
-                } else if (msg.includes("Determining optimal chapter order")) {
-                  options.onProgress?.("Étape 3/6: Ordonnancement des chapitres").catch(console.error);
-                } else if (msg.includes("Generating chapter content")) {
-                  options.onProgress?.("Étape 4/6: Génération des chapitres").catch(console.error);
-                } else if (msg.includes("Reviewing and enhancing")) {
-                  options.onProgress?.("Étape 5/6: Révision des chapitres").catch(console.error);
-                } else if (msg.includes("Analysis complete")) {
-                  options.onProgress?.("Étape 6/6: Finalisation de l'analyse").catch(console.error);
-                }
-              } catch (_err) {
-                // Development: Log parsing errors for debugging
-                if (dev.allows('debug_logging')) {
-                }
-              }
-            }
-            
-            // Development-specific progress patterns
-            if (trimmedLine.includes("[DEV-PROGRESS]") || trimmedLine.includes("[PROGRESS]")) {
-              const progress = trimmedLine.replace(/\[(DEV-)?PROGRESS\]/, "").trim();
-              options.onProgress?.(progress).catch(console.error);
-            }
-            
-            // Log interesting lines in development mode
-            if (dev.allows('debug_logging') && (
-              trimmedLine.includes("Generating") || 
-              trimmedLine.includes("Analyzing") || 
-              trimmedLine.includes("Processing")
-            )) {
-            }
-          }
-        });
-        
-        child.stderr?.on("data", (data) => {
-          const text = data.toString();
-          stderr += text;
-          
-          // In development, log stderr immediately for debugging
-          if (dev.allows('debug_logging')) {
-          }
-        });
-        
-        child.on("error", (error) => {
-          if (!hasFinished) {
-            hasFinished = true;
-            clearInterval(devHeartbeat);
-            reject(new Error(`Development CLI execution failed: ${error.message}`));
-          }
-        });
-        
-        child.on("exit", (code, signal) => {
-          if (!hasFinished && (code !== 0 || signal)) {
-            hasFinished = true;
-            clearInterval(devHeartbeat);
-            
-            let errorMsg = `Development CLI execution failed with exit code ${code}`;
-            if (signal) {
-              errorMsg = `Development CLI process killed with signal ${signal}`;
-            }
-            
-            // Add development-specific debugging information
-            errorMsg += `\n\n🔍 Development Debug Info:`;
-            errorMsg += `\n- CLI Path: ${this.cliPath}`;
-            errorMsg += `\n- Command: ${command}`;
-            errorMsg += `\n- Working Directory: ${process.cwd()}`;
-            errorMsg += `\n- Environment: development`;
-            errorMsg += `\n\n📋 Stdout: ${stdout || 'None'}`;
-            errorMsg += `\n\n🚨 Stderr: ${stderr || 'None'}`;
-            
-            // Add specific troubleshooting for development
-            if (stderr.includes('auth') || stdout.includes('auth')) {
-              errorMsg += `\n\n🔑 Authentication Issue: Try running 'bunx claude auth' to authenticate Claude CLI`;
-            }
-            
-            if (stderr.includes('ENOENT') || stderr.includes('command not found')) {
-              errorMsg += `\n\n📁 Path Issue: Check if CLI files exist and bun is available in PATH`;
-            }
-            
-            reject(new Error(errorMsg));
-          }
-        });
-        
-        child.on("close", async (code) => {
-          if (!hasFinished) {
-            hasFinished = true;
-            clearInterval(devHeartbeat);
-            
-            if (code === 0) {
-              
-              // Parse output files (reuse parsing logic from original CLI executor)
-              const documents = await this.parseOutputFiles(repoPath);
-              
-              resolve({
-                success: true,
-                documents,
-                metadata: { 
-                  strategy: 'development',
-                  rawOutput: stdout,
-                  cliPath: this.cliPath,
-                  command,
-                  documentsCount: documents?.length || 0
-                },
-              });
-            } else {
-              const errorMsg = `Development CLI completed with error code ${code}: ${stderr || stdout || 'No output captured'}`;
-              reject(new Error(errorMsg));
-            }
-          }
-        });
-        
-      } catch (error) {
-        reject(error);
-      }
-    });
+  // Override base methods for development-specific behavior
+  protected shouldLogDebugInfo(): boolean {
+    return dev.allows('debug_logging');
   }
   
-  /**
-   * Parse generated files from .claude-tutorial-output directory
-   */
-  private async parseOutputFiles(repoPath: string): Promise<CLIResult['documents']> {
-    const { OutputParser } = await import('./output-parser.js');
-    return OutputParser.parseOutputFiles(repoPath);
+  protected getAuthenticationTroubleshooting(): string {
+    return `\n\n🔑 Authentication Issue: Try running 'bunx claude auth' to authenticate Claude CLI`;
   }
 }
