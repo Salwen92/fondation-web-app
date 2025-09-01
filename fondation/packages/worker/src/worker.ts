@@ -5,6 +5,7 @@ import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
 import { api } from "@convex/generated/api";
 import { getSimpleCrypto } from "./simple-crypto";
+import { isDevelopment, isInsideDocker } from "@fondation/shared/environment";
 const safeDeobfuscate = getSimpleCrypto();
 
 // Type aliases for IDs to avoid import issues
@@ -21,6 +22,8 @@ type WorkerConfig = {
   maxConcurrentJobs: number;
   tempDir: string;
   cliPath?: string;
+  executionMode: 'local' | 'docker' | 'container';
+  developmentMode: boolean;
 };
 
 type Job = {
@@ -96,31 +99,48 @@ export class PermanentWorker {
     // validateConfig is now called in main before creating worker
     this.convex = convexClient;
     
-    // ENFORCE ARCHITECTURE: Validate worker is running inside Docker container
-    this.validateContainerEnvironment();
+    // Environment-aware container validation
+    this.validateExecutionEnvironment();
     
-    this.cliExecutor = new CLIExecutor(); // No arguments needed - uses integrated CLI
+    this.cliExecutor = new CLIExecutor(config.cliPath); // Pass CLI path from config
     this.repoManager = new RepoManager(config.tempDir);
     this.healthServer = new HealthServer(this);
   }
   
-  private validateContainerEnvironment(): void {
+  private validateExecutionEnvironment(): void {
+    const { developmentMode, executionMode } = this.config;
+    
+    if (developmentMode) {
+      console.log("🔧 Development mode detected - relaxed execution environment validation");
+      console.log(`📍 Execution mode: ${executionMode}`);
+      
+      if (executionMode === 'local') {
+        console.log("💻 Local execution mode - Docker container validation bypassed");
+        console.log("⚠️  Note: This is only allowed in development mode");
+      } else {
+        console.log("🐳 Container execution mode in development");
+      }
+      
+      return;
+    }
+    
+    // Production mode - enforce strict container requirements
     const isInsideDocker = process.env.DOCKER_CONTAINER === 'true' || 
                           require('fs').existsSync('/.dockerenv');
     
     if (!isInsideDocker) {
       throw new Error(
-        "ARCHITECTURE VIOLATION: Worker must run inside Docker container.\n" +
+        "ARCHITECTURE VIOLATION: Production worker must run inside Docker container.\n" +
         "This ensures consistent execution environment and prevents Docker-in-Docker issues.\n" +
         "Solutions:\n" +
         "  1. Use docker-compose: 'docker-compose -f docker-compose.worker.yml up'\n" +
         "  2. Set environment variable: DOCKER_CONTAINER=true\n" +
         "  3. Run in Docker container with proper mounts\n\n" +
-        "For development, use the Docker container to match production architecture."
+        "For development mode, set NODE_ENV=development to bypass this check."
       );
     }
     
-    console.log("✅ Container environment validated - running inside Docker");
+    console.log("✅ Production container environment validated - running inside Docker");
   }
   
   async start(): Promise<void> {
