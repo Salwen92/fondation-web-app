@@ -249,7 +249,11 @@ Use "fondation --help" for more information about global options.`,
         stack: errorStack,
         fullError: JSON.stringify(error, null, 2),
       });
+      
+      // Always log to console for debugging visibility
+      console.error('ANALYZE COMMAND ERROR:', error);
       if (errorStack) {
+        console.error('STACK TRACE:', errorStack);
       }
       
       logger.debug('Full error details', { error });
