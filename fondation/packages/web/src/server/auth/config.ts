@@ -2,6 +2,7 @@ import type { DefaultSession, NextAuthConfig } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import { env } from "@/env";
 import { getScopeConfiguration, validateTokenScopes, logScopeUsage } from "@/lib/github-scopes";
+import { logAuthentication, logTokenAccess, SecurityEventType, logSecurityEvent, SecurityEventSeverity } from "@/lib/security-audit";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -79,6 +80,16 @@ export const authConfig = {
           
           if (!validation.valid) {
             console.error('Token missing required scopes:', validation.missing);
+            // Log security event
+            logSecurityEvent(
+              SecurityEventType.TOKEN_VALIDATION_FAILED,
+              'Token missing required scopes',
+              {
+                userId: String(profile.id),
+                severity: SecurityEventSeverity.WARNING,
+                metadata: { missingScopes: validation.missing },
+              }
+            );
             // Still allow sign-in but log the issue
           }
           
@@ -114,8 +125,24 @@ export const authConfig = {
               githubId: String(profile.id),
               accessToken: obfuscatedToken,
             });
-          } catch (_error) {
-            // Don't block sign-in if token storage fails
+            
+            // Log successful authentication
+            logAuthentication(String(profile.id), true, {
+              provider: 'github',
+              username: String(profile.login || profile.name),
+            });
+          } catch (error) {
+            // Log the error but don't block sign-in
+            logSecurityEvent(
+              SecurityEventType.TOKEN_CREATED,
+              'Failed to store GitHub token',
+              {
+                userId: String(profile.id),
+                severity: SecurityEventSeverity.ERROR,
+                result: 'failure',
+                error: error instanceof Error ? error.message : String(error),
+              }
+            );
           }
         }
         return true;
