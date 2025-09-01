@@ -18,18 +18,19 @@ export function useJobManagement({
   repositoryName,
   defaultBranch,
 }: UseJobManagementOptions) {
-  const generateCourse = useMutation(api.jobs.create);
+  // Use the new atomic regenerate mutation instead of the old create
+  const generateCourse = useMutation(api.jobs.regenerate);
   const updateMetadata = useMutation(api.github.updateRepositoryMetadata);
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId });
   const repoWithMetadata = useQuery(api.github.getRepositoryWithMetadata, { repositoryId });
 
   const handleGenerate = async () => {
     try {
-      // Create the job in Convex - workers will claim it from the queue
+      // Use the new atomic regenerate mutation - handles race conditions
       const result = await generateCourse({
         userId,
         repositoryId,
-        prompt: `Generate comprehensive course documentation for ${repositoryName}`,
+        prompt: `Générer le cours pour ${repositoryFullName}`,
       });
       
       // Job is now in the queue, workers will pick it up automatically
@@ -41,16 +42,16 @@ export function useJobManagement({
         });
         
         toast.success(
-          "Documentation generation started!",
+          "Génération démarrée",
           {
-            description: `Job ID: ${result.jobId}. The analysis will begin shortly.`,
+            description: "Le processus de génération a commencé.",
             duration: 8000,
           }
         );
       }
     } catch (error) {
-      toast.error("Failed to start generation", {
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+      toast.error("Erreur", {
+        description: error instanceof Error ? error.message : "Impossible de démarrer la génération",
       });
     }
   };
