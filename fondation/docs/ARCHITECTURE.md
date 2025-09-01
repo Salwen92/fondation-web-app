@@ -20,8 +20,10 @@ graph TB
         Q[Job Queue<br/>Atomic Operations]
     end
     
-    subgraph "Processing Layer (Docker Container)"
-        WK[Worker Service<br/>Port 8081<br/>Internal CLI Executor]
+    subgraph "Processing Layer (Environment-Aware)"
+        WK[Worker Service<br/>Port 8081<br/>Dual-Mode CLI Executor]
+        DE[Development Mode<br/>Local TypeScript Execution]
+        PE[Production Mode<br/>Docker Container Execution]
     end
     
     subgraph "AI Layer"
@@ -94,8 +96,13 @@ fondation/                      # Root monorepo
 │   ├── worker/                # Job processor
 │   │   └── src/
 │   │       ├── worker.ts     # Main worker loop
-│   │       ├── cli-executor.ts # Internal CLI executor
-│   │       └── config.ts     # Configuration
+│   │       ├── cli-executor.ts # Dual-mode CLI executor
+│   │       ├── cli-strategies/ # Strategy pattern implementations
+│   │       │   ├── base-strategy.ts      # Strategy interface
+│   │       │   ├── development-strategy.ts # Local execution
+│   │       │   ├── production-strategy.ts  # Docker execution
+│   │       │   └── strategy-factory.ts     # Environment detection
+│   │       └── config.ts     # Environment-aware configuration
 │   │
 │   ├── cli/                   # Fondation analyzer
 │   │   ├── src/
@@ -105,8 +112,9 @@ fondation/                      # Root monorepo
 │   │   └── dist/
 │   │       └── cli.bundled.mjs # Bundled CLI
 │   │
-│   └── shared/                # Shared types
+│   └── shared/                # Shared utilities
 │       └── src/
+│           ├── environment.ts # Environment detection
 │           ├── schemas.ts     # Zod schemas
 │           └── types.ts       # TypeScript types
 │
@@ -167,13 +175,15 @@ Build order: `shared` → `cli` → `web`/`worker` (parallel)
 - **State**: Convex real-time subscriptions
 - **Type Safety**: Strict TypeScript with Zod validation
 
-### Worker Package (Docker Container)
+### Worker Package (Dual-Mode Execution)
 - **Purpose**: Job processing and orchestration
 - **Pattern**: Polling with lease-based claiming
-- **Execution**: Runs inside Docker container with internal CLI
+- **Architecture**: Strategy pattern for environment-aware execution
+- **Development Mode**: Local TypeScript execution, host Claude auth, Docker bypass
+- **Production Mode**: Docker container execution, environment variable auth
 - **Monitoring**: Health checks on port 8081
 - **Scaling**: Configurable concurrent job limit
-- **Architecture**: Enforced container execution (no external Docker spawning)
+- **Environment Detection**: Automatic mode switching based on NODE_ENV/FONDATION_ENV
 
 ### CLI Package (Bundled Node.js)
 - **Build**: Custom esbuild bundler
@@ -183,9 +193,60 @@ Build order: `shared` → `cli` → `web`/`worker` (parallel)
 - **Output**: Markdown documents
 
 ### Shared Package (TypeScript Library)
-- **Purpose**: Shared types and schemas
+- **Purpose**: Shared types, schemas, and utilities
+- **Environment Detection**: Centralized environment and execution mode detection
 - **Validation**: Zod schemas for runtime safety
 - **Types**: Common interfaces across packages
+
+## 🏗️ **Dual-Mode Execution Architecture**
+
+Fondation implements a sophisticated dual-mode architecture that adapts execution behavior based on the environment:
+
+### Environment Detection System
+```typescript
+// packages/shared/src/environment.ts
+export function getEnvironment(): Environment {
+  // Checks FONDATION_ENV, NODE_ENV, and defaults
+}
+
+export function getExecutionMode(): ExecutionMode {
+  // Detects local vs docker vs container execution
+}
+```
+
+### Strategy Pattern Implementation
+```typescript
+// CLI Execution abstracted via strategy pattern
+interface CLIExecutionStrategy {
+  execute(repoPath: string, options: CLIOptions): Promise<CLIResult>;
+  validate(): Promise<ValidationResult>;
+  getName(): string;
+}
+```
+
+### Development Strategy
+- **Environment**: `NODE_ENV=development` or `FONDATION_ENV=development`
+- **CLI Path**: `@fondation/cli/cli.ts` (TypeScript source)
+- **Execution**: Direct Bun runtime execution
+- **Authentication**: Host Claude CLI (`bunx claude auth`)
+- **Docker**: Validation bypassed for speed
+- **Hot Reload**: Automatic restarts with `tsx watch`
+- **Debugging**: Enhanced logging and error reporting
+
+### Production Strategy  
+- **Environment**: `NODE_ENV=production` or `FONDATION_ENV=production`
+- **CLI Path**: `/app/packages/cli/dist/cli.bundled.mjs`
+- **Execution**: Docker container with bundled CLI
+- **Authentication**: `CLAUDE_CODE_OAUTH_TOKEN` environment variable
+- **Docker**: Strict container enforcement
+- **Isolation**: Full process and filesystem isolation
+
+### Strategy Factory
+Automatically selects appropriate strategy based on:
+1. Environment variables (`NODE_ENV`, `FONDATION_ENV`)
+2. Execution context detection (Docker container, local machine)
+3. Available authentication methods (host CLI vs environment variables)
+4. Development feature flags (`FONDATION_DEV_*`)
 
 ## Docker Architecture
 

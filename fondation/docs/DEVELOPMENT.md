@@ -8,10 +8,12 @@ For a complete list of all 50+ scripts, see [COMMANDS.md](../COMMANDS.md). Here 
 
 ### Daily Development
 ```bash
-bun run dev           # Start all services (recommended)
-bun run dev:web       # Start only web interface
-bun run dev:worker    # Start only worker service
-bun run dev:convex    # Start only Convex database
+bun run dev                 # Start all services (recommended)
+bun run dev:web             # Start only web interface
+bun run dev:worker          # Start worker in development mode
+bun run dev:worker:local    # Start worker in pure local mode (no Docker)
+bun run dev:worker:docker   # Start worker in Docker development mode
+bun run dev:convex          # Start only Convex database
 ```
 
 ### Building & Testing
@@ -51,27 +53,47 @@ bun run lint          # Run linter
 
 ```bash
 cd packages/worker
-bun run dev           # Start with auto-reload
+bun run dev           # Start with auto-reload (development mode)
+bun run dev:local     # Start in pure local mode (no Docker)
+bun run dev:debug     # Start with debug logging enabled
 bun run build         # Compile TypeScript
+bun run health        # Check worker health status
+bun run diagnostics   # Run development diagnostics
 ```
+
+**Development Modes:**
+- **Local Mode**: Executes CLI directly from TypeScript source files
+- **Docker Mode**: Uses containerized CLI execution (closer to production)
+- **Debug Mode**: Enhanced logging for troubleshooting
 
 **Common tasks:**
 - Modify job processing: Edit `src/cli-executor.ts`
+- Add CLI execution strategies: Create files in `src/cli-strategies/`
 - Add new job types: Update `src/index.ts`
-- Change Docker config: Edit `src/docker-manager.ts`
+- Configure environment detection: Edit `../shared/src/environment.ts`
 
 ### CLI Package Development
 
 ```bash
 cd packages/cli
-bun run dev           # Interactive development
-bun run build         # Compile TypeScript and create bundle
+bun run dev             # Interactive development UI
+bun run cli             # Run CLI from source
+bun run cli:source      # Run CLI with development environment
+bun run cli:test        # Quick test run on current directory
+bun run build           # Compile TypeScript and create bundle
+bun run build:verify    # Verify bundled CLI works correctly
 ```
+
+**Execution Methods:**
+- **Source**: Direct TypeScript execution (fastest for development)
+- **Bundled**: Production-like bundled execution (for testing)
+- **Interactive**: Ink-based UI for development
 
 **Common tasks:**
 - Add analysis steps: Create new prompt in `prompts/`
 - Modify analysis logic: Edit `src/analyze-all.ts`
 - Update UI components: Edit files in `src/ui/components/`
+- Test CLI changes: Use `bun run cli:test` for quick validation
 
 ### Shared Package Development
 
@@ -85,6 +107,87 @@ bun run typecheck     # Validate types
 - Add shared types: Edit `src/types/index.ts`
 - Add utilities: Create in `src/utils/`
 - Update constants: Edit `src/constants.ts`
+- Configure environment detection: Edit `src/environment.ts`
+
+## 🔧 **Dual-Mode Architecture**
+
+Fondation supports both **development** and **production** execution modes with different behaviors:
+
+### Development Mode
+- **Environment**: `NODE_ENV=development` or `FONDATION_ENV=development`
+- **CLI Execution**: Direct TypeScript source files (`src/cli.ts`)
+- **Authentication**: Uses host Claude CLI authentication (`bunx claude auth`)
+- **Docker**: Container validation bypassed for faster iteration
+- **Hot Reload**: Automatic restarts on file changes
+- **Debugging**: Enhanced logging and error messages
+
+### Production Mode  
+- **Environment**: `NODE_ENV=production` or `FONDATION_ENV=production`
+- **CLI Execution**: Bundled CLI in Docker containers
+- **Authentication**: Requires `CLAUDE_CODE_OAUTH_TOKEN` environment variable
+- **Docker**: Strict container enforcement for security
+- **Stability**: Optimized for reliability and consistency
+
+### Environment Variables
+
+#### Development-Specific Variables
+```bash
+# Enable development features
+FONDATION_DEV_DOCKER_BYPASS=true      # Skip Docker requirements
+FONDATION_DEV_DEBUG=true              # Enhanced logging
+FONDATION_DEV_HOT_RELOAD=true         # Auto-restart on changes
+
+# Override environment detection
+FONDATION_ENV=development             # Force development mode
+FONDATION_EXECUTION_MODE=local        # Force local execution
+
+# Development paths
+TEMP_DIR=/tmp/fondation-dev           # Development temp directory
+```
+
+#### Production Variables
+```bash
+# Required for production
+CLAUDE_CODE_OAUTH_TOKEN=sk-ant-...    # Claude API authentication
+GITHUB_TOKEN=ghp_...                  # GitHub private repo access
+DOCKER_CONTAINER=true                 # Indicates Docker environment
+
+# Standard variables
+NODE_ENV=production
+CONVEX_URL=https://your-deployment.convex.cloud
+```
+
+### Quick Setup Commands
+
+#### Development Setup
+```bash
+# Install dependencies
+bun install
+
+# Set up development environment
+cp .env.example .env.local
+# Edit .env.local with your values
+
+# Authenticate Claude CLI
+bunx claude auth
+
+# Start development environment
+bun run dev
+```
+
+#### Production Setup
+```bash
+# Build all packages
+bun run build
+
+# Set production environment variables
+export NODE_ENV=production
+export CLAUDE_CODE_OAUTH_TOKEN="your-token"
+export CONVEX_URL="your-deployment-url"
+
+# Start production services
+bun run start
+```
 
 ## Testing Strategy
 
@@ -361,7 +464,119 @@ const jobId: Id<"jobs"> = "..." // Type-safe ID
 
 ## Troubleshooting Development Issues
 
-See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common issues and solutions.
+### Worker Service Issues
+
+#### Worker Won't Start in Development
+```bash
+# Check environment detection
+cd packages/worker && bun run diagnostics
+
+# Force local execution mode
+bun run dev:local
+
+# Check Claude authentication
+bunx claude --help
+```
+
+#### CLI Execution Fails
+```bash
+# Test CLI directly
+cd packages/cli && bun run cli:test
+
+# Check CLI paths and permissions
+bun src/cli.ts --help
+
+# Verify development strategy
+cd packages/worker && bun run dev:debug
+```
+
+#### Docker Issues in Development
+If you're getting Docker-related errors in development mode:
+```bash
+# Use pure local mode (bypasses Docker completely)
+bun run dev:worker:local
+
+# Or enable Docker bypass
+export FONDATION_DEV_DOCKER_BYPASS=true
+bun run dev:worker
+```
+
+### Authentication Issues
+
+#### Claude Authentication Not Found
+```bash
+# Authenticate Claude CLI
+bunx claude auth
+
+# Or set environment variable
+export CLAUDE_CODE_OAUTH_TOKEN="your-token"
+```
+
+#### Host Authentication vs Environment Variables
+- **Development**: Uses host authentication by default (`bunx claude auth`)
+- **Production**: Requires `CLAUDE_CODE_OAUTH_TOKEN` environment variable
+
+### Environment Detection Issues
+
+#### Wrong Mode Detected
+```bash
+# Check current environment detection
+node -e "import('@fondation/shared/environment').then(env => console.log(env.environmentInfo))"
+
+# Force development mode
+export FONDATION_ENV=development
+
+# Force local execution
+export FONDATION_EXECUTION_MODE=local
+```
+
+#### Mixed Environment Variables
+```bash
+# Clean environment and restart
+unset FONDATION_ENV FONDATION_EXECUTION_MODE NODE_ENV
+export NODE_ENV=development
+bun run dev:worker
+```
+
+### Performance Issues
+
+#### Slow CLI Execution in Development
+- Use source execution: `bun run cli:source`
+- Avoid bundled CLI during development
+- Check if Docker bypass is enabled: `FONDATION_DEV_DOCKER_BYPASS=true`
+
+#### Hot Reload Not Working
+```bash
+# Ensure tsx is watching correctly
+cd packages/worker && npx tsx watch src/index.ts
+
+# Check file permissions
+ls -la src/
+```
+
+### Build Issues
+
+#### TypeScript Errors After Changes
+```bash
+# Clean build cache
+bun run clean
+rm -f packages/*/tsconfig.tsbuildinfo
+
+# Rebuild shared package first
+cd packages/shared && bun run build
+cd ../.. && bun run build
+```
+
+#### Import Errors for Shared Package
+```bash
+# Ensure shared package is built
+cd packages/shared && bun run build
+
+# Check TypeScript path mapping
+bun run typecheck
+```
+
+See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for additional common issues and solutions.
 
 ---
 
