@@ -259,8 +259,8 @@ export const cancelJob = mutation({
       throw new Error("Unauthorized - you can only cancel your own jobs");
     }
 
-    // Only allow canceling jobs that are currently running
-    if (!["pending", "cloning", "analyzing", "gathering", "running"].includes(job.status)) {
+    // Only allow canceling jobs that are currently running (includes 'claimed')
+    if (!["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(job.status)) {
       throw new Error("Cannot cancel job - it's not currently running");
     }
 
@@ -285,8 +285,8 @@ export const requestCancel = mutation({
       throw new Error("Job not found");
     }
     
-    // Only allow cancelling active jobs
-    if (!["pending", "running", "cloning", "analyzing", "gathering"].includes(job.status)) {
+    // Only allow cancelling active jobs (includes 'claimed')
+    if (!["pending", "claimed", "running", "cloning", "analyzing", "gathering"].includes(job.status)) {
       throw new Error("Job is not active and cannot be cancelled");
     }
     
@@ -315,35 +315,7 @@ export const getLatestCompletedByRepository = query({
   },
 });
 
-// E2E Test Flow Functions
-export const startAnalysis = mutation({
-  args: { 
-    repositoryId: v.id("repositories"),
-    userId: v.id("users"),
-    repoUrl: v.string() 
-  },
-  handler: async (ctx, args) => {
-    const callbackToken = uuidv4();
-    const now = Date.now();
-    
-    const jobId = await ctx.db.insert("jobs", {
-      userId: args.userId,
-      repositoryId: args.repositoryId,
-      status: "pending",
-      prompt: `Analyze repository: ${args.repoUrl}`,
-      callbackToken,
-      runAt: now,
-      attempts: 0,
-      createdAt: now,
-      updatedAt: now,
-    });
-    
-    // Schedule the worker action
-    await ctx.scheduler.runAfter(0, internal.jobs.runWorker, { jobId });
-    
-    return { jobId };
-  },
-});
+// Removed startAnalysis - use jobs.create instead for consistent worker polling
 
 export const getLogs = query({
   args: { 
@@ -409,86 +381,65 @@ export const setStatus = mutation({
   },
 });
 
-// This action does the actual Docker call (or delegates to your existing worker)
-export const runWorker = internalAction({
-  args: { jobId: v.id("jobs") },
+// Atomic regenerate mutation - cancels active jobs and creates new one
+export const regenerate = mutation({
+  args: {
+    repositoryId: v.id("repositories"),
+    userId: v.id("users"),
+    prompt: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
-    const job = await ctx.runQuery(api.jobs.getJob, { jobId: args.jobId });
-    if (!job) return;
+    // 1. Cancel any active jobs for this repository (atomic)
+    const activeJob = await ctx.db
+      .query("jobs")
+      .withIndex("by_repository", (q) => q.eq("repositoryId", args.repositoryId))
+      .filter((q) => 
+        q.or(
+          q.eq(q.field("status"), "pending"),
+          q.eq(q.field("status"), "claimed"),
+          q.eq(q.field("status"), "cloning"),
+          q.eq(q.field("status"), "analyzing"),
+          q.eq(q.field("status"), "gathering"),
+          q.eq(q.field("status"), "running")
+        )
+      )
+      .first();
 
-    await ctx.runMutation(api.jobs.setStatus, { jobId: args.jobId, status: "running" });
-    await ctx.runMutation(api.jobs.appendLog, { 
-      jobId: args.jobId, 
-      level: "info", 
-      msg: "[fondation-worker] image=fondation-worker:authed-patched user=worker(1001) home=/home/worker" 
-    });
-    await ctx.runMutation(api.jobs.appendLog, { 
-      jobId: args.jobId, 
-      level: "info", 
-      msg: "[fondation-worker] cmd=\"cd /app/packages/cli && NODE_PATH=/app/node_modules node dist/analyze-all.js <repo>\"" 
-    });
-
-    try {
-      // Check if we're in mock mode for testing
-      const isMockMode = process.env.WORKER_MODE === "mock";
-      
-      if (isMockMode) {
-        // Mock worker for E2E testing
-        await ctx.runMutation(api.jobs.appendLog, { 
-          jobId: args.jobId, 
-          level: "info", 
-          msg: "[MOCK] Simulating Docker job execution..." 
-        });
-        
-        // Simulate steps
-        const steps = [
-          "mkdir-tmp",
-          "preflight", 
-          "run-cli",
-          "collect-artifacts"
-        ];
-        
-        for (let i = 0; i < steps.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
-          await ctx.runMutation(api.jobs.appendLog, { 
-            jobId: args.jobId, 
-            level: "info", 
-            msg: `[step] ${steps[i]} (${i + 1}/${steps.length})` 
-          });
-        }
-        
-        await ctx.runMutation(api.jobs.appendLog, { 
-          jobId: args.jobId, 
-          level: "info", 
-          msg: "✅ Artifacts generated: step1_abstractions.yaml, step2_relationships.yaml, step3_order.yaml, chapters/chapter_0.md" 
-        });
-        
-        await ctx.runMutation(api.jobs.setStatus, { jobId: args.jobId, status: "completed" });
-      } else {
-        // Real worker - integrate with existing worker service
-        await ctx.runMutation(api.jobs.appendLog, { 
-          jobId: args.jobId, 
-          level: "info", 
-          msg: "Spawning real Docker worker (not implemented yet - use WORKER_MODE=mock for testing)" 
-        });
-        await ctx.runMutation(api.jobs.setStatus, { 
-          jobId: args.jobId, 
-          status: "failed", 
-          error: "Real worker integration not implemented - use WORKER_MODE=mock" 
-        });
-      }
-    } catch (e: any) {
-      await ctx.runMutation(api.jobs.appendLog, { 
-        jobId: args.jobId, 
-        level: "error", 
-        msg: String(e?.message || e) 
-      });
-      await ctx.runMutation(api.jobs.setStatus, { 
-        jobId: args.jobId, 
-        status: "failed", 
-        error: String(e?.message || e) 
+    if (activeJob) {
+      await ctx.db.patch(activeJob._id, {
+        status: "canceled",
+        error: "Job cancelled for regeneration",
+        updatedAt: Date.now(),
       });
     }
+
+    // 2. Create new job immediately (atomic) - same logic as repositories.triggerAnalyze
+    const callbackToken = uuidv4();
+    const now = Date.now();
+    
+    const jobId = await ctx.db.insert("jobs", {
+      userId: args.userId,
+      repositoryId: args.repositoryId,
+      status: "pending",
+      prompt: args.prompt || "Regenerate course documentation",
+      callbackToken,
+      // Queue fields - same as triggerAnalyze
+      runAt: now,
+      attempts: 0,
+      maxAttempts: 5,
+      dedupeKey: `${args.repositoryId}_regen_${now}`,
+      // Timestamps
+      createdAt: now,
+      updatedAt: now,
+      // Progress tracking
+      currentStep: 0,
+      totalSteps: 7,
+      progress: "Initializing regeneration...",
+    });
+
+    return { jobId };
   },
 });
+
+// Removed runWorker - all jobs must go through worker polling for consistent architecture
 
