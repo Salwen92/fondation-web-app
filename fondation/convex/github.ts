@@ -28,16 +28,25 @@ export const updateRepositoryMetadata = mutation({
     }
 
     try {
-      // Fetch repository languages
+      // Note: In production, this should use the GitHubClient with rate limiting
+      // For now, keeping the direct fetch but adding basic rate limit handling
       const languagesResponse = await fetch(
         `https://api.github.com/repos/${repository.fullName}/languages`,
         {
           headers: {
-            Authorization: `token ${user.githubAccessToken}`,
+            Authorization: `Bearer ${user.githubAccessToken}`,
             Accept: "application/vnd.github.v3+json",
+            "User-Agent": "Fondation-App/1.0",
           },
         }
       );
+
+      // Check for rate limiting
+      if (languagesResponse.status === 429) {
+        const resetTime = languagesResponse.headers.get('X-RateLimit-Reset');
+        console.error(`GitHub rate limit exceeded. Reset at: ${resetTime}`);
+        return { success: false, error: 'Rate limit exceeded' };
+      }
 
       if (!languagesResponse.ok) {
         throw new Error(`GitHub API error: ${languagesResponse.status}`);
@@ -60,11 +69,19 @@ export const updateRepositoryMetadata = mutation({
         `https://api.github.com/repos/${repository.fullName}`,
         {
           headers: {
-            Authorization: `token ${user.githubAccessToken}`,
+            Authorization: `Bearer ${user.githubAccessToken}`,
             Accept: "application/vnd.github.v3+json",
+            "User-Agent": "Fondation-App/1.0",
           },
         }
       );
+
+      // Check for rate limiting
+      if (repoResponse.status === 429) {
+        const resetTime = repoResponse.headers.get('X-RateLimit-Reset');
+        console.error(`GitHub rate limit exceeded. Reset at: ${resetTime}`);
+        return { success: false, error: 'Rate limit exceeded' };
+      }
 
       if (!repoResponse.ok) {
         throw new Error(`GitHub API error: ${repoResponse.status}`);
