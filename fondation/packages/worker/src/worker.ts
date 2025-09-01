@@ -289,7 +289,9 @@ export class PermanentWorker {
         await this.repoManager.cleanup(job.id);
       }
     } catch (error) {
-      await this.failJob(job.id, error instanceof Error ? error.message : String(error));
+      // Mask any sensitive data in error messages
+      const safeError = maskSensitiveData(error instanceof Error ? error.message : String(error));
+      await this.failJob(job.id, safeError);
       this.stats.failed++;
     } finally {
       this.stats.total++;

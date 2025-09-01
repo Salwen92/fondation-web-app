@@ -1,9 +1,7 @@
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
 import { rm, mkdir, access } from "node:fs/promises";
 import { join } from "node:path";
-
-const execAsync = promisify(exec);
+import { cloneRepositorySecurely, cleanGitConfig } from "./git-operations";
+import { maskSensitiveData } from "./encryption";
 
 export class RepoManager {
   private repos = new Map<string, string>();
@@ -20,33 +18,32 @@ export class RepoManager {
       // Clean up any existing directory for this job
       await this.cleanup(jobId);
       
-      // Prepare clone URL with authentication if token is provided
-      let cloneUrl = url;
-      if (githubToken && url.includes('github.com')) {
-        // Convert https://github.com/owner/repo.git to https://token@github.com/owner/repo.git
-        cloneUrl = url.replace('https://github.com', `https://${githubToken}@github.com`);
-      }
-      
-      // Clone the repository
-      const cloneCommand = `git clone --depth 1 --branch ${branch} ${cloneUrl} ${repoPath}`;
-      const { stdout, stderr } = await execAsync(cloneCommand, {
-        env: {
-          ...process.env,
-          GIT_TERMINAL_PROMPT: "0", // Disable git credential prompts
-        },
+      // Clone repository securely without exposing token in URL
+      const result = await cloneRepositorySecurely({
+        url,
+        branch,
+        targetDir: repoPath,
+        token: githubToken,
+        depth: 1,
       });
       
-      if (stderr && !stderr.includes("Cloning into")) {
+      if (!result.success) {
+        throw new Error(result.error || 'Clone failed');
       }
       
       // Verify clone was successful
       await access(repoPath);
       
+      // Clean any sensitive data from git config
+      await cleanGitConfig(repoPath);
+      
       // Store path for cleanup
       this.repos.set(jobId, repoPath);
       return repoPath;
     } catch (error) {
-      throw new Error(`Repository clone failed: ${error instanceof Error ? error.message : String(error)}`);
+      // Mask any sensitive data in error messages
+      const safeError = maskSensitiveData(error instanceof Error ? error.message : String(error));
+      throw new Error(`Repository clone failed: ${safeError}`);
     }
   }
   
