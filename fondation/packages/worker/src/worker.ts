@@ -378,6 +378,7 @@ export class PermanentWorker {
         workerId: this.config.workerId,
         progress,
         currentStep,
+        totalSteps: 6, // Set the correct total steps for the UI
       });
     } catch (error) {
       console.warn(`Failed to update job progress for ${jobId}:`, error instanceof Error ? error.message : error);

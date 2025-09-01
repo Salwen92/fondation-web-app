@@ -103,9 +103,14 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
     }
   };
 
-  // Job status calculations - prioritize regeneration job when active
-  const currentJob = isRegenerating ? regenerationJob : latestJob;
-  const isProcessing = currentJob && ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(currentJob.status);
+  // Job status calculations - prioritize any active job 
+  // If there's a regeneration job in progress, use it; otherwise use the latest job
+  const currentJob = (isRegenerating && regenerationJob) ? regenerationJob : latestJob;
+  
+  // Check if the latest job is actually running (real-time tracking)
+  const isLatestJobRunning = latestJob && ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
+  const isProcessing = isLatestJobRunning || (isRegenerating && regenerationJob && ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(regenerationJob.status));
+  
   const isCompleted = currentJob?.status === "completed";
   const isFailed = currentJob?.status === "failed" || currentJob?.status === "dead";
   const isCanceled = currentJob?.status === "canceled";
@@ -193,7 +198,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
             {isProcessing && currentJob && (
               <ProgressBar 
                 currentStep={currentJob.currentStep ?? 0}
-                totalSteps={currentJob.totalSteps ?? 7}
+                totalSteps={currentJob.totalSteps ?? 6}
                 className="mb-4"
               />
             )}
