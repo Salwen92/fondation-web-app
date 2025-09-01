@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc --project .",
-    "start": "node dist/index.js",
+    "build:bundle": "tsc --project . && node scripts/bundle-worker.js --production",
+    "bundle": "node scripts/bundle-worker.js --production",
+    "start": "bun dist/index.js",
+    "start:bundled": "bun dist/worker.bundled.mjs",
     "typecheck": "tsc --noEmit --project .",
     "lint": "biome lint src/",
     "lint:fix": "biome lint src/ --write --unsafe",

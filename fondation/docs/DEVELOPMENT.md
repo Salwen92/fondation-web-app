@@ -152,7 +152,7 @@ bun run e2e           # Build + start all services
 
 1. **Verbose Mode**
    ```bash
-   node dist/cli.bundled.mjs analyze /workspace --verbose
+   bun dist/cli.bundled.mjs analyze /workspace --verbose
    ```
 
 2. **Interactive Debugging**

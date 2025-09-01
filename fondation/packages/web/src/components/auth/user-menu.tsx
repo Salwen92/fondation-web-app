@@ -23,7 +23,10 @@ export function UserMenu({ session }: UserMenuProps) {
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => signOut({ callbackUrl: "/login" })}
+        onClick={() => signOut({ 
+          callbackUrl: "/login",
+          redirect: true 
+        })}
       >
         <LogOut className="mr-2 h-4 w-4" />
         Déconnexion

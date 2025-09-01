@@ -59,6 +59,13 @@ export const getCurrentUser = query({
   },
 });
 
+export const getUserById = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.userId);
+  },
+});
+
 export const getDashboardStats = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
@@ -161,7 +168,7 @@ export const getGitHubToken = query({
       return null;
     }
     
-    // TODO: Add decryption logic here when we implement the full encryption system
+    // Return the token as-is (obfuscated) - deobfuscation will be handled by worker
     return user.githubAccessToken;
   },
 });

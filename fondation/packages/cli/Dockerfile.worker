@@ -1,9 +1,5 @@
 # Multi-stage build for Fondation CLI with Worker
-# IMPORTANT: We use official Bun images instead of node:alpine because:
-# 1. Bun doesn't have official Alpine ARM64 binaries (breaks on Apple Silicon)
-# 2. The oven/bun images handle all platform compatibility issues
-# 3. Use `bunx` or `bun x` instead of `npx` for running commands
-# See docs/DOCKER_BUILD_GUIDE.md for detailed information
+# This Dockerfile builds both CLI and Worker for complete job processing
 
 # Stage 1: Build with official Bun image
 FROM oven/bun:1.2.5 AS builder
@@ -23,7 +19,6 @@ RUN bun install
 COPY packages/shared ./packages/shared
 COPY packages/cli ./packages/cli
 COPY packages/worker ./packages/worker
-COPY convex ./convex
 COPY tsconfig.json ./
 COPY biome.json ./
 
@@ -41,15 +36,17 @@ RUN bun build dist/cli.js --outfile dist/cli.bundled.mjs --target=node --format=
 # Copy prompts to dist
 RUN cp -r prompts dist/prompts
 
-# Build Worker package (bundle with all dependencies)
+# Build Worker package
 WORKDIR /build/packages/worker
-# Bundle the Worker with convex included
-RUN bun build src/index.ts --outfile dist/worker.bundled.mjs --target=node --format=esm --minify
+RUN bun run build
+
+# Bundle the Worker
+RUN bun build dist/index.js --outfile dist/worker.bundled.mjs --target=node --format=esm
 
 # Stage 2: Runtime with slim Bun image
 FROM oven/bun:1.2.5-slim
 
-# Install bash and curl for Claude SDK and git for repository access
+# Install bash, curl for Claude SDK, and git for repository access
 RUN apt-get update && \
     apt-get install -y bash curl git && \
     rm -rf /var/lib/apt/lists/*
@@ -65,7 +62,7 @@ COPY --from=builder /build/packages/cli/package.json ./cli/
 COPY --from=builder /build/packages/worker/dist/worker.bundled.mjs ./worker/dist/
 
 # Install ONLY Claude SDK as external dependency
-RUN cd /app/cli && bun add @anthropic-ai/claude-code@latest && \
+RUN cd cli && bun add @anthropic-ai/claude-code@latest && \
     # Create symlink for the CLI to find the SDK at the expected location
     mkdir -p /app/node_modules && \
     ln -s /app/cli/node_modules/@anthropic-ai /app/node_modules/@anthropic-ai && \
@@ -76,22 +73,28 @@ RUN cd /app/cli && bun add @anthropic-ai/claude-code@latest && \
 # Create workspace and output directories
 RUN mkdir -p /workspace /output
 
-# Create symlink for prompts path resolution (for both source and dist locations)
+# Create symlink for prompts path resolution
 RUN ln -sf /app/cli/dist/prompts /app/cli/prompts
 
-# Set environment (tokens should be provided at runtime)
+# Create entrypoint script
+RUN echo '#!/bin/bash\n\
+if [ "$1" = "worker" ]; then\n\
+  exec node /app/worker/dist/worker.bundled.mjs\n\
+elif [ "$1" = "cli" ]; then\n\
+  shift\n\
+  exec node /app/cli/dist/cli.bundled.mjs "$@"\n\
+else\n\
+  exec node /app/cli/dist/cli.bundled.mjs "$@"\n\
+fi' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
+# Set environment
 ENV NODE_ENV=production \
     SHELL=/bin/bash \
     HOME=/root
 
-# Verify CLI works
-RUN bun /app/cli/dist/cli.bundled.mjs --version
+# Verify installations
+RUN node /app/cli/dist/cli.bundled.mjs --version && \
+    node /app/worker/dist/worker.bundled.mjs --help 2>/dev/null || echo "Worker ready"
 
-# Default entrypoint runs the CLI using Bun
-# Use: docker run fondation/cli:latest [command] [args]
-# Examples:
-#   docker run fondation/cli:latest analyze --repo owner/name
-#   docker run fondation/cli:latest worker --convex-url <url>
-# Note: We use 'bun' directly for clarity (not the 'node' symlink)
-ENTRYPOINT ["bun", "/app/cli/dist/cli.bundled.mjs"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["--help"]

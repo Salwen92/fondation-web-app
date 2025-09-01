@@ -52,16 +52,58 @@ export const authConfig = {
       },
       accessToken: token.accessToken,
     }),
-    jwt: async ({ token, account, profile }) => {
+    jwt: async ({ token, account, profile, trigger }) => {
+      // Handle fresh sign-in or account change
       if (account?.provider === "github" && profile) {
         token.githubId = String(profile.id);
         token.accessToken = account.access_token;
+        
+        // Mark this as a fresh login to ensure token update
+        token.freshLogin = true;
       }
+      
+      // Clear fresh login flag after first use
+      if (token.freshLogin && trigger !== "signIn") {
+        delete token.freshLogin;
+      }
+      
       return token;
     },
     signIn: async ({ account, profile }) => {
       if (account?.provider === "github" && profile) {
-        // User creation will be handled client-side after sign-in
+        // Always store/update GitHub access token for each sign-in (handles account switching)
+        if (account.access_token) {
+          try {
+            const { ConvexHttpClient } = await import("convex/browser");
+            const { api } = await import("@convex/generated/api");
+            const { safeObfuscate } = await import("@/lib/simple-crypto");
+            
+            const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "";
+            const client = new ConvexHttpClient(convexUrl);
+            
+            console.log(`Authenticating GitHub user: ${profile.login || profile.name} (ID: ${profile.id})`);
+            
+            // Create or update user with GitHub token - this handles account switching
+            await client.mutation(api.users.createOrUpdateUser, {
+              githubId: String(profile.id),
+              username: String(profile.login || profile.name || "Unknown"),
+              email: profile.email ?? undefined,
+              avatarUrl: profile.avatar_url as string | undefined,
+            });
+            
+            // Always update the GitHub access token (fresh token for account switching)
+            const obfuscatedToken = safeObfuscate(account.access_token);
+            await client.mutation(api.users.updateGitHubToken, {
+              githubId: String(profile.id),
+              accessToken: obfuscatedToken,
+            });
+            
+            console.log(`GitHub token updated for user ${profile.login || profile.name}`);
+          } catch (error) {
+            console.error("Failed to store GitHub token during sign-in:", error);
+            // Don't block sign-in if token storage fails
+          }
+        }
         return true;
       }
       return true;
@@ -69,5 +111,15 @@ export const authConfig = {
   },
   pages: {
     signIn: "/login",
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60, // 7 days
+  },
+  // Force re-authentication to ensure fresh tokens
+  events: {
+    async signOut() {
+      console.log("User signed out - forcing fresh authentication on next login");
+    },
   },
 } satisfies NextAuthConfig;

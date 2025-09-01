@@ -10,7 +10,7 @@ export class RepoManager {
   
   constructor(private tempDir: string) {}
   
-  async cloneRepo(url: string, branch: string, jobId: string): Promise<string> {
+  async cloneRepo(url: string, branch: string, jobId: string, githubToken?: string): Promise<string> {
     const repoPath = join(this.tempDir, `job-${jobId}`);
     
     try {
@@ -20,8 +20,15 @@ export class RepoManager {
       // Clean up any existing directory for this job
       await this.cleanup(jobId);
       
+      // Prepare clone URL with authentication if token is provided
+      let cloneUrl = url;
+      if (githubToken && url.includes('github.com')) {
+        // Convert https://github.com/owner/repo.git to https://token@github.com/owner/repo.git
+        cloneUrl = url.replace('https://github.com', `https://${githubToken}@github.com`);
+      }
+      
       // Clone the repository
-      const cloneCommand = `git clone --depth 1 --branch ${branch} ${url} ${repoPath}`;
+      const cloneCommand = `git clone --depth 1 --branch ${branch} ${cloneUrl} ${repoPath}`;
       const { stdout, stderr } = await execAsync(cloneCommand, {
         env: {
           ...process.env,

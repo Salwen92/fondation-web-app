@@ -13,7 +13,8 @@ import { randomBytes } from "node:crypto";
 
 // Generate config dynamically to read current environment variables
 export function createConfig(): WorkerConfig {
-  const workerId = process.env.WORKER_ID || `worker-${randomBytes(8).toString("hex")}`;
+  const isDocker = process.env.DOCKER_CONTAINER === 'true';
+  const workerId = process.env.WORKER_ID || `${isDocker ? 'docker' : 'local'}-worker-${randomBytes(8).toString("hex")}`;
   
   return {
     workerId,
@@ -23,7 +24,7 @@ export function createConfig(): WorkerConfig {
     heartbeatInterval: Number.parseInt(process.env.HEARTBEAT_INTERVAL || "60000", 10), // 1 minute
     maxConcurrentJobs: Number.parseInt(process.env.MAX_CONCURRENT_JOBS || "1", 10),
     tempDir: process.env.TEMP_DIR || "/tmp/fondation",
-    cliPath: process.env.CLI_PATH || "claude", // Use system claude CLI by default
+    cliPath: process.env.CLI_PATH || "/app/packages/cli/dist/cli.bundled.mjs", // Use bundled CLI in Docker
   };
 }
 

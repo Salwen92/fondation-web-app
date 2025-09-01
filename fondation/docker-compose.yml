@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  fondation-worker:
+    image: fondation/cli:latest
+    container_name: fondation-worker
+    command: ["worker", "--convex-url", "${CONVEX_URL}"]
+    environment:
+      - CONVEX_URL=${CONVEX_URL}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
+      - NODE_ENV=production
+      - POLL_INTERVAL=5000
+    volumes:
+      - ./workspace:/workspace
+      - ./output:/output
+      # Mount git config for authentication
+      - ~/.gitconfig:/root/.gitconfig:ro
+      - ~/.ssh:/root/.ssh:ro
+    restart: unless-stopped
+    networks:
+      - fondation-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: Run CLI commands
+  fondation-cli:
+    image: fondation/cli:latest
+    container_name: fondation-cli
+    environment:
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
+      - NODE_ENV=production
+    volumes:
+      - ./workspace:/workspace
+      - ./output:/output
+    networks:
+      - fondation-network
+    profiles:
+      - cli
+    stdin_open: true
+    tty: true
+
+networks:
+  fondation-network:
+    driver: bridge
+
+# Usage:
+# 1. Create .env file with:
+#    CONVEX_URL=https://your-deployment.convex.cloud
+#    GITHUB_TOKEN=ghp_your_token
+#    CLAUDE_CODE_OAUTH_TOKEN=sk-ant-your_token
+#
+# 2. Build image:
+#    docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
+#
+# 3. Start worker:
+#    docker-compose up -d fondation-worker
+#
+# 4. View logs:
+#    docker-compose logs -f fondation-worker
+#
+# 5. Run CLI commands (optional):
+#    docker-compose run --rm fondation-cli analyze --repo owner/name
+#
+# 6. Stop worker:
+#    docker-compose down

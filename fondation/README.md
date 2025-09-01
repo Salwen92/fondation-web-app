@@ -46,7 +46,7 @@
 | **Frontend** | Next.js 15, React 19, TypeScript | Modern web UI with App Router |
 | **Styling** | Tailwind CSS, Radix UI | Beautiful, accessible components |
 | **Database** | Convex | Real-time data synchronization |
-| **Backend** | Node.js Worker Service | Job processing and orchestration |
+| **Backend** | Bun Worker Service | Job processing and orchestration |
 | **AI Engine** | Claude SDK (Anthropic) | Content generation and analysis |
 | **Auth** | NextAuth + GitHub OAuth | Secure user authentication |
 | **Infrastructure** | Docker, Bun Workspace | Containerization and package management |

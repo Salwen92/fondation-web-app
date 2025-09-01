@@ -75,7 +75,7 @@ npx tsc --build --force
 mkdir -p /tmp/test-repo
 echo 'console.log("hello");' > /tmp/test-repo/index.js
 cd packages/cli
-node dist/cli.js analyze /tmp/test-repo --steps extract --output-dir /tmp/output
+bun dist/cli.js analyze /tmp/test-repo --steps extract --output-dir /tmp/output
 ```
 
 ### Step 4: Fix Claude SDK Path Resolution
@@ -106,7 +106,7 @@ docker run --rm \
   -v /tmp/test-repo:/workspace \
   -v /tmp/output:/output \
   fondation/cli:test-auth \
-  bash -c "cd /app/cli && node dist/cli.bundled.mjs analyze /workspace --steps extract --output-dir /output"
+  analyze /workspace --steps extract --output-dir /output
 ```
 
 ## Expected Outcomes

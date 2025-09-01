@@ -1,0 +1,83 @@
+# Claude AI Assistant Rules for Fondation Project
+
+## Runtime Environment
+- **ALWAYS use Bun**, not Node.js
+- Use `bun` to execute JavaScript/TypeScript files
+- Use `bunx` instead of `npx` for package executables
+- Use `bun run` for package.json scripts
+- The project runs on Bun v1.2.5
+
+## Docker Context
+- Docker images are based on `oven/bun:1.2.5-slim`
+- In Docker, `node` is a symlink to `bun` (but prefer using `bun` directly)
+- The CLI ENTRYPOINT is: `["bun", "/app/cli/dist/cli.bundled.mjs"]`
+- Worker runs as: `fondation/cli:latest worker`
+
+## Project Structure
+- Monorepo with Bun workspaces
+- Main packages: `cli`, `web`, `worker`, `shared`
+- TypeScript throughout
+- Biome for linting/formatting
+
+## Code Conventions
+- Use ES modules (type: "module")
+- Prefer async/await over callbacks
+- Use TypeScript strict mode
+- Follow existing patterns in the codebase
+
+## CLI Commands
+When documenting or suggesting CLI usage:
+```bash
+# Local development
+bun run cli analyze /path/to/repo
+
+# Docker
+docker run fondation/cli:latest analyze /workspace
+
+# Worker
+docker run fondation/cli:latest worker --convex-url <url>
+```
+
+## Environment Variables
+Required for worker/CLI:
+- `CONVEX_URL` - Convex deployment URL
+- `CLAUDE_CODE_OAUTH_TOKEN` - Claude API token
+- `GITHUB_TOKEN` - GitHub access token (optional, for private repos)
+
+## Security
+- Never hardcode tokens in Dockerfiles
+- Pass sensitive data via environment variables at runtime
+- Use `.env` files for local development only
+
+## Testing
+- Build with: `bun run build`
+- Test with: `bun run test`
+- Lint with: `bun run lint`
+- Format with: `bun run format:write`
+
+## Common Mistakes to Avoid
+1. ❌ Using `node` or `npm` commands
+2. ❌ Using `npx` instead of `bunx`
+3. ❌ Hardcoding tokens in code or Dockerfiles
+4. ❌ Bundling Claude SDK (must be external)
+5. ❌ Using CommonJS require() syntax
+
+## When Helping Users
+1. Always verify they're using Bun, not Node.js
+2. Check environment variables are properly set
+3. Ensure Docker commands use the correct ENTRYPOINT
+4. Suggest `bunx claude auth` for authentication issues
+5. Remember the worker is part of the CLI package now
+
+## File Paths in Docker
+- CLI: `/app/cli/dist/cli.bundled.mjs`
+- Worker: `/app/worker/dist/worker.bundled.mjs`
+- Workspace: `/workspace`
+- Output: `/output`
+
+## Package Scripts
+Key scripts to know:
+- `bun run dev` - Start all services
+- `bun run build` - Build all packages
+- `bun run docker:build` - Build Docker image
+- `bun run docker:worker:run` - Start worker in Docker

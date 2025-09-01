@@ -4,7 +4,12 @@ import { CLIExecutor } from "./cli-executor.js";
 import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
 import { api } from "@convex/generated/api";
-import type { Id } from "@convex/generated/dataModel";
+import { getSimpleCrypto } from "./simple-crypto";
+const safeDeobfuscate = getSimpleCrypto();
+
+// Type aliases for IDs to avoid import issues
+type JobId = string;
+type RepositoryId = string;
 
 // Use local types until workspace resolution is fixed
 type WorkerConfig = {
@@ -51,6 +56,7 @@ export class PermanentWorker {
   private isRunning = false;
   private activeJobs = new Set<string>();
   private lastJobTime: number = Date.now();
+  private startTime: number = Date.now();
   private stats = {
     total: 0,
     succeeded: 0,
@@ -61,11 +67,17 @@ export class PermanentWorker {
   // Public getters for health monitoring
   get isHealthy(): boolean {
     const memoryUsage = process.memoryUsage();
-    const memoryPercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+    const memoryPercent = (memoryUsage.rss / (1024 * 1024 * 1024)); // RSS in GB
     const timeSinceLastJob = Date.now() - this.lastJobTime;
+    const uptime = Date.now() - this.startTime;
     
-    // Healthy if memory usage is reasonable and we've processed a job recently
-    return memoryPercent < 90 && (this.stats.total === 0 || timeSinceLastJob < 1800000); // 30 minutes
+    // Healthy if:
+    // 1. Memory usage is under 1GB (RSS, not heap)
+    // 2. Either no jobs processed yet OR last job was within 30 minutes OR worker just started (<5 min)
+    // 3. Worker is still running
+    return this.isRunning && 
+           memoryPercent < 1.0 && 
+           (this.stats.total === 0 || timeSinceLastJob < 1800000 || uptime < 300000); // 30 minutes or 5 min startup grace
   }
   
   get workerStats() {
@@ -88,20 +100,25 @@ export class PermanentWorker {
   }
   
   async start(): Promise<void> {
+    console.log("🔄 Starting worker main loop...");
     this.isRunning = true;
     
     // Start health server
-    this.healthServer.listen(8081); // Use different port to avoid conflicts
+    this.healthServer.listen(8081); // Health check endpoint
+    console.log(`🏥 Health server listening on port 8081`);
     
     // Main polling loop
+    console.log(`🔁 Starting polling loop (interval: ${this.config.pollInterval}ms)`);
     while (this.isRunning) {
       try {
         await this.pollAndProcess();
         await this.sleep(this.config.pollInterval);
-      } catch (_error) {
+      } catch (error) {
+        console.error("❌ Error in polling loop:", error);
         await this.sleep(this.config.pollInterval * 2); // Backoff on error
       }
     }
+    console.log("⏹️ Worker main loop stopped");
   }
   
   async stop(): Promise<void> {
@@ -131,12 +148,14 @@ export class PermanentWorker {
     
     try {
       // Claim a job from the queue
+      console.log(`Polling for jobs (workerId: ${this.config.workerId})`);
       const claimedJob = await this.convex.mutation(api.queue.claimOne, {
         workerId: this.config.workerId,
         leaseMs: this.config.leaseTime,
       });
       
       if (claimedJob) {
+        console.log(`✅ Claimed job: ${claimedJob.id}`);
         const job: Job = {
           id: claimedJob.id as string,
           repositoryId: claimedJob.repositoryId as string,
@@ -155,8 +174,11 @@ export class PermanentWorker {
           .finally(() => {
             this.activeJobs.delete(job.id);
           });
+      } else {
+        console.log(`No jobs available to claim`);
       }
-    } catch (_error) {
+    } catch (error) {
+      console.error(`❌ Error claiming job:`, error);
     }
   }
   
@@ -164,14 +186,18 @@ export class PermanentWorker {
     const startTime = Date.now();
     
     try {
+      console.log(`🔄 Processing job ${job.id} for repository ${job.repositoryId}`);
+      
       // Fetch repository details to get URL
+      console.log(`📁 Fetching repository details for ${job.repositoryId}`);
       const repository = await this.convex.query(api.repositories.getByRepositoryId, {
-        repositoryId: job.repositoryId as Id<"repositories">,
+        repositoryId: job.repositoryId as any,
       });
       
       if (!repository) {
         throw new Error(`Repository ${job.repositoryId} not found`);
       }
+      console.log(`✅ Repository found: ${repository.fullName}`);
       
       // Start heartbeat to maintain lease
       const heartbeatInterval = this.startHeartbeat(job.id);
@@ -180,13 +206,48 @@ export class PermanentWorker {
         // Update status to running
         await this.updateJobStatus(job.id, "running", "Initializing...");
         
+        // Get the user record to access their GitHub token
+        console.log(`👤 Fetching user details for userId: ${repository.userId}`);
+        const user = await this.convex.query(api.users.getUserById, {
+          userId: repository.userId as any,
+        });
+        
+        if (!user?.githubId) {
+          throw new Error(`User not found or missing GitHub ID for repository ${repository.fullName}`);
+        }
+        console.log(`✅ User found: ${user.githubId} (${user.username})`);
+        
+        // Get user's GitHub token for repository access
+        console.log(`🔑 Fetching GitHub token for user: ${user.githubId}`);
+        let userGithubToken = await this.convex.query(api.users.getGitHubToken, {
+          githubId: user.githubId,
+        });
+
+        // Deobfuscate the token if found
+        if (userGithubToken) {
+          userGithubToken = safeDeobfuscate(userGithubToken);
+          console.log(`🔑 GitHub token deobfuscated successfully`);
+        }
+
+        // Fallback to environment token if user token not found
+        if (!userGithubToken) {
+          console.log('⚠️ No user GitHub token found, using environment fallback');
+          userGithubToken = process.env.GITHUB_TOKEN ?? null;
+          if (!userGithubToken) {
+            throw new Error(`No GitHub token available for user ${user.githubId}`);
+          }
+        }
+
+        console.log(`🔑 Using token: ${userGithubToken ? 'Found' : 'Not found'}`);
+        
         // Clone repository
         await this.updateJobStatus(job.id, "cloning", "Cloning repository...");
         const repoUrl = `https://github.com/${repository.fullName}.git`;
         const repoPath = await this.repoManager.cloneRepo(
           repoUrl,
           repository.defaultBranch || "main",
-          job.id
+          job.id,
+          userGithubToken || undefined
         );
         
         // Execute CLI
@@ -216,6 +277,8 @@ export class PermanentWorker {
         await this.repoManager.cleanup(job.id);
       }
     } catch (error) {
+      console.error(`❌ Job ${job.id} failed with error:`, error);
+      console.error(`❌ Error details:`, error instanceof Error ? error.stack : error);
       await this.failJob(job.id, error instanceof Error ? error.message : String(error));
       this.stats.failed++;
     } finally {
@@ -227,7 +290,7 @@ export class PermanentWorker {
     return setInterval(async () => {
       try {
         await this.convex.mutation(api.queue.heartbeat, {
-          jobId: jobId as Id<"jobs">,
+          jobId: jobId as any,
           workerId: this.config.workerId,
           leaseMs: this.config.leaseTime,
         });
@@ -242,7 +305,7 @@ export class PermanentWorker {
     progress?: string
   ): Promise<void> {
     await this.convex.mutation(api.queue.heartbeat, {
-      jobId: jobId as Id<"jobs">,
+      jobId: jobId as any,
       workerId: this.config.workerId,
       status: status as "cloning" | "analyzing" | "gathering" | "running",
       progress,
@@ -261,7 +324,7 @@ export class PermanentWorker {
     
     try {
       await this.convex.mutation(api.queue.heartbeat, {
-        jobId: jobId as Id<"jobs">,
+        jobId: jobId as any,
         workerId: this.config.workerId,
         progress,
         currentStep,
@@ -281,7 +344,7 @@ export class PermanentWorker {
     };
     
     await this.convex.mutation(api.queue.complete, {
-      jobId: jobId as Id<"jobs">,
+      jobId: jobId as any,
       workerId: this.config.workerId,
       result: simpleResult,
       docsCount: result.documents?.length || 0,
@@ -290,7 +353,7 @@ export class PermanentWorker {
   
   private async failJob(jobId: string, error: string): Promise<void> {
     await this.convex.mutation(api.queue.retryOrFail, {
-      jobId: jobId as Id<"jobs">,
+      jobId: jobId as any,
       workerId: this.config.workerId,
       error,
     });
@@ -304,8 +367,8 @@ export class PermanentWorker {
     }
       // Call the Convex mutation to upsert documents
       await this.convex.mutation(api.docs.upsertFromJob, {
-        jobId: job.id as Id<"jobs">,
-        repositoryId: job.repositoryId as Id<"repositories">,
+        jobId: job.id as any,
+        repositoryId: job.repositoryId as any,
         runId: `run_${Date.now()}`, // Unique run identifier
         files: result.documents.map((doc: any) => ({
           slug: doc.slug,

@@ -170,15 +170,15 @@ export class CLIExecutor {
         let analyzeCommand: string;
         
         if (isInsideDocker) {
-          // We're already inside Docker - run bundled CLI directly
+          // We're already inside Docker - run bundled CLI directly with Bun
           // Use stdbuf to unbuffer output so we see progress messages immediately
-          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 node dist/cli.bundled.mjs analyze "${repoPath}" --profile production`;
+          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 bun run dist/cli.bundled.mjs analyze "${repoPath}" --profile production`;
           analyzeCommand = runCmd;
         } else {
           // External Docker runtime - use authenticated CLI image
           const image = process.env.FONDATION_WORKER_IMAGE ?? "fondation/cli:authenticated";
           const repoMount = repoPath;
-          const runCmd = `cd /app/cli && node dist/cli.bundled.mjs analyze /tmp/repo --profile production`;
+          const runCmd = `cd /app/cli && bun dist/cli.bundled.mjs analyze /tmp/repo --profile production`;
           
           const dockerCmd =
             `docker run --rm -v "${repoMount}:/tmp/repo" -v "${repoMount}/.claude-tutorial-output:/output" ` +

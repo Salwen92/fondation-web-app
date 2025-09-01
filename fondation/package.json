@@ -62,7 +62,7 @@
     "docker:auth": "docker run -it --name auth fondation/cli:latest bunx claude auth",
     "docker:clean": "docker system prune -f",
     "docker:worker:build": "echo 'Worker runs inside CLI container - use build:docker instead'",
-    "docker:worker:run": "docker run -d --name fondation-worker --restart=always -e CONVEX_URL=$CONVEX_URL -e CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN fondation/cli:latest node /app/cli/dist/cli.bundled.mjs",
+    "docker:worker:run": "docker run -d --name fondation-worker --restart=always -e CONVEX_URL=$CONVEX_URL -e CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN fondation/cli:latest worker",
     "// E2E & Testing": "",
     "e2e": "bun run build && bun run dev",
     "e2e:test": "cd packages/web && bun run test:e2e"

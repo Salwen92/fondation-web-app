@@ -136,7 +136,7 @@ docker run --rm \
   -v /path/to/repository:/workspace \
   -v /path/to/output:/output \
   fondation/cli:authenticated \
-  bash -c "cd /app/cli && node dist/cli.bundled.mjs analyze /workspace --output-dir /output"
+  analyze /workspace --output-dir /output
 ```
 
 ## Environment Variables

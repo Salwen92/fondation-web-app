@@ -115,7 +115,7 @@ docker run -d \
 docker exec -it fondation-persistent bunx claude auth
 
 # Use the authenticated container
-docker exec fondation-persistent node dist/cli.bundled.mjs analyze /workspace --output-dir /output
+docker exec fondation-persistent bun dist/cli.bundled.mjs analyze /workspace --output-dir /output
 ```
 
 The authentication will persist across container restarts as long as the volume is mounted.
@@ -142,7 +142,7 @@ The authentication will persist across container restarts as long as the volume 
 
 ### Basic Test
 ```bash
-docker run --rm fondation/cli:latest node dist/cli.bundled.mjs --version
+docker run --rm fondation/cli:latest --version
 ```
 
 ### Analyze Command Test
@@ -156,7 +156,7 @@ docker run --rm \
   -v /tmp/test-repo:/workspace \
   -v /tmp/output:/output \
   fondation/cli:authenticated \
-  bash -c "cd /app/cli && node dist/cli.bundled.mjs analyze /workspace --output-dir /output"
+  analyze /workspace --output-dir /output
 ```
 
 ## Production Deployment
@@ -181,7 +181,7 @@ services:
     volumes:
       - ./workspaces:/workspace
       - ./outputs:/output
-    command: node /app/worker/dist/index.js
+    command: worker
 ```
 
 ## Maintenance
@@ -213,8 +213,9 @@ docker image prune -f
 5. **Test authentication** before marking an image as production-ready
 6. **Understand execution methods**:
    - `bun run script-name` - Runs npm scripts defined in package.json
-   - `node file.mjs` - Directly executes a bundled JavaScript file
-   - Use `node` for bundled executables, `bun run` for development scripts
+   - `bun file.mjs` - Directly executes a bundled JavaScript file with Bun runtime
+   - The Docker image uses Bun as the runtime (node is a symlink to bun)
+   - Use `bun` for bundled executables, `bun run` for development scripts
 
 ## References
 

@@ -181,6 +181,13 @@ async function main() {
         program.addCommand(generateTutorialsCommand);
       },
     },
+    {
+      name: 'worker',
+      load: async () => {
+        const { workerCommand } = await import('./cli/commands/worker');
+        program.addCommand(workerCommand);
+      },
+    },
   ];
 
   // Check if help or version is requested at the program level
