@@ -91,14 +91,14 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
         console.log('🚀 CLI path:', this.cliPath);
         
         // Determine execution command based on CLI path
-        const cliPackageDir = resolvePath(join(__dirname, '../../../../cli'));
+        const cliPackageDir = resolvePath(join(__dirname, '../../../cli'));
         let command: string;
-        if (this.cliPath.includes('src/cli.ts')) {
-          // Execute TypeScript source directly with Bun
+        if (this.cliPath.includes('cli.ts') || this.cliPath.includes('src')) {
+          // Execute TypeScript source directly with Bun (preferred for development)
           command = `cd "${cliPackageDir}" && bun src/cli.ts analyze "${repoPath}" --profile development`;
           console.log('💻 Using TypeScript source execution');
         } else {
-          // Execute bundled version with Bun
+          // Execute bundled version with Bun (fallback)
           command = `cd "${cliPackageDir}" && bun dist/cli.bundled.mjs analyze "${repoPath}" --profile development`;
           console.log('📦 Using bundled execution');
         }
