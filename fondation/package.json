@@ -20,6 +20,7 @@
     "build:cli": "cd packages/cli && bun run build",
     "build:web": "cd packages/web && bun run build",
     "build:worker": "cd packages/worker && bun run build",
+    "build:worker:bundle": "cd packages/worker && bun run build:bundle",
     "build:docker": "docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .",
     "// Type Checking": "",
     "typecheck": "tsc --build",
@@ -60,6 +61,8 @@
     "docker:build": "bun run build:docker",
     "docker:auth": "docker run -it --name auth fondation/cli:latest bunx claude auth",
     "docker:clean": "docker system prune -f",
+    "docker:worker:build": "echo 'Worker runs inside CLI container - use build:docker instead'",
+    "docker:worker:run": "docker run -d --name fondation-worker --restart=always -e CONVEX_URL=$CONVEX_URL -e CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN fondation/cli:latest node /app/cli/dist/cli.bundled.mjs",
     "// E2E & Testing": "",
     "e2e": "bun run build && bun run dev",
     "e2e:test": "cd packages/web && bun run test:e2e"
