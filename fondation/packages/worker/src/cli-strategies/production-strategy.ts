@@ -13,7 +13,7 @@
  * - French progress messages ("Étape X/6")
  */
 
-import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy.js";
+import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy";
 import { EnvironmentConfig } from "@fondation/shared/environment-config";
 
 export class ProductionCLIStrategy extends BaseStrategy {
@@ -63,7 +63,7 @@ export class ProductionCLIStrategy extends BaseStrategy {
         NODE_PATH: '/app/node_modules',
         // Centralized environment variables from singleton
         ...(envConfig.getClaudeOAuthToken() && {
-          CLAUDE_CODE_OAUTH_TOKEN: envConfig.getClaudeOAuthToken()!
+          CLAUDE_CODE_OAUTH_TOKEN: envConfig.getClaudeOAuthToken() as string
         }),
         CONVEX_URL: envConfig.getConvexUrl(),
         // Let CLI use default .claude-tutorial-output directory in repo

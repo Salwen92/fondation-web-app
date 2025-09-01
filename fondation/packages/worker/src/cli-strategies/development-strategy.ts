@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import { existsSync } from "node:fs";
 import { promisify } from "node:util";
-import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy.js";
+import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy";
 import { dev } from "@fondation/shared/environment";
 import { EnvironmentConfig } from "@fondation/shared/environment-config";
 
@@ -105,7 +105,7 @@ export class DevelopmentCLIStrategy extends BaseStrategy {
         // Centralized environment variables from singleton
         CONVEX_URL: envConfig.getConvexUrl(),
         ...(envConfig.getClaudeOAuthToken() && { 
-          CLAUDE_CODE_OAUTH_TOKEN: envConfig.getClaudeOAuthToken()! 
+          CLAUDE_CODE_OAUTH_TOKEN: envConfig.getClaudeOAuthToken() as string
         }),
       },
       timeout: undefined, // No timeout in development

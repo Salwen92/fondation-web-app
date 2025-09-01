@@ -1,3 +1,4 @@
 export * from "./types.js";
 export * from "./schemas.js";
 export * from "./convex-interface.js";
+export * from "./environment-config.js";

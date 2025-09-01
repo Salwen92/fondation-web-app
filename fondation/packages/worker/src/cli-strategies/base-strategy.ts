@@ -12,11 +12,14 @@
  * - Provides consistent error handling and output parsing
  */
 
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 
 // Re-export types from interface for backward compatibility
-export type { CLIExecutionStrategy, CLIResult } from "./base-strategy-interface.js";
-import type { CLIExecutionStrategy, CLIResult } from "./base-strategy-interface.js";
+export type { CLIExecutionStrategy, CLIResult } from "./base-strategy-interface";
+import type { CLIExecutionStrategy, CLIResult } from "./base-strategy-interface";
+
+// Progress parsing utilities
+import { ProgressParser, type ProgressMapping } from "../progress-parser";
 
 // Configuration types for strategy customization
 export interface CommandConfig {
@@ -32,9 +35,7 @@ export interface ValidationResult {
   warnings?: string[];
 }
 
-export interface ProgressMapping {
-  [key: string]: string;
-}
+// ProgressMapping now imported from progress-parser.ts
 
 /**
  * Abstract base strategy implementing Template Method pattern
@@ -64,27 +65,13 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
   }
   
   protected getProgressMapping(): ProgressMapping {
-    // Default French UI progress mapping for 6-step workflow
-    return {
-      "Starting codebase analysis": "Étape 1/6: Initialisation de l'analyse",
-      "Extracting core abstractions": "Étape 1/6: Extraction des abstractions",
-      "Analyzing relationships": "Étape 2/6: Analyse des relations",
-      "Determining optimal chapter order": "Étape 3/6: Ordonnancement des chapitres",
-      "Generating chapter content": "Étape 4/6: Génération des chapitres",
-      "Reviewing and enhancing": "Étape 5/6: Révision des chapitres",
-      "Analysis complete": "Étape 6/6: Finalisation de l'analyse"
-    };
+    // Use centralized progress mapping from ProgressParser
+    return ProgressParser.getDefaultProgressMapping();
   }
   
   protected getWorkflowSteps(): string[] {
-    return [
-      "Extraction des abstractions",
-      "Analyse des relations", 
-      "Ordonnancement des chapitres",
-      "Génération des chapitres",
-      "Révision des chapitres",
-      "Création des tutoriels"
-    ];
+    // Use centralized workflow steps from ProgressParser
+    return ProgressParser.getWorkflowSteps('fr');
   }
   
   protected shouldLogDebugInfo(): boolean {
@@ -239,77 +226,16 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
   }
   
   /**
-   * Parse progress messages from CLI output
-   * Centralizes the duplicated progress parsing logic from both strategies
+   * Parse progress messages from CLI output using centralized ProgressParser
+   * Replaces 50+ lines of duplicate parsing logic with single ProgressParser call
    */
   private parseProgressMessages(text: string, onProgress?: (step: string) => Promise<void>): void {
-    const lines = text.split("\n");
-    const progressMapping = this.getProgressMapping();
-    const workflowSteps = this.getWorkflowSteps();
-    
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      
-      // Parse JSON logs (shared between strategies)
-      if (trimmedLine.startsWith("{") && trimmedLine.includes('"msg"')) {
-        try {
-          const logData = JSON.parse(trimmedLine);
-          const msg = logData.msg || "";
-          
-          // Map log messages to French UI progress steps
-          for (const [keyword, frenchMsg] of Object.entries(progressMapping)) {
-            if (msg.includes(keyword)) {
-              onProgress?.(frenchMsg).catch(console.error);
-              break;
-            }
-          }
-        } catch (_err) {
-          // Not valid JSON, fall through to other parsing patterns
-          if (this.shouldLogDebugInfo()) {
-            console.warn(`Failed to parse JSON log: ${trimmedLine}`);
-          }
-        }
-      }
-      
-      // Parse progress indicators (shared patterns)
-      if (trimmedLine.includes("[PROGRESS]") || trimmedLine.includes("[DEV-PROGRESS]")) {
-        const progress = trimmedLine.replace(/\[(DEV-)?PROGRESS\]/, "").trim();
-        onProgress?.(progress).catch(console.error);
-      } 
-      // Parse step patterns like "Step 1:" 
-      else if (trimmedLine.match(/^Step \d+:/i)) {
-        const stepMatch = trimmedLine.match(/^Step (\d+):/i);
-        if (stepMatch) {
-          const stepNum = Number.parseInt(stepMatch[1], 10) - 1;
-          if (stepNum >= 0 && stepNum < workflowSteps.length) {
-            const progressMsg = `Étape ${stepNum + 1}/6: ${workflowSteps[stepNum]}`;
-            onProgress?.(progressMsg).catch(console.error);
-          }
-        }
-      }
-      // Parse action words and map to workflow steps
-      else if (this.containsActionWord(trimmedLine)) {
-        for (let i = 0; i < workflowSteps.length; i++) {
-          if (trimmedLine.toLowerCase().includes(workflowSteps[i].toLowerCase().split(" ")[0])) {
-            const progressMsg = `Étape ${i + 1}/6: ${workflowSteps[i]}`;
-            onProgress?.(progressMsg).catch(console.error);
-            break;
-          }
-        }
-      }
-      // Parse progress ratios like "3/6 completed"
-      else if (trimmedLine.match(/^\d+\/\d+/)) {
-        onProgress?.(trimmedLine).catch(console.error);
-      }
-    }
-  }
-  
-  /**
-   * Check if line contains action words that indicate progress
-   */
-  private containsActionWord(line: string): boolean {
-    const actionWords = ["Generating", "Analyzing", "Processing", "Creating", "Reviewing", "Extracting"];
-    return actionWords.some(word => line.includes(word));
+    // Use ProgressParser to handle all progress parsing patterns
+    ProgressParser.parseMultilineOutput(
+      text,
+      onProgress,
+      this.getProgressMapping()
+    );
   }
   
   /**
