@@ -101,7 +101,20 @@ const runCmd = `cd /app/cli && bun dist/cli.bundled.mjs analyze /tmp/repo --prof
 
 ## Environment Variables
 
-### Required for Claude Integration
+### **Critical for Worker Startup (Phase 2 Finding):**
+
+```bash
+# CONVEX_URL is REQUIRED - worker crashes with exit code 158 without this
+CONVEX_URL=https://basic-stoat-666.convex.cloud  # CRITICAL
+
+# Development mode uses host authentication
+NODE_ENV=development  # Uses bunx claude auth tokens
+
+# Local execution mode (recommended for development)
+FONDATION_EXECUTION_MODE=local
+```
+
+### **Production Environment Variables:**
 
 ```bash
 # Claude OAuth Token (for API access)
@@ -174,14 +187,36 @@ docker run -d \
 
 ## Troubleshooting
 
+### **Issue: Worker crashes with exit code 158 (Phase 2 Critical Finding)**
+**Root Cause:** Missing CONVEX_URL environment variable  
+**Solution:**
+```bash
+# Always set CONVEX_URL when starting worker
+CONVEX_URL=https://basic-stoat-666.convex.cloud bun run dev
+
+# Verify it's set
+echo $CONVEX_URL  # Should show URL, not empty
+```
+
+### **Issue: CLI execution fails with "profile not found" (Phase 2 Fixed)**
+**Root Cause:** Using invalid profile "development" instead of "dev"  
+**Status:** ✅ Fixed in `packages/worker/src/cli-strategies/development-strategy.ts`  
+**Solution:** Use correct profile names:
+```bash
+# Correct profiles
+bun src/cli.ts analyze /path --profile dev        # Development
+bun src/cli.ts analyze /path --profile production # Production
+```
+
 ### Issue: "executable file not found"
 **Solution:** Use `bunx` instead of `npx`, or `bun` instead of `node`
 
 ### Issue: Claude authentication fails
 **Solution:** 
 1. Re-authenticate: `bunx claude auth`
-2. Check token is set: `echo $CLAUDE_CODE_OAUTH_TOKEN`
-3. Ensure token is passed to Docker container
+2. Check authentication status: `bunx claude auth status`
+3. For production, check token is set: `echo $CLAUDE_CODE_OAUTH_TOKEN`
+4. Ensure token is passed to Docker container
 
 ### Issue: Worker can't find Claude SDK
 **Solution:** The SDK must be installed as an external dependency (not bundled):

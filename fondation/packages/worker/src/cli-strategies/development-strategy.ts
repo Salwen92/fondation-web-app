@@ -91,10 +91,10 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
         let command: string;
         if (this.cliPath.includes('cli.ts') || this.cliPath.includes('src')) {
           // Execute TypeScript source directly with Bun (preferred for development)
-          command = `cd "${cliPackageDir}" && bun src/cli.ts analyze "${repoPath}" --profile development`;
+          command = `cd "${cliPackageDir}" && bun src/cli.ts analyze "${repoPath}" --profile dev --verbose`;
         } else {
           // Execute bundled version with Bun (fallback)
-          command = `cd "${cliPackageDir}" && bun dist/cli.bundled.mjs analyze "${repoPath}" --profile development`;
+          command = `cd "${cliPackageDir}" && bun dist/cli.bundled.mjs analyze "${repoPath}" --profile dev --verbose`;
         }
         
         // Track the 6-step analysis workflow (French UI)
@@ -117,14 +117,20 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
           stdio: ['pipe', 'pipe', 'pipe']
         });
         
-        // Set development-friendly timeout (longer for debugging)
-        const timeout = setTimeout(() => {
-          child.kill('SIGTERM');
-        }, 7200000); // 2 hours for development debugging
+        // No timeout in development - let the process run as long as needed
         
         let stdout = "";
         let stderr = "";
         let hasFinished = false;
+        const startTime = Date.now();
+        
+        // Add development progress heartbeat every 2 minutes
+        const devHeartbeat = setInterval(() => {
+          if (!hasFinished) {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            options.onProgress?.(`Étape 1/6: Analyse en cours... (${elapsed}s)`).catch(console.error);
+          }
+        }, 120000);
         
         child.stdout?.on("data", (data) => {
           const text = data.toString();
@@ -192,7 +198,7 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
         child.on("error", (error) => {
           if (!hasFinished) {
             hasFinished = true;
-            clearTimeout(timeout);
+            clearInterval(devHeartbeat);
             reject(new Error(`Development CLI execution failed: ${error.message}`));
           }
         });
@@ -200,7 +206,7 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
         child.on("exit", (code, signal) => {
           if (!hasFinished && (code !== 0 || signal)) {
             hasFinished = true;
-            clearTimeout(timeout);
+            clearInterval(devHeartbeat);
             
             let errorMsg = `Development CLI execution failed with exit code ${code}`;
             if (signal) {
@@ -232,7 +238,7 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
         child.on("close", async (code) => {
           if (!hasFinished) {
             hasFinished = true;
-            clearTimeout(timeout);
+            clearInterval(devHeartbeat);
             
             if (code === 0) {
               

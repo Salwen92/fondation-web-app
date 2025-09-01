@@ -131,18 +131,20 @@ Fondation supports both **development** and **production** execution modes with 
 ### Environment Variables
 
 #### Development-Specific Variables
+
+**Essential for Phase 2 Local Testing:**
 ```bash
-# Enable development features
-FONDATION_DEV_DOCKER_BYPASS=true      # Skip Docker requirements
-FONDATION_DEV_DEBUG=true              # Enhanced logging
-FONDATION_DEV_HOT_RELOAD=true         # Auto-restart on changes
+# REQUIRED - Worker crashes without this
+CONVEX_URL=https://basic-stoat-666.convex.cloud  # CRITICAL
 
-# Override environment detection
-FONDATION_ENV=development             # Force development mode
-FONDATION_EXECUTION_MODE=local        # Force local execution
+# Development mode configuration  
+NODE_ENV=development                  # Enables dev features
+FONDATION_EXECUTION_MODE=local       # Force local execution (bypasses Docker)
 
-# Development paths
-TEMP_DIR=/tmp/fondation-dev           # Development temp directory
+# Optional development features
+FONDATION_DEV_DEBUG=true             # Enhanced logging
+FONDATION_DEV_HOT_RELOAD=true        # Auto-restart on changes
+TEMP_DIR=/tmp/fondation-dev          # Development temp directory
 ```
 
 #### Production Variables
@@ -159,19 +161,27 @@ CONVEX_URL=https://your-deployment.convex.cloud
 
 ### Quick Setup Commands
 
-#### Development Setup
+#### Development Setup (Phase 2 Validated)
 ```bash
-# Install dependencies
+# 1. Install dependencies
 bun install
 
-# Set up development environment
+# 2. Set up development environment
 cp .env.example .env.local
 # Edit .env.local with your values
 
-# Authenticate Claude CLI
+# 3. Authenticate Claude CLI (REQUIRED for development)
 bunx claude auth
+# Follow browser authentication flow
 
-# Start development environment
+# 4. Start web interface
+bun run dev:web
+
+# 5. Start worker in separate terminal (CRITICAL: Include CONVEX_URL)
+cd packages/worker
+NODE_ENV=development \
+FONDATION_EXECUTION_MODE=local \
+CONVEX_URL=https://basic-stoat-666.convex.cloud \
 bun run dev
 ```
 
@@ -467,15 +477,23 @@ const jobId: Id<"jobs"> = "..." // Type-safe ID
 ### Worker Service Issues
 
 #### Worker Won't Start in Development
+
+**Most Common Issue: Missing CONVEX_URL (Exit Code 158)**
 ```bash
-# Check environment detection
+# 1. ALWAYS check CONVEX_URL first
+echo $CONVEX_URL  # Should show URL, not empty
+
+# 2. If empty, set it explicitly:
+CONVEX_URL=https://basic-stoat-666.convex.cloud bun run dev
+
+# 3. Check environment detection
 cd packages/worker && bun run diagnostics
 
-# Force local execution mode
+# 4. Force local execution mode
 bun run dev:local
 
-# Check Claude authentication
-bunx claude --help
+# 5. Check Claude authentication
+bunx claude auth status
 ```
 
 #### CLI Execution Fails
@@ -516,6 +534,32 @@ export CLAUDE_CODE_OAUTH_TOKEN="your-token"
 - **Development**: Uses host authentication by default (`bunx claude auth`)
 - **Production**: Requires `CLAUDE_CODE_OAUTH_TOKEN` environment variable
 
+### CLI Profile Issues (FIXED in Phase 2)
+
+#### CLI Profile Configuration Error
+**Problem**: CLI execution fails with "profile not found"  
+**Root Cause**: Using invalid profile "development" instead of "dev"  
+**Status**: ✅ **FIXED** in `packages/worker/src/cli-strategies/development-strategy.ts`
+
+**Available CLI Profiles:**
+```typescript
+// Valid profiles (from packages/cli/src/cli/utils/config.ts)
+const DEFAULT_PROFILES = {
+  dev: {           // ← Use this in development
+    verbose: true,
+    logMessages: true,
+    showSystemLogs: true,
+    showToolLogs: true,
+  },
+  production: {    // ← Use this in production
+    temperature: 0.3,
+    showToolLogs: false,
+    showSystemLogs: false,
+  },
+  // ... other profiles: clean, debug, test
+};
+```
+
 ### Environment Detection Issues
 
 #### Wrong Mode Detected
@@ -523,11 +567,13 @@ export CLAUDE_CODE_OAUTH_TOKEN="your-token"
 # Check current environment detection
 node -e "import('@fondation/shared/environment').then(env => console.log(env.environmentInfo))"
 
-# Force development mode
-export FONDATION_ENV=development
-
-# Force local execution
+# Phase 2 recommended approach:
+export NODE_ENV=development
 export FONDATION_EXECUTION_MODE=local
+export CONVEX_URL=https://basic-stoat-666.convex.cloud
+
+# Then restart worker
+cd packages/worker && bun run dev
 ```
 
 #### Mixed Environment Variables

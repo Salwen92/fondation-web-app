@@ -221,7 +221,26 @@ const job = useQuery(api.jobs.getJob, { jobId });
 
 ## Recent Fixes Reference
 
-### What We Fixed in the Monorepo Standardization
+### **Phase 2 CLI Execution Testing Fixes (Latest)**
+
+**Primary Issue**: Worker crashes with exit code 158  
+**Root Cause**: Missing CONVEX_URL environment variable  
+**Impact**: Prevented all CLI execution in development mode  
+**Solution**: Explicit environment variable configuration
+
+**Secondary Issue**: Invalid CLI profile configuration  
+**Root Cause**: Using "development" profile instead of "dev"  
+**Impact**: CLI execution failures even when worker started  
+**Solution**: Corrected profile name in development-strategy.ts
+
+**Additional Findings**:
+- Timeout removal improved reliability (per user request)
+- Silent error handling masked actual issues
+- Development mode works better with local execution
+- French step progression ("Étape X/6") functions correctly
+- Real-time UI updates work when worker properly connects
+
+### **Phase 1 Monorepo Standardization Fixes**
 
 1. **CLI Module Resolution** (25+ TypeScript errors)
    - Changed to "bundler" moduleResolution
@@ -299,6 +318,23 @@ NODE_OPTIONS="--max-old-space-size=4096" bun run build
 
 ## Progress Tracking Issues
 
+### **Phase 2 Issue: CLI Profile Configuration Error (FIXED)**
+
+#### Problem: CLI execution fails with "profile not found"
+**Root Cause**: Worker using invalid profile "development" instead of "dev"  
+**Fixed In**: `packages/worker/src/cli-strategies/development-strategy.ts`  
+**Status**: ✅ **RESOLVED** during Phase 2 testing
+
+**Before (incorrect):**
+```bash
+bun src/cli.ts analyze /path --profile development  # ❌ Invalid profile
+```
+
+**After (correct):**
+```bash
+bun src/cli.ts analyze /path --profile dev  # ✅ Valid profile
+```
+
 ### Problem: Shows "Étape 0 sur 6" Instead of "Étape 1 sur 6"
 **Cause**: Display logic not implementing 1-based indexing
 
@@ -332,14 +368,40 @@ totalSteps: 6,
 
 ## Worker Issues
 
+### **CRITICAL: Worker Crashes with Exit Code 158 (Phase 2 Finding)**
+
+#### Problem: Worker appears to start but immediately crashes
+**Root Cause**: Missing `CONVEX_URL` environment variable  
+**Discovery**: This was the primary issue preventing Phase 2 CLI execution
+
+**Symptoms:**
+- Worker process exits with code 158
+- No jobs are processed
+- Silent failure with minimal error logs
+- Worker restarts in endless loop
+
+**Solution (Phase 2 Validated):**
+```bash
+# Development mode (recommended)
+cd packages/worker
+NODE_ENV=development \
+FONDATION_EXECUTION_MODE=local \
+CONVEX_URL=https://basic-stoat-666.convex.cloud \
+bun run dev
+
+# Verify environment variable is set
+echo $CONVEX_URL  # Should show URL, not empty
+```
+
 ### Worker Not Processing Jobs
 
 #### Problem: Jobs stay pending, worker not claiming
-**Checklist**:
-1. Check worker is running: `bun run dev:worker`
-2. Check Convex connection in logs
-3. Verify CONVEX_URL in environment
-4. Check Docker image is authenticated
+**Phase 2 Updated Checklist**:
+1. **MOST IMPORTANT**: Check `CONVEX_URL` is set: `echo $CONVEX_URL`
+2. Check worker is running: `bun run dev:worker`
+3. Check Convex connection in logs (look for "Connected to Convex deployment")
+4. Check CLI profile is "dev" not "development" (fixed in Phase 2)
+5. Check Docker image is authenticated (production only)
 
 ### Docker Spawn Failures
 

@@ -12,14 +12,29 @@ The Fondation Worker is now deployed as a persistent Docker container that polls
 
 ## Quick Start
 
-### 1. Build the Worker
+### Development Mode (Recommended for Testing)
+
+**Phase 2 Validated Setup:**
 ```bash
-# Build all components and Docker image
-bun run docker:worker:build
+# Navigate to worker directory
+cd packages/worker
+
+# Start worker with required environment variables
+NODE_ENV=development \
+FONDATION_EXECUTION_MODE=local \
+CONVEX_URL=https://basic-stoat-666.convex.cloud \
+bun run dev
 ```
 
-### 2. Start the Worker
+**Critical:** Missing `CONVEX_URL` will cause silent worker crashes with exit code 158.
+
+### Production Mode (Docker)
+
 ```bash
+# 1. Build the Worker
+bun run docker:worker:build
+
+# 2. Start the Worker
 # Using docker-compose (recommended)
 docker-compose -f docker-compose.worker.yml up -d
 
@@ -55,13 +70,23 @@ docker stats fondation-worker
 ```
 
 ## Environment Variables
-- `CONVEX_URL` - Convex deployment URL (required)
-- `CONVEX_DEPLOYMENT` - Convex deployment name
+
+### **Critical Variables (Worker won't start without these):**
+- `CONVEX_URL` - Convex deployment URL (**REQUIRED** - causes exit code 158 if missing)
+- `CLAUDE_CODE_OAUTH_TOKEN` - Claude API token (production) or use `bunx claude auth` (development)
+
+### **Configuration Variables:**
+- `NODE_ENV` - Set to `development` for local testing with enhanced logging
+- `FONDATION_EXECUTION_MODE` - Set to `local` for development (bypasses Docker)
 - `WORKER_ID` - Unique worker identifier (auto-generated if not set)
-- `POLL_INTERVAL` - Job polling interval in ms (default: 5000)
+- `POLL_INTERVAL` - Job polling interval in ms (default: 3000 in dev, 5000 in prod)
 - `MAX_CONCURRENT_JOBS` - Max jobs to process simultaneously (default: 1)
 - `LEASE_TIME` - Job lease duration in ms (default: 300000)
 - `HEARTBEAT_INTERVAL` - Heartbeat interval in ms (default: 60000)
+
+### **Development Variables:**
+- `FONDATION_DEV_DEBUG=true` - Enhanced logging and debugging
+- `TEMP_DIR=/tmp/fondation-dev` - Development temp directory
 
 ## File Structure
 ```
@@ -85,7 +110,17 @@ docker stats fondation-worker
 
 ## Deployment Options
 
-### Development
+### Development (Local Mode - Recommended)
+```bash
+# Direct local execution (Phase 2 validated)
+cd packages/worker
+NODE_ENV=development \
+FONDATION_EXECUTION_MODE=local \
+CONVEX_URL=https://basic-stoat-666.convex.cloud \
+bun run dev
+```
+
+### Development (Docker Mode)
 ```yaml
 # docker-compose.worker.yml
 services:
@@ -93,6 +128,7 @@ services:
     image: fondation/worker:authenticated
     environment:
       - CONVEX_URL=${CONVEX_URL}
+      - NODE_ENV=development
       - WORKER_ID=dev-worker-001
 ```
 
@@ -119,13 +155,35 @@ services:
 
 ## Troubleshooting
 
+### **Critical Issue: Worker Crashes with Exit Code 158**
+**Symptom:** Worker appears to start but immediately crashes
+**Root Cause:** Missing `CONVEX_URL` environment variable
+**Solution:**
+```bash
+# Development mode
+CONVEX_URL=https://basic-stoat-666.convex.cloud bun run dev
+
+# Check environment is set
+echo $CONVEX_URL  # Should show URL, not empty
+```
+
+### **Issue: Invalid CLI Profile**
+**Symptom:** CLI execution fails with "profile not found"
+**Root Cause:** Using "development" profile instead of "dev" 
+**Fixed in:** `packages/worker/src/cli-strategies/development-strategy.ts`
+```bash
+# Correct profile name is "dev" not "development"
+bun src/cli.ts analyze /path --profile dev
+```
+
 ### Worker not processing jobs
-1. Check authentication: `docker exec fondation-worker sh -c "cd /app/packages/cli && bunx claude auth status"`
-2. Check Convex connection: `docker logs fondation-worker | grep "Convex"`
-3. Verify environment variables: `docker exec fondation-worker env | grep CONVEX`
+1. **Check CONVEX_URL first:** `echo $CONVEX_URL` (most common issue)
+2. Check authentication: `bunx claude auth status` (development) or verify `CLAUDE_CODE_OAUTH_TOKEN`
+3. Check logs for "Connected to Convex" message
+4. Verify CLI path: In development, uses `bun src/cli.ts`, in production uses bundled CLI
 
 ### Health check failing
-- Normal if no jobs processed yet
+- Normal if no jobs processed yet  
 - Check memory usage: `docker stats fondation-worker`
 - Restart if needed: `docker restart fondation-worker`
 
