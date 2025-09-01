@@ -1,6 +1,7 @@
 import type { DefaultSession, NextAuthConfig } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import { env } from "@/env";
+import { getScopeConfiguration, validateTokenScopes, logScopeUsage } from "@/lib/github-scopes";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -37,7 +38,8 @@ export const authConfig = {
       clientSecret: env.GITHUB_CLIENT_SECRET ?? "",
       authorization: {
         params: {
-          scope: "read:user user:email repo",
+          // Use scope management for proper permission control
+          scope: getScopeConfiguration(),
         },
       },
     }),
@@ -71,6 +73,23 @@ export const authConfig = {
     },
     signIn: async ({ account, profile }) => {
       if (account?.provider === "github" && profile) {
+        // Validate token scopes
+        if (account.access_token) {
+          const validation = await validateTokenScopes(account.access_token);
+          
+          if (!validation.valid) {
+            console.error('Token missing required scopes:', validation.missing);
+            // Still allow sign-in but log the issue
+          }
+          
+          // Log scope usage for security auditing
+          logScopeUsage(
+            String(profile.id),
+            validation.scopes,
+            'signin'
+          );
+        }
+        
         // Always store/update GitHub access token for each sign-in (handles account switching)
         if (account.access_token) {
           try {
