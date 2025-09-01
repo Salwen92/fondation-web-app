@@ -190,14 +190,14 @@ export class CLIExecutor {
         // Use stdbuf to unbuffer output so we see progress messages immediately
         const analyzeCommand = `cd /app/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 timeout 3600 bun dist/cli.bundled.mjs analyze "${repoPath}" --profile production`;
         
-        // Track the 6-step analysis workflow
+        // Track the 6-step analysis workflow (French UI)
         const workflowSteps = [
-          "Extracting abstractions",
-          "Analyzing relationships", 
-          "Ordering chapters",
-          "Generating chapters",
-          "Reviewing chapters",
-          "Creating tutorials"
+          "Extraction des abstractions",
+          "Analyse des relations", 
+          "Ordonnancement des chapitres",
+          "Génération des chapitres",
+          "Révision des chapitres",
+          "Création des tutoriels"
         ];
         let _currentStepIndex = 0;
         const child = spawn('sh', ['-c', analyzeCommand], {
@@ -233,21 +233,21 @@ export class CLIExecutor {
                 const logData = JSON.parse(trimmedLine);
                 const msg = logData.msg || "";
                 
-                // Map Docker log messages to progress steps
+                // Map Docker log messages to progress steps (French UI)
                 if (msg.includes("Starting codebase analysis")) {
-                  options.onProgress?.("Step 0/6: Initializing analysis").catch(console.error);
+                  options.onProgress?.("Étape 0/6: Initialisation de l'analyse").catch(console.error);
                 } else if (msg.includes("Extracting core abstractions")) {
-                  options.onProgress?.("Step 1/6: Extracting abstractions").catch(console.error);
+                  options.onProgress?.("Étape 1/6: Extraction des abstractions").catch(console.error);
                 } else if (msg.includes("Analyzing relationships")) {
-                  options.onProgress?.("Step 2/6: Analyzing relationships").catch(console.error);
+                  options.onProgress?.("Étape 2/6: Analyse des relations").catch(console.error);
                 } else if (msg.includes("Determining optimal chapter order")) {
-                  options.onProgress?.("Step 3/6: Ordering chapters").catch(console.error);
+                  options.onProgress?.("Étape 3/6: Ordonnancement des chapitres").catch(console.error);
                 } else if (msg.includes("Generating chapter content")) {
-                  options.onProgress?.("Step 4/6: Generating content").catch(console.error);
+                  options.onProgress?.("Étape 4/6: Génération des chapitres").catch(console.error);
                 } else if (msg.includes("Reviewing and enhancing")) {
-                  options.onProgress?.("Step 5/6: Reviewing content").catch(console.error);
+                  options.onProgress?.("Étape 5/6: Révision des chapitres").catch(console.error);
                 } else if (msg.includes("Analysis complete")) {
-                  options.onProgress?.("Step 6/6: Completing analysis").catch(console.error);
+                  options.onProgress?.("Étape 6/6: Finalisation de l'analyse").catch(console.error);
                 }
               } catch (err) {
                 // Not valid JSON, fall through to other parsing patterns
@@ -269,7 +269,7 @@ export class CLIExecutor {
                 const stepNum = Number.parseInt(stepMatch[1], 10) - 1;
                 if (stepNum >= 0 && stepNum < workflowSteps.length) {
                   _currentStepIndex = stepNum;
-                  const progressMsg = `Step ${stepNum + 1}/6: ${workflowSteps[stepNum]}`;
+                  const progressMsg = `Étape ${stepNum + 1}/6: ${workflowSteps[stepNum]}`;
                   options.onProgress?.(progressMsg).catch(console.error);
                 }
               }
@@ -283,7 +283,7 @@ export class CLIExecutor {
               for (let i = 0; i < workflowSteps.length; i++) {
                 if (trimmedLine.toLowerCase().includes(workflowSteps[i].toLowerCase().split(" ")[0])) {
                   _currentStepIndex = i;
-                  const progressMsg = `Step ${i + 1}/6: ${workflowSteps[i]}`;
+                  const progressMsg = `Étape ${i + 1}/6: ${workflowSteps[i]}`;
                   options.onProgress?.(progressMsg).catch(console.error);
                   break;
                 }

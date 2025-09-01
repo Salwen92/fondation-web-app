@@ -24,9 +24,10 @@
 - **OAuth Authentication**: No API keys needed - uses secure OAuth flow
 
 ### 🚀 Real-Time Processing
-- **Live Progress Updates**: WebSocket-based real-time status tracking
+- **Live Progress Updates**: WebSocket-based real-time status tracking with French UI
 - **Atomic Job Queue**: Prevents duplicate work with lease-based claiming
 - **Smart Retries**: Exponential backoff (5s → 10min) for resilient processing
+- **French Localization**: User interface in French (Étape 1 sur 6, etc.)
 
 ### 📚 Comprehensive Output
 - **Structured Courses**: Organized chapters with clear learning progression

@@ -5,7 +5,7 @@
 1. **Worker Execution**
    - Manually ran: `cd packages/worker && node dist/worker.bundled.mjs`
    - Had to pass environment variables manually:
-     - `CONVEX_URL=https://basic-stoat-666.convex.cloud`
+     - `CONVEX_URL=[REDACTED]`
      - `GITHUB_TOKEN=[REDACTED]`
      - `CLAUDE_CODE_OAUTH_TOKEN=[REDACTED]`
 
@@ -111,7 +111,7 @@ networks:
 
 **File:** `.env.production`
 ```bash
-CONVEX_URL=https://basic-stoat-666.convex.cloud
+CONVEX_URL=[REDACTED]
 GITHUB_TOKEN=[REDACTED]
 CLAUDE_CODE_OAUTH_TOKEN=[REDACTED]
 ```

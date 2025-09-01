@@ -87,6 +87,14 @@ const job = useQuery(api.jobs.getJob, {
 // - "completed": Successfully finished
 // - "failed": Error occurred
 // - "canceled": User canceled
+
+// Progress messages (French):
+// - "Étape 1/6: Extraction des abstractions"
+// - "Étape 2/6: Analyse des relations"
+// - "Étape 3/6: Ordonnancement des chapitres"
+// - "Étape 4/6: Génération des chapitres"
+// - "Étape 5/6: Révision des chapitres"
+// - "Étape 6/6: Création des tutoriels"
 ```
 
 #### `jobs.updateStatus`
@@ -96,7 +104,7 @@ await ctx.runMutation(api.jobs.updateStatus, {
   jobId: jobId,
   status: "analyzing",
   callbackToken: token,
-  progress: "Analyzing dependencies...",
+  progress: "Étape 2/6: Analyse des relations",
   currentStep: 2,
   totalSteps: 6
 });

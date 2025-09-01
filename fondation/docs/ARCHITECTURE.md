@@ -179,7 +179,7 @@ Build order: `shared` → `cli` → `web`/`worker` (parallel)
 - **Build**: Custom esbuild bundler
 - **Size**: ~476KB bundled (Claude SDK external)
 - **Auth**: OAuth-based (no API keys)
-- **Steps**: 6-phase analysis pipeline
+- **Steps**: 6-phase analysis pipeline (see Step Tracking System below)
 - **Output**: Markdown documents
 
 ### Shared Package (TypeScript Library)
@@ -204,6 +204,47 @@ FROM node:20-alpine
 - **Authentication**: OAuth flow requires spawn
 - **Updates**: SDK can update independently
 - **Security**: Credentials isolated in container
+
+## Step Tracking System
+
+### 6-Step Analysis Pipeline
+The analysis process consists of exactly 6 steps, with French localization for user-facing messages:
+
+1. **Extraction des abstractions** (Extract Abstractions) - ~60s
+   - Identifies core concepts and abstractions in the codebase
+   - Progress: "Étape 1 sur 6" (17%)
+
+2. **Analyse des relations** (Analyze Relationships) - ~60s
+   - Maps dependencies and relationships between components
+   - Progress: "Étape 2 sur 6" (33%)
+
+3. **Ordonnancement des chapitres** (Order Chapters) - ~30s
+   - Determines optimal learning progression
+   - Progress: "Étape 3 sur 6" (50%)
+
+4. **Génération des chapitres** (Generate Chapters) - ~60s
+   - Creates detailed chapter content
+   - Progress: "Étape 4 sur 6" (67%)
+
+5. **Révision des chapitres** (Review Chapters) - ~40s
+   - Enhances and refines generated content
+   - Progress: "Étape 5 sur 6" (83%)
+
+6. **Finalisation de l'analyse** (Finalize Analysis) - ~40s
+   - Creates tutorials and completes the course
+   - Progress: "Étape 6 sur 6" (100%)
+
+### Progress Tracking Architecture
+- **Worker**: Sends French progress messages via Convex mutations
+- **UI Display**: Shows 1-based step indexing (starts at "Étape 1", not "Étape 0")
+- **Real-time Updates**: WebSocket connection for live progress
+- **Robust Extraction**: Multiple regex patterns with fallbacks for progress parsing
+
+### Key Implementation Details
+- **Total Steps**: Always 6 (not 7 as in older versions)
+- **Step Indexing**: Internal 0-based, displayed as 1-based to users
+- **Localization**: All progress messages in French, code remains in English
+- **Error Handling**: Graceful fallbacks if progress extraction fails
 
 ## Database Schema (Convex)
 

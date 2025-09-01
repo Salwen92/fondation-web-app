@@ -363,13 +363,33 @@ export class PermanentWorker {
   }
   
   private async updateJobProgress(jobId: string, progress: string): Promise<void> {
-    // Extract step number from progress messages like "Step 1/6: Extracting abstractions"
-    const stepMatch = progress.match(/Step (\d+)\/(\d+):/);
-    let currentStep ;
+    // Extract step number from progress messages like "Étape 1/6: Extraction des abstractions"
+    let currentStep = 0; // Default to 0 if extraction fails
     
+    // Try primary pattern: "Étape X/6:"
+    const stepMatch = progress.match(/Étape (\d+)\/(\d+):/);
     if (stepMatch) {
       currentStep = Number.parseInt(stepMatch[1], 10);
     } else {
+      // Fallback patterns for different message formats
+      const fallbackPatterns = [
+        /Step (\d+)\/(\d+):/, // English fallback
+        /(\d+)\/(\d+):/, // Generic X/Y pattern
+        /étape (\d+)/i, // Case-insensitive French
+      ];
+      
+      for (const pattern of fallbackPatterns) {
+        const match = progress.match(pattern);
+        if (match) {
+          currentStep = Number.parseInt(match[1], 10);
+          break;
+        }
+      }
+      
+      // If all extractions fail, log for debugging but continue
+      if (currentStep === 0) {
+        console.warn(`Failed to extract step number from progress: "${progress}"`);
+      }
     }
     
     try {

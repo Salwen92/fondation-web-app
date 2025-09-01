@@ -36,6 +36,7 @@ GitHub OAuth → Next.js UI → Convex DB → Worker (Docker) → Claude CLI
 - **Database**: Convex real-time database with atomic job queue
 - **Authentication**: NextAuth with GitHub OAuth
 - **Real-time**: Convex subscriptions for live job status updates
+- **Localization**: French UI for progress tracking (Étape 1 sur 6, etc.)
 
 ## 🔧 Configuration
 
@@ -106,6 +107,15 @@ packages/web/
 - `pending` → `claimed` → `running` → `completed`
 - Failed jobs retry with exponential backoff
 - Expired leases return jobs to queue automatically
+
+### 6-Step Analysis Progress
+Jobs display French progress messages with 1-based indexing:
+1. **Étape 1 sur 6**: Extraction des abstractions (~60s)
+2. **Étape 2 sur 6**: Analyse des relations (~60s)
+3. **Étape 3 sur 6**: Ordonnancement des chapitres (~30s)
+4. **Étape 4 sur 6**: Génération des chapitres (~60s)
+5. **Étape 5 sur 6**: Révision des chapitres (~40s)
+6. **Étape 6 sur 6**: Création des tutoriels (~40s)
 
 ## 🚀 Development
 

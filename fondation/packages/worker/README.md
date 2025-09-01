@@ -1,16 +1,25 @@
 # Fondation Worker
 
-Docker-based job processor that polls Convex for pending jobs and executes the Fondation CLI with Claude AI analysis. Runs as a persistent container with lease-based job claiming and automatic retry logic.
+Docker-based job processor that polls Convex for pending jobs and executes the Fondation CLI with Claude AI analysis. **MUST run inside Docker container** - external Docker spawning is not supported.
 
 ## Architecture
 
-The worker is a long-running Node.js process that:
-1. Polls Convex database for pending jobs
+The worker is a long-running Bun process inside a Docker container that:
+1. Polls Convex database for pending jobs (every 5 seconds)
 2. Claims jobs atomically with lease-based locking
 3. Clones GitHub repositories
-4. Executes Claude CLI for code analysis
+4. Executes integrated CLI for 6-step code analysis with French progress messages
 5. Saves results back to Convex
-6. Provides health checks and metrics
+6. Provides health checks on port 8081
+
+### 6-Step Analysis Pipeline
+The worker executes a 6-step analysis process with French UI messages:
+- **Étape 1/6**: Extraction des abstractions (~60s)
+- **Étape 2/6**: Analyse des relations (~60s)
+- **Étape 3/6**: Ordonnancement des chapitres (~30s)
+- **Étape 4/6**: Génération des chapitres (~60s)
+- **Étape 5/6**: Révision des chapitres (~40s)
+- **Étape 6/6**: Finalisation de l'analyse (~40s)
 
 ## Local Development
 
@@ -85,7 +94,7 @@ For complete instructions, see:
 
 ## Health Checks
 
-The worker exposes health endpoints on port 8080:
+The worker exposes health endpoints on port 8081:
 
 - `GET /health` - Health status and system info
 - `GET /metrics` - Job processing metrics

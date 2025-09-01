@@ -75,6 +75,7 @@ export const heartbeat = mutation({
     )),
     progress: v.optional(v.string()),
     currentStep: v.optional(v.number()),
+    totalSteps: v.optional(v.number()),
     leaseMs: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -91,6 +92,7 @@ export const heartbeat = mutation({
       ...(args.status && { status: args.status }),
       ...(args.progress && { progress: args.progress }),
       ...(args.currentStep !== undefined && { currentStep: args.currentStep }),
+      ...(args.totalSteps !== undefined && { totalSteps: args.totalSteps }),
       leaseUntil: now + leaseTime,
       updatedAt: now,
     });
@@ -287,7 +289,7 @@ export const createJob = mutation({
       createdAt: now,
       updatedAt: now,
       currentStep: 0,
-      totalSteps: 7,
+      totalSteps: 6,
       progress: "Initializing...",
     });
     

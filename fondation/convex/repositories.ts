@@ -213,7 +213,7 @@ export const triggerAnalyze = mutation({
       updatedAt: now,
       // Progress
       currentStep: 0,
-      totalSteps: 7,
+      totalSteps: 6,
       progress: "Initializing regeneration...",
     });
 

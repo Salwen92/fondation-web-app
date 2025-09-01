@@ -164,12 +164,12 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               {job?.currentStep && (
                 <div className="w-full mb-6">
                   <div className="text-sm text-muted-foreground mb-2">
-                    Étape {job.currentStep} sur {job.totalSteps ?? 7}: {job.progress ?? 'En cours'}
+                    Étape {job.currentStep} sur {job.totalSteps ?? 6}: {job.progress ?? 'En cours'}
                   </div>
                   <div className="w-full h-3 bg-muted rounded-full">
                     <div 
                       className="h-full bg-purple-600 rounded-full transition-all duration-500"
-                      style={{ width: `${(job.currentStep / (job.totalSteps ?? 7)) * 100}%` }}
+                      style={{ width: `${(job.currentStep / (job.totalSteps ?? 6)) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -312,12 +312,12 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               {job?.status === 'running' && job.currentStep && (
                 <div className="mt-2">
                   <div className="text-sm text-muted-foreground">
-                    Étape {job.currentStep} sur {job.totalSteps ?? 7}: {job.progress ?? 'En cours'}
+                    Étape {job.currentStep} sur {job.totalSteps ?? 6}: {job.progress ?? 'En cours'}
                   </div>
                   <div className="w-64 h-2 bg-muted rounded-full mt-1">
                     <div 
                       className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                      style={{ width: `${(job.currentStep / (job.totalSteps ?? 7)) * 100}%` }}
+                      style={{ width: `${(job.currentStep / (job.totalSteps ?? 6)) * 100}%` }}
                     />
                   </div>
                 </div>

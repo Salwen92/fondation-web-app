@@ -136,7 +136,7 @@ export function RegenerateModal({ repository, isOpen, onClose, onComplete }: Reg
                 {/* Using project's existing ProgressBar component */}
                 <ProgressBar 
                   currentStep={job?.currentStep || 0}
-                  totalSteps={job?.totalSteps || 7}
+                  totalSteps={job?.totalSteps || 6}
                 />
                 
                 {job?.status === "failed" && (

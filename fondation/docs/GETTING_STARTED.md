@@ -115,8 +115,16 @@ After signing in, you'll see:
 You should see:
 ```
 Status: pending → claimed → analyzing → completed
-Progress: Step 1/6 → Step 2/6 → ... → Step 6/6
+Progress: Étape 1 sur 6 → Étape 2 sur 6 → ... → Étape 6 sur 6
 ```
+
+Progress messages are displayed in French:
+- Étape 1/6: Extraction des abstractions
+- Étape 2/6: Analyse des relations
+- Étape 3/6: Ordonnancement des chapitres
+- Étape 4/6: Génération des chapitres
+- Étape 5/6: Révision des chapitres
+- Étape 6/6: Création des tutoriels
 
 ## Quick Commands Reference
 

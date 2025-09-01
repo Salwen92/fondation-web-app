@@ -244,6 +244,12 @@ const job = useQuery(api.jobs.getJob, { jobId });
    - Eliminated deep relative imports
    - Established @convex/* aliases
 
+6. **French Progress Tracking** (Step Display Issues)
+   - Fixed "Étape 0 sur 6" display (now shows "Étape 1 sur 6")
+   - Updated regex patterns to match French "Étape" instead of English "Step"
+   - Standardized to 6 steps throughout system (was inconsistently 7)
+   - Implemented 1-based display indexing while keeping internal 0-based
+
 ## Environment Variable Issues
 
 ### Missing Variables
@@ -289,6 +295,39 @@ bun run clean:cache
 ```bash
 # Increase Node memory
 NODE_OPTIONS="--max-old-space-size=4096" bun run build
+```
+
+## Progress Tracking Issues
+
+### Problem: Shows "Étape 0 sur 6" Instead of "Étape 1 sur 6"
+**Cause**: Display logic not implementing 1-based indexing
+
+**Solution**: Update progress-bar.tsx to use 1-based display:
+```typescript
+// packages/web/src/components/repos/progress-bar.tsx
+const displayStep = Math.max(1, currentStep);
+const percentage = Math.round((displayStep / totalSteps) * 100);
+```
+
+### Problem: Progress Not Extracting from French Messages
+**Cause**: Worker regex pattern looking for English "Step" instead of French "Étape"
+
+**Solution**: Update worker regex pattern:
+```typescript
+// packages/worker/src/worker.ts
+const stepMatch = progress.match(/Étape (\d+)\/(\d+):/);
+```
+
+### Problem: Total Steps Shows 7 Instead of 6
+**Cause**: Inconsistent step count initialization
+
+**Solution**: Update all occurrences to use 6 steps:
+```typescript
+// convex/jobs.ts
+totalSteps: 6,  // Not 7
+
+// convex/queue.ts
+totalSteps: 6,
 ```
 
 ## Worker Issues
