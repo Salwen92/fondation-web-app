@@ -13,8 +13,8 @@
  * - French progress messages ("Étape X/6")
  */
 
-import { existsSync } from "node:fs";
 import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy.js";
+import { EnvironmentConfig } from "@fondation/shared/environment-config";
 
 export class ProductionCLIStrategy extends BaseStrategy {
   
@@ -23,41 +23,35 @@ export class ProductionCLIStrategy extends BaseStrategy {
   }
   
   async validate(): Promise<ValidationResult> {
-    const errors: string[] = [];
+    const envConfig = EnvironmentConfig.getInstance();
     
-    // ENFORCE CONTAINER ARCHITECTURE: Worker MUST run inside Docker container
-    const isInsideDocker = process.env.DOCKER_CONTAINER === 'true' || 
-                          existsSync('/.dockerenv');
+    // Use centralized production environment validation
+    const validation = envConfig.validateProductionEnvironment();
     
-    if (!isInsideDocker) {
-      errors.push(
-        "ARCHITECTURE VIOLATION: Worker must run inside Docker container. " +
-        "Set DOCKER_CONTAINER=true or run worker using docker-compose. " +
-        "External Docker spawning is not supported to maintain consistent architecture."
-      );
-    }
+    // Add CLI-specific validation errors
+    const cliErrors: string[] = [];
     
-    // Validate required environment variables for Claude integration
-    if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
-      errors.push(
-        "CLAUDE_CODE_OAUTH_TOKEN environment variable is required for CLI analysis. " +
-        "Ensure the Docker container is started with proper authentication tokens."
-      );
-    }
-    
-    // Validate CLI bundle exists
+    // Validate CLI bundle exists and is in correct location
     if (!this.cliPath || !this.cliPath.includes('/app/packages/cli/dist/')) {
-      errors.push("Production mode requires bundled CLI path at /app/packages/cli/dist/");
+      cliErrors.push("Production mode requires bundled CLI path at /app/packages/cli/dist/");
     }
     
-    if (!existsSync(this.cliPath)) {
-      errors.push(`Production CLI bundle not found: ${this.cliPath}`);
+    // Import existsSync only when needed for CLI path validation
+    const { existsSync } = await import("node:fs");
+    if (this.cliPath && !existsSync(this.cliPath)) {
+      cliErrors.push(`Production CLI bundle not found: ${this.cliPath}`);
     }
     
-    return { valid: errors.length === 0, errors };
+    return { 
+      valid: validation.valid && cliErrors.length === 0, 
+      errors: [...validation.errors, ...cliErrors],
+      warnings: validation.warnings
+    };
   }
   
   getCommandConfig(repoPath: string): CommandConfig {
+    const envConfig = EnvironmentConfig.getInstance();
+    
     // Use production Docker command - exactly as in original implementation
     const command = `cd /app/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 timeout 3600 bun dist/cli.bundled.mjs analyze "${repoPath}" --profile production`;
     
@@ -67,6 +61,11 @@ export class ProductionCLIStrategy extends BaseStrategy {
         ...process.env,
         HOME: '/home/worker',
         NODE_PATH: '/app/node_modules',
+        // Centralized environment variables from singleton
+        ...(envConfig.getClaudeOAuthToken() && {
+          CLAUDE_CODE_OAUTH_TOKEN: envConfig.getClaudeOAuthToken()!
+        }),
+        CONVEX_URL: envConfig.getConvexUrl(),
         // Let CLI use default .claude-tutorial-output directory in repo
       },
       timeout: 3600000, // Production timeout (1 hour)
@@ -76,7 +75,8 @@ export class ProductionCLIStrategy extends BaseStrategy {
   
   // Override base methods for production-specific behavior
   protected shouldLogDebugInfo(): boolean {
-    return process.env.DEBUG === 'true';
+    const envConfig = EnvironmentConfig.getInstance();
+    return envConfig.isDebugMode();
   }
   
   protected getAuthenticationTroubleshooting(): string {

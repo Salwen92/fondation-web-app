@@ -20,6 +20,7 @@ import { existsSync } from "node:fs";
 import { promisify } from "node:util";
 import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy.js";
 import { dev } from "@fondation/shared/environment";
+import { EnvironmentConfig } from "@fondation/shared/environment-config";
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -32,28 +33,34 @@ export class DevelopmentCLIStrategy extends BaseStrategy {
   }
   
   async validate(): Promise<ValidationResult> {
-    const errors: string[] = [];
+    const envConfig = EnvironmentConfig.getInstance();
+    
+    // Use centralized development environment validation
+    const validation = envConfig.validateDevelopmentEnvironment();
+    
+    // Add CLI-specific validation errors
+    const cliErrors: string[] = [];
     
     // Check if CLI path is configured
     if (!this.cliPath) {
-      errors.push("CLI path not configured");
-      return { valid: false, errors };
+      cliErrors.push("CLI path not configured");
+      return { valid: false, errors: [...validation.errors, ...cliErrors], warnings: validation.warnings };
     }
     
     // Check if source/bundle files exist
     if (this.cliPath.includes('src/cli.ts') && !existsSync(this.cliPath)) {
-      errors.push(`CLI source file not found: ${this.cliPath}`);
+      cliErrors.push(`CLI source file not found: ${this.cliPath}`);
     }
     if (this.cliPath.includes('dist/cli.bundled.mjs') && !existsSync(this.cliPath)) {
-      errors.push(`CLI bundled file not found: ${this.cliPath}`);
+      cliErrors.push(`CLI bundled file not found: ${this.cliPath}`);
     }
     
     // Check for Claude authentication - prefer host auth in development
-    try {
-      await execAsync('bunx claude --help');
-    } catch (_error) {
-      if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
-        errors.push(
+    if (!envConfig.getClaudeOAuthToken()) {
+      try {
+        await execAsync('bunx claude --help');
+      } catch (_error) {
+        cliErrors.push(
           "Claude authentication not found. Either authenticate with 'bunx claude auth' or set CLAUDE_CODE_OAUTH_TOKEN"
         );
       }
@@ -63,13 +70,19 @@ export class DevelopmentCLIStrategy extends BaseStrategy {
     try {
       await execAsync('bun --version');
     } catch (_error) {
-      errors.push("Bun runtime not available for development execution");
+      cliErrors.push("Bun runtime not available for development execution");
     }
     
-    return { valid: errors.length === 0, errors };
+    return { 
+      valid: validation.valid && cliErrors.length === 0, 
+      errors: [...validation.errors, ...cliErrors],
+      warnings: validation.warnings
+    };
   }
   
   getCommandConfig(repoPath: string): CommandConfig {
+    const envConfig = EnvironmentConfig.getInstance();
+    
     // Determine execution command based on CLI path (same logic as original)
     const cliPackageDir = resolvePath(join(__dirname, '../../../cli'));
     let command: string;
@@ -88,7 +101,12 @@ export class DevelopmentCLIStrategy extends BaseStrategy {
         ...process.env,
         // In development, let CLI use host authentication or environment variables
         NODE_ENV: 'development',
-        FONDATION_MODE: 'development'
+        FONDATION_MODE: 'development',
+        // Centralized environment variables from singleton
+        CONVEX_URL: envConfig.getConvexUrl(),
+        ...(envConfig.getClaudeOAuthToken() && { 
+          CLAUDE_CODE_OAUTH_TOKEN: envConfig.getClaudeOAuthToken()! 
+        }),
       },
       timeout: undefined, // No timeout in development
       heartbeatInterval: 120000 // 2-minute development progress heartbeat

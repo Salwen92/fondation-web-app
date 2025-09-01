@@ -1,10 +1,6 @@
 import { randomBytes } from "node:crypto";
-import { 
-  isDevelopment, 
-  isInsideDocker, 
-  getExecutionMode,
-  dev,
-} from "@fondation/shared/environment";
+import { dev } from "@fondation/shared/environment";
+import { EnvironmentConfig } from "@fondation/shared/environment-config";
 
 // Local type until workspace resolution is fixed
 type WorkerConfig = {
@@ -20,15 +16,15 @@ type WorkerConfig = {
   developmentMode: boolean;
 };
 
-// Generate config dynamically with environment-aware settings
+// Generate config dynamically with environment-aware settings using singleton
 export function createConfig(): WorkerConfig {
-  const executionMode = getExecutionMode();
-  const developmentMode = isDevelopment();
-  const _isDocker = isInsideDocker();
+  const envConfig = EnvironmentConfig.getInstance();
   
-  // Generate worker ID based on execution mode
-  const workerId = process.env.WORKER_ID || 
-    `${executionMode}-worker-${randomBytes(8).toString("hex")}`;
+  const executionMode = envConfig.getExecutionMode();
+  const developmentMode = envConfig.isDevelopment();
+  
+  // Use centralized worker ID generation
+  const workerId = envConfig.getWorkerId();
   
   // Determine CLI path based on environment and execution mode
   const cliPath = getCLIPath(developmentMode, executionMode);
@@ -36,18 +32,13 @@ export function createConfig(): WorkerConfig {
   // Determine temp directory with development-friendly defaults
   const tempDir = getTempDir(developmentMode);
   
-  // Environment-specific polling intervals (faster in development)
-  const pollInterval = developmentMode 
-    ? Number.parseInt(process.env.POLL_INTERVAL || "3000", 10)  // Faster polling in dev
-    : Number.parseInt(process.env.POLL_INTERVAL || "5000", 10);
-  
   return {
     workerId,
-    convexUrl: process.env.CONVEX_URL || "",
-    pollInterval,
-    leaseTime: Number.parseInt(process.env.LEASE_TIME || "300000", 10), // 5 minutes
-    heartbeatInterval: Number.parseInt(process.env.HEARTBEAT_INTERVAL || "60000", 10), // 1 minute
-    maxConcurrentJobs: Number.parseInt(process.env.MAX_CONCURRENT_JOBS || "1", 10),
+    convexUrl: envConfig.getConvexUrl(),
+    pollInterval: envConfig.getPollInterval(),
+    leaseTime: envConfig.getLeaseTime(),
+    heartbeatInterval: envConfig.getHeartbeatInterval(),
+    maxConcurrentJobs: envConfig.getMaxConcurrentJobs(),
     tempDir,
     cliPath,
     executionMode,
@@ -56,12 +47,15 @@ export function createConfig(): WorkerConfig {
 }
 
 /**
- * Determine CLI path based on environment and execution mode
+ * Determine CLI path based on environment and execution mode using singleton
  */
 function getCLIPath(developmentMode: boolean, _executionMode: string): string {
-  // Allow explicit override
-  if (process.env.CLI_PATH) {
-    return process.env.CLI_PATH;
+  const envConfig = EnvironmentConfig.getInstance();
+  
+  // Allow explicit override from singleton
+  const explicitPath = envConfig.getCliPath();
+  if (explicitPath) {
+    return explicitPath;
   }
   
   if (developmentMode) {
@@ -80,11 +74,15 @@ function getCLIPath(developmentMode: boolean, _executionMode: string): string {
 }
 
 /**
- * Get appropriate temp directory for environment
+ * Get appropriate temp directory for environment using singleton
  */
 function getTempDir(developmentMode: boolean): string {
-  if (process.env.TEMP_DIR) {
-    return process.env.TEMP_DIR;
+  const envConfig = EnvironmentConfig.getInstance();
+  
+  // Use singleton for environment variable access
+  const explicitTempDir = envConfig.getTempDir();
+  if (explicitTempDir) {
+    return explicitTempDir;
   }
   
   return developmentMode 
@@ -94,33 +92,34 @@ function getTempDir(developmentMode: boolean): string {
 
 // Remove static config export - config will be created dynamically
 
-// Validate required configuration with environment awareness
+// Validate required configuration using EnvironmentConfig singleton
 export function validateConfig(config: WorkerConfig): void {
-  const errors: string[] = [];
+  const envConfig = EnvironmentConfig.getInstance();
   
-  // Always required
-  if (!config.convexUrl) {
-    errors.push("CONVEX_URL environment variable is required");
+  // Use centralized environment validation
+  try {
+    envConfig.requireValidEnvironment();
+  } catch (error) {
+    throw new Error(`Configuration validation failed: ${error instanceof Error ? error.message : String(error)}`);
   }
   
-  // Environment-specific validation
+  // Add worker-specific validation errors
+  const errors: string[] = [];
+  
+  // CLI-specific validation
   if (config.developmentMode) {
-    
     // In development, CLI path should exist or be buildable
     if (config.cliPath?.includes('src/cli.ts')) {
+      // Additional development CLI checks could go here
     }
   } else {
-    // Production mode - stricter validation
-    if (config.executionMode === 'local') {
-      errors.push("Production mode requires Docker container execution (executionMode: 'local' not allowed)");
-    }
-    
+    // Production mode - CLI-specific validation
     if (!config.cliPath?.includes('/app/packages/cli/dist/')) {
-      errors.push("Production mode requires bundled CLI path");
+      errors.push("Production mode requires bundled CLI path at /app/packages/cli/dist/");
     }
   }
   
   if (errors.length > 0) {
-    throw new Error(`Configuration validation failed:\n${errors.join('\n')}`);
+    throw new Error(`Worker configuration validation failed:\n${errors.join('\n')}`);
   }
 }

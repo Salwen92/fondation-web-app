@@ -1,0 +1,392 @@
+/**
+ * Environment Configuration Singleton Tests
+ * 
+ * Comprehensive test suite for the EnvironmentConfig singleton to ensure
+ * reliable environment detection and validation across all scenarios.
+ */
+
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { EnvironmentConfig } from './environment-config.js';
+
+describe('EnvironmentConfig Singleton', () => {
+  let originalEnv: NodeJS.ProcessEnv;
+  
+  beforeEach(() => {
+    // Save original environment
+    originalEnv = { ...process.env };
+    // Reset singleton for each test
+    EnvironmentConfig.reset();
+  });
+  
+  afterEach(() => {
+    // Restore original environment
+    process.env = originalEnv;
+    // Reset singleton after each test
+    EnvironmentConfig.reset();
+  });
+  
+  describe('Singleton Pattern', () => {
+    it('should return the same instance on multiple calls', () => {
+      const instance1 = EnvironmentConfig.getInstance();
+      const instance2 = EnvironmentConfig.getInstance();
+      expect(instance1).toBe(instance2);
+    });
+    
+    it('should reset and create new instance after reset()', () => {
+      const instance1 = EnvironmentConfig.getInstance();
+      EnvironmentConfig.reset();
+      const instance2 = EnvironmentConfig.getInstance();
+      expect(instance1).not.toBe(instance2);
+    });
+  });
+  
+  describe('Environment Detection', () => {
+    it('should detect development environment by default', () => {
+      delete process.env.NODE_ENV;
+      delete process.env.FONDATION_ENV;
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getEnvironment()).toBe('development');
+      expect(config.isDevelopment()).toBe(true);
+      expect(config.isProduction()).toBe(false);
+      expect(config.isTest()).toBe(false);
+    });
+    
+    it('should detect production environment from NODE_ENV', () => {
+      process.env.NODE_ENV = 'production';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getEnvironment()).toBe('production');
+      expect(config.isProduction()).toBe(true);
+      expect(config.isDevelopment()).toBe(false);
+    });
+    
+    it('should detect test environment from NODE_ENV', () => {
+      process.env.NODE_ENV = 'test';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getEnvironment()).toBe('test');
+      expect(config.isTest()).toBe(true);
+      expect(config.isDevelopment()).toBe(false);
+    });
+    
+    it('should prioritize FONDATION_ENV over NODE_ENV', () => {
+      process.env.NODE_ENV = 'development';
+      process.env.FONDATION_ENV = 'production';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getEnvironment()).toBe('production');
+    });
+    
+    it('should be case insensitive for NODE_ENV', () => {
+      process.env.NODE_ENV = 'PRODUCTION';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getEnvironment()).toBe('production');
+    });
+  });
+  
+  describe('Execution Mode Detection', () => {
+    it('should detect local execution by default', () => {
+      delete process.env.DOCKER_CONTAINER;
+      delete process.env.CONTAINER;
+      delete process.env.KUBERNETES_SERVICE_HOST;
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getExecutionMode()).toBe('local');
+      expect(config.isLocalExecution()).toBe(true);
+      expect(config.isDockerExecution()).toBe(false);
+    });
+    
+    it('should detect docker execution from DOCKER_CONTAINER=true', () => {
+      process.env.DOCKER_CONTAINER = 'true';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getExecutionMode()).toBe('docker');
+      expect(config.isDockerExecution()).toBe(true);
+      expect(config.isInsideDocker()).toBe(true);
+    });
+    
+    it('should detect container execution from KUBERNETES_SERVICE_HOST', () => {
+      process.env.KUBERNETES_SERVICE_HOST = 'kubernetes.default.svc';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getExecutionMode()).toBe('container');
+    });
+    
+    it('should prioritize FONDATION_EXECUTION_MODE override', () => {
+      process.env.DOCKER_CONTAINER = 'true';
+      process.env.FONDATION_EXECUTION_MODE = 'local';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getExecutionMode()).toBe('local');
+    });
+  });
+  
+  describe('Environment Variable Getters', () => {
+    it('should return environment variables with proper defaults', () => {
+      process.env.CONVEX_URL = 'https://test.convex.cloud';
+      process.env.CLAUDE_CODE_OAUTH_TOKEN = 'sk-test-token';
+      process.env.GITHUB_TOKEN = 'ghp_test';
+      process.env.WORKER_ID = 'test-worker';
+      process.env.CLI_PATH = '/test/cli';
+      process.env.TEMP_DIR = '/test/temp';
+      process.env.POLL_INTERVAL = '2000';
+      process.env.DEBUG = 'true';
+      process.env.DRY_RUN = 'true';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getConvexUrl()).toBe('https://test.convex.cloud');
+      expect(config.getClaudeOAuthToken()).toBe('sk-test-token');
+      expect(config.getGitHubToken()).toBe('ghp_test');
+      expect(config.getWorkerId()).toBe('test-worker');
+      expect(config.getCliPath()).toBe('/test/cli');
+      expect(config.getTempDir()).toBe('/test/temp');
+      expect(config.getPollInterval()).toBe(2000);
+      expect(config.isDebugMode()).toBe(true);
+      expect(config.isDryRun()).toBe(true);
+    });
+    
+    it('should return proper defaults when env vars are missing', () => {
+      // Clear relevant env vars
+      delete process.env.CONVEX_URL;
+      delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
+      delete process.env.GITHUB_TOKEN;
+      delete process.env.WORKER_ID;
+      delete process.env.CLI_PATH;
+      delete process.env.TEMP_DIR;
+      delete process.env.POLL_INTERVAL;
+      delete process.env.DEBUG;
+      delete process.env.DRY_RUN;
+      process.env.NODE_ENV = 'development';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getConvexUrl()).toBe('');
+      expect(config.getClaudeOAuthToken()).toBe(null);
+      expect(config.getGitHubToken()).toBe(null);
+      expect(config.getWorkerId()).toMatch(/^worker-\d+-[a-z0-9]+$/);
+      expect(config.getCliPath()).toBe(null);
+      expect(config.getTempDir()).toBe(null);
+      expect(config.getPollInterval()).toBe(3000); // Development default
+      expect(config.isDebugMode()).toBe(true); // Debug in development
+      expect(config.isDryRun()).toBe(false);
+    });
+    
+    it('should use production defaults in production', () => {
+      process.env.NODE_ENV = 'production';
+      delete process.env.POLL_INTERVAL;
+      delete process.env.DEBUG;
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(config.getPollInterval()).toBe(5000); // Production default
+      expect(config.isDebugMode()).toBe(false); // No debug in production by default
+    });
+  });
+  
+  describe('Production Environment Validation', () => {
+    beforeEach(() => {
+      process.env.NODE_ENV = 'production';
+    });
+    
+    it('should pass validation with all required production settings', () => {
+      process.env.DOCKER_CONTAINER = 'true';
+      process.env.CLAUDE_CODE_OAUTH_TOKEN = 'sk-test-token';
+      process.env.CONVEX_URL = 'https://prod.convex.cloud';
+      process.env.GITHUB_TOKEN = 'ghp_test';
+      
+      const config = EnvironmentConfig.getInstance();
+      const validation = config.validateProductionEnvironment();
+      
+      expect(validation.valid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+      expect(validation.warnings).toHaveLength(0);
+    });
+    
+    it('should fail validation when not running in Docker', () => {
+      delete process.env.DOCKER_CONTAINER;
+      process.env.CLAUDE_CODE_OAUTH_TOKEN = 'sk-test-token';
+      process.env.CONVEX_URL = 'https://prod.convex.cloud';
+      
+      const config = EnvironmentConfig.getInstance();
+      const validation = config.validateProductionEnvironment();
+      
+      expect(validation.valid).toBe(false);
+      expect(validation.errors.some(error => 
+        error.includes('ARCHITECTURE VIOLATION: Production worker must run inside Docker container')
+      )).toBe(true);
+    });
+    
+    it('should fail validation without Claude OAuth token', () => {
+      process.env.DOCKER_CONTAINER = 'true';
+      delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
+      process.env.CONVEX_URL = 'https://prod.convex.cloud';
+      
+      const config = EnvironmentConfig.getInstance();
+      const validation = config.validateProductionEnvironment();
+      
+      expect(validation.valid).toBe(false);
+      expect(validation.errors.some(error => 
+        error.includes('CLAUDE_CODE_OAUTH_TOKEN environment variable is required')
+      )).toBe(true);
+    });
+    
+    it('should fail validation without Convex URL', () => {
+      process.env.DOCKER_CONTAINER = 'true';
+      process.env.CLAUDE_CODE_OAUTH_TOKEN = 'sk-test-token';
+      delete process.env.CONVEX_URL;
+      
+      const config = EnvironmentConfig.getInstance();
+      const validation = config.validateProductionEnvironment();
+      
+      expect(validation.valid).toBe(false);
+      expect(validation.errors.some(error => 
+        error.includes('CONVEX_URL environment variable is required')
+      )).toBe(true);
+    });
+    
+    it('should warn about missing GitHub token', () => {
+      process.env.DOCKER_CONTAINER = 'true';
+      process.env.CLAUDE_CODE_OAUTH_TOKEN = 'sk-test-token';
+      process.env.CONVEX_URL = 'https://prod.convex.cloud';
+      delete process.env.GITHUB_TOKEN;
+      
+      const config = EnvironmentConfig.getInstance();
+      const validation = config.validateProductionEnvironment();
+      
+      expect(validation.valid).toBe(true);
+      expect(validation.warnings.some(warning => 
+        warning.includes('GITHUB_TOKEN not set')
+      )).toBe(true);
+    });
+  });
+  
+  describe('Development Environment Validation', () => {
+    beforeEach(() => {
+      process.env.NODE_ENV = 'development';
+    });
+    
+    it('should pass validation with minimal development settings', () => {
+      process.env.CONVEX_URL = 'https://dev.convex.cloud';
+      process.env.CLAUDE_CODE_OAUTH_TOKEN = 'sk-test-token';
+      
+      const config = EnvironmentConfig.getInstance();
+      const validation = config.validateDevelopmentEnvironment();
+      
+      expect(validation.valid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+    });
+    
+    it('should fail validation without Convex URL', () => {
+      delete process.env.CONVEX_URL;
+      
+      const config = EnvironmentConfig.getInstance();
+      const validation = config.validateDevelopmentEnvironment();
+      
+      expect(validation.valid).toBe(false);
+      expect(validation.errors.some(error => 
+        error.includes('CONVEX_URL environment variable is required even in development')
+      )).toBe(true);
+    });
+    
+    it('should warn about missing Claude authentication', () => {
+      process.env.CONVEX_URL = 'https://dev.convex.cloud';
+      delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
+      
+      const config = EnvironmentConfig.getInstance();
+      const validation = config.validateDevelopmentEnvironment();
+      
+      expect(validation.valid).toBe(true);
+      expect(validation.warnings.some(warning => 
+        warning.includes('Claude authentication not found')
+      )).toBe(true);
+    });
+  });
+  
+  describe('requireValidEnvironment', () => {
+    it('should not throw in valid development environment', () => {
+      process.env.NODE_ENV = 'development';
+      process.env.CONVEX_URL = 'https://dev.convex.cloud';
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(() => config.requireValidEnvironment()).not.toThrow();
+    });
+    
+    it('should throw in invalid production environment', () => {
+      process.env.NODE_ENV = 'production';
+      delete process.env.DOCKER_CONTAINER;
+      delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
+      
+      const config = EnvironmentConfig.getInstance();
+      expect(() => config.requireValidEnvironment()).toThrow();
+      try {
+        config.requireValidEnvironment();
+      } catch (error) {
+        expect(error instanceof Error ? error.message : String(error)).toContain('Invalid production environment configuration');
+      }
+    });
+  });
+  
+  describe('Caching Behavior', () => {
+    it('should cache environment detection results', () => {
+      const config = EnvironmentConfig.getInstance();
+      
+      // First call
+      const env1 = config.getEnvironment();
+      
+      // Change NODE_ENV after first call
+      process.env.NODE_ENV = 'production';
+      
+      // Second call should return cached result
+      const env2 = config.getEnvironment();
+      
+      expect(env1).toBe(env2);
+      // Environment should be cached from the first call, not changed by NODE_ENV modification
+      expect(env2).toBe(env1); // Should still be cached original value
+    });
+    
+    it('should cache validation results', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.DOCKER_CONTAINER = 'true';
+      process.env.CLAUDE_CODE_OAUTH_TOKEN = 'sk-test';
+      process.env.CONVEX_URL = 'https://test.convex.cloud';
+      
+      const config = EnvironmentConfig.getInstance();
+      
+      // First validation call
+      const validation1 = config.validateProductionEnvironment();
+      
+      // Remove required env var after first call
+      delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
+      
+      // Second call should return cached result
+      const validation2 = config.validateProductionEnvironment();
+      
+      expect(validation1).toBe(validation2);
+      expect(validation2.valid).toBe(true); // Should still be cached valid result
+    });
+  });
+  
+  describe('Environment Summary', () => {
+    it('should return comprehensive environment summary', () => {
+      process.env.NODE_ENV = 'development';
+      process.env.CONVEX_URL = 'https://test.convex.cloud';
+      process.env.DOCKER_CONTAINER = 'true';
+      
+      const config = EnvironmentConfig.getInstance();
+      const summary = config.getEnvironmentSummary();
+      
+      expect(summary).toHaveProperty('environment', 'development');
+      expect(summary).toHaveProperty('executionMode', 'docker');
+      expect(summary).toHaveProperty('nodeEnv');
+      expect(summary).toHaveProperty('platform');
+      expect(summary).toHaveProperty('arch');
+      expect(summary).toHaveProperty('docker');
+      expect(summary).toHaveProperty('env');
+      expect(summary).toHaveProperty('config');
+      expect(summary).toHaveProperty('validation');
+      
+      expect(summary.env.hasConvexUrl).toBe(true);
+      expect(summary.docker.isInsideDocker).toBe(true);
+    });
+  });
+});

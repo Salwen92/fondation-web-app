@@ -19,7 +19,7 @@ export interface CLIExecutionStrategy {
   /**
    * Validate that this strategy can run in the current environment
    */
-  validate(): Promise<{ valid: boolean; errors: string[] }>;
+  validate(): Promise<{ valid: boolean; errors: string[]; warnings?: string[] }>;
   
   /**
    * Get strategy name for logging
