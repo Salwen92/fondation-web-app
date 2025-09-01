@@ -1,0 +1,100 @@
+"use client";
+
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@convex/generated/api";
+import type { Id } from "@convex/generated/dataModel";
+import { toast } from "sonner";
+
+interface RegenerateOptions {
+  onComplete?: (jobId: string) => void;
+  onError?: (error: string) => void;
+}
+
+interface Repository {
+  _id: Id<"repositories">;
+  fullName: string;
+  userId: Id<"users">;
+}
+
+export function useRegenerate(repository?: Repository, options: RegenerateOptions = {}) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentJobId, setCurrentJobId] = useState<Id<"jobs"> | null>(null);
+  const [isStarting, setIsStarting] = useState(false);
+
+  const regenerate = useMutation(api.jobs.regenerate);
+
+  const handleRegenerateClick = () => {
+    if (!repository) {
+      toast.error("Erreur", {
+        description: "Aucun dépôt sélectionné"
+      });
+      return;
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleRegenerate = async () => {
+    if (!repository) return;
+    
+    setIsStarting(true);
+    try {
+      const result = await regenerate({
+        repositoryId: repository._id,
+        userId: repository.userId,
+        prompt: `Régénérer le cours pour ${repository.fullName}`
+      });
+      
+      setCurrentJobId(result.jobId);
+      
+      toast.success("Régénération démarrée", {
+        description: "Le processus de régénération a commencé."
+      });
+    } catch (error) {
+      console.error("Failed to start regeneration:", error);
+      const errorMessage = error instanceof Error ? error.message : "Impossible de démarrer la régénération";
+      
+      toast.error("Erreur", {
+        description: errorMessage
+      });
+      
+      options.onError?.(errorMessage);
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
+  const handleComplete = (jobId: string) => {
+    toast.success("Régénération terminée!", {
+      description: "Votre cours a été mis à jour avec succès."
+    });
+    
+    setIsModalOpen(false);
+    setCurrentJobId(null);
+    options.onComplete?.(jobId);
+  };
+
+  const handleClose = () => {
+    setIsModalOpen(false);
+  };
+
+  return {
+    // State
+    isModalOpen,
+    currentJobId,
+    isStarting,
+    
+    // Actions
+    handleRegenerateClick,
+    handleRegenerate,
+    handleComplete,
+    handleClose,
+    
+    // Manual controls
+    openModal: () => setIsModalOpen(true),
+    closeModal: () => setIsModalOpen(false),
+    
+    // Repository check
+    canRegenerate: Boolean(repository),
+  };
+}

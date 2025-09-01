@@ -17,6 +17,7 @@ import { useToast } from '@/components/ui/use-toast';
 import dynamic from 'next/dynamic';
 import { logger } from '@/lib/logger';
 import { RegenerateModal } from '@/components/repos/regenerate-modal';
+import { useRegenerate } from '@/hooks/use-regenerate';
 
 const MermaidRenderer = dynamic(
   () => import('@/components/markdown/mermaid-renderer').then(mod => mod.MermaidRenderer),
@@ -31,7 +32,6 @@ interface CourseContentProps {
 
 export default function CourseContent({ owner, repo, jobId }: CourseContentProps) {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
-  const [showRegenerateModal, setShowRegenerateModal] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -48,7 +48,18 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
   );
   const repository = repositories?.[0];
 
-  // Remove old regeneration mutation - now handled by modal
+  // Use custom hook for regeneration logic
+  const {
+    isModalOpen,
+    handleRegenerateClick,
+    handleComplete,
+    handleClose,
+    canRegenerate
+  } = useRegenerate(repository, {
+    onComplete: (newJobId) => {
+      router.push(`/course/${owner}/${repo}/${newJobId}`);
+    }
+  });
 
   // Fetch docs for this job
   const docs = useQuery(api.docs.listByJobId, { 
@@ -96,16 +107,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
     }
   }, [selectedDoc, selectedSlug, docs]);
 
-  // Handle regenerate click - open modal
-  const handleRegenerateClick = () => {
-    if (!repository) return;
-    setShowRegenerateModal(true);
-  };
-
-  // Handle regenerate completion - navigate to new job
-  const handleRegenerateComplete = (newJobId: string) => {
-    router.push(`/course/${owner}/${repo}/${newJobId}`);
-  };
+  // Regeneration logic now handled by useRegenerate hook
 
   // Get status icon and color
   const getStatusDisplay = (status?: string) => {
@@ -326,7 +328,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
             <div className="flex items-center gap-3">
               <button
                 onClick={handleRegenerateClick}
-                disabled={job?.status === 'running'}
+                disabled={job?.status === 'running' || !canRegenerate}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -602,9 +604,9 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
       {repository && (
         <RegenerateModal 
           repository={repository}
-          isOpen={showRegenerateModal}
-          onClose={() => setShowRegenerateModal(false)}
-          onComplete={handleRegenerateComplete}
+          isOpen={isModalOpen}
+          onClose={handleClose}
+          onComplete={handleComplete}
         />
       )}
     </div>
