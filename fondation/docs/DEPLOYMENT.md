@@ -258,7 +258,7 @@ docker system prune -a -f --volumes
 
 ### Docker Memory Issues
 1. Check memory usage: `docker stats`
-2. Adjust limits in docker-compose.yml
+2. Adjust limits in docs/docker-compose.yml
 3. Restart Docker daemon if necessary
 
 ### Authentication Failures
@@ -327,7 +327,7 @@ docker run --rm -v fondation_worker-cache:/source -v $(pwd):/backup alpine \
 ### Performance Tuning
 
 ```yaml
-# In docker-compose.yml, adjust resources:
+# In docs/docker-compose.yml, adjust resources:
 deploy:
   resources:
     limits:

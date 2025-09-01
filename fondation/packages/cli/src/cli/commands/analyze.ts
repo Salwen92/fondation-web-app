@@ -286,6 +286,10 @@ function resolvePromptPath(promptPath: string): string {
   // Always try current working directory as fallback
   possiblePaths.push(resolve(process.cwd(), promptPath));
   
+  // Docker-specific path (CLI runs from /app but prompts are in /app/cli/dist/prompts)
+  possiblePaths.push(resolve('/app/cli/dist', promptPath));
+  possiblePaths.push(resolve('/app/cli', promptPath));
+  
   // Try direct path if absolute
   if (promptPath.startsWith('/')) {
     possiblePaths.push(promptPath);
