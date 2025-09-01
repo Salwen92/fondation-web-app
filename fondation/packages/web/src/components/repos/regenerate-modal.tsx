@@ -40,7 +40,7 @@ export function RegenerateModal({ repository, isOpen, onClose, onComplete }: Reg
       const result = await regenerate({
         repositoryId: repository._id,
         userId: repository.userId,
-        prompt: `Regenerate course for ${repository.fullName}`
+        prompt: `Régénérer le cours pour ${repository.fullName}`
       });
       
       setCurrentJobId(result.jobId);
