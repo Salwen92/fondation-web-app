@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Book, Code2, Loader2, Sparkles, X, FlaskConical } from "lucide-react";
+import { Book, Code2, Loader2, Sparkles, X, FlaskConical, RefreshCw } from "lucide-react";
 
 interface JobActionsProps {
   status?: string;
@@ -12,6 +12,7 @@ interface JobActionsProps {
   onGenerate: () => void;
   onCancel: () => void;
   onViewCourse: () => void;
+  onRegenerate?: () => void;
   onTest?: () => void;
   repositoryName?: string;
 }
@@ -28,21 +29,35 @@ export function JobActions({
   onGenerate,
   onCancel,
   onViewCourse,
+  onRegenerate,
   onTest,
   repositoryName,
 }: JobActionsProps) {
   return (
     <div className="flex gap-2">
       {isCompleted ? (
-        <Button
-          className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
-          size="sm"
-          onClick={onViewCourse}
-          data-testid="view-course-button"
-        >
-          <Book className="mr-2 h-4 w-4" />
-          Voir le Cours
-        </Button>
+        <>
+          <Button
+            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+            size="sm"
+            onClick={onViewCourse}
+            data-testid="view-course-button"
+          >
+            <Book className="mr-2 h-4 w-4" />
+            Voir le Cours
+          </Button>
+          {onRegenerate && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRegenerate}
+              className="glass border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+              data-testid="regenerate-button"
+            >
+              <RefreshCw className="h-4 w-4 text-purple-500" />
+            </Button>
+          )}
+        </>
       ) : (
         <Button
           onClick={onGenerate}

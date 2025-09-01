@@ -16,6 +16,8 @@ import { JobStatusBadge } from "./job-status-badge";
 import { ProgressBar } from "./progress-bar";
 import { JobActions } from "./job-actions";
 import { useJobManagement } from "@/hooks/use-job-management";
+import { RegenerateModal } from "./regenerate-modal";
+import { useRegenerate } from "@/hooks/use-regenerate";
 
 interface RepoCardProps {
   repo: {
@@ -52,6 +54,26 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
     repositoryFullName: repo.fullName,
     repositoryName: repo.name,
     defaultBranch: repo.defaultBranch,
+  });
+
+  // Use regeneration hook for modal-based regeneration
+  const repository = {
+    _id: repo._id,
+    fullName: repo.fullName,
+    userId: userId
+  };
+  
+  const {
+    isModalOpen,
+    handleRegenerateClick,
+    handleComplete,
+    handleClose,
+    canRegenerate
+  } = useRegenerate(repository, {
+    onComplete: (newJobId) => {
+      const [owner, repoName] = repo.fullName.split('/');
+      window.location.href = `/course/${owner}/${repoName}/${newJobId}`;
+    }
   });
   
   // Handle view course action
@@ -183,11 +205,20 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
               onGenerate={handleGenerate}
               onCancel={handleCancel}
               onViewCourse={handleViewCourse}
+              onRegenerate={handleRegenerateClick}
               onTest={handleTest}
               repositoryName={repo.name}
             />
           </div>
         </Card>
+        
+        {/* Regenerate Modal */}
+        <RegenerateModal 
+          repository={repository}
+          isOpen={isModalOpen}
+          onClose={handleClose}
+          onComplete={handleComplete}
+        />
       </motion.div>
   );
 }
