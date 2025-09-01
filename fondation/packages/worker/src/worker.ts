@@ -34,9 +34,10 @@ type Job = {
   [key: string]: any;
 };
 
+// Standardized job status definitions - must match Convex schema
 type JobStatus = 
-  | "pending" | "claimed" | "running" | "cloning" 
-  | "analyzing" | "gathering" | "completed" 
+  | "pending" | "claimed" | "cloning" | "analyzing" 
+  | "gathering" | "running" | "completed" 
   | "failed" | "canceled" | "dead";
 
 type ProgressUpdate = {
@@ -94,9 +95,32 @@ export class PermanentWorker {
   constructor(public config: WorkerConfig, convexClient: ConvexClient) {
     // validateConfig is now called in main before creating worker
     this.convex = convexClient;
+    
+    // ENFORCE ARCHITECTURE: Validate worker is running inside Docker container
+    this.validateContainerEnvironment();
+    
     this.cliExecutor = new CLIExecutor(); // No arguments needed - uses integrated CLI
     this.repoManager = new RepoManager(config.tempDir);
     this.healthServer = new HealthServer(this);
+  }
+  
+  private validateContainerEnvironment(): void {
+    const isInsideDocker = process.env.DOCKER_CONTAINER === 'true' || 
+                          require('fs').existsSync('/.dockerenv');
+    
+    if (!isInsideDocker) {
+      throw new Error(
+        "ARCHITECTURE VIOLATION: Worker must run inside Docker container.\n" +
+        "This ensures consistent execution environment and prevents Docker-in-Docker issues.\n" +
+        "Solutions:\n" +
+        "  1. Use docker-compose: 'docker-compose -f docker-compose.worker.yml up'\n" +
+        "  2. Set environment variable: DOCKER_CONTAINER=true\n" +
+        "  3. Run in Docker container with proper mounts\n\n" +
+        "For development, use the Docker container to match production architecture."
+      );
+    }
+    
+    console.log("✅ Container environment validated - running inside Docker");
   }
   
   async start(): Promise<void> {
@@ -234,32 +258,56 @@ export class PermanentWorker {
           console.log('⚠️ No user GitHub token found, using environment fallback');
           userGithubToken = process.env.GITHUB_TOKEN ?? null;
           if (!userGithubToken) {
-            throw new Error(`No GitHub token available for user ${user.githubId}`);
+            throw new Error(
+              `No GitHub token available for user ${user.githubId}. ` +
+              `Ensure user has connected GitHub or GITHUB_TOKEN environment variable is set.`
+            );
           }
         }
 
         console.log(`🔑 Using token: ${userGithubToken ? 'Found' : 'Not found'}`);
         
         // Clone repository
-        await this.updateJobStatus(job.id, "cloning", "Cloning repository...");
+        console.log(`📦 Updating job status to cloning...`);
+        try {
+          await this.updateJobStatus(job.id, "cloning", "Cloning repository...");
+          console.log(`✅ Job status updated to cloning`);
+        } catch (error) {
+          console.error(`❌ Failed to update job status to cloning:`, error);
+          // Continue anyway - the job may still work
+        }
         const repoUrl = `https://github.com/${repository.fullName}.git`;
+        console.log(`🔄 Starting clone of ${repoUrl}...`);
         const repoPath = await this.repoManager.cloneRepo(
           repoUrl,
           repository.defaultBranch || "main",
           job.id,
           userGithubToken || undefined
         );
+        console.log(`✅ Repository cloned to ${repoPath}`);
         
         // Execute CLI
-        await this.updateJobStatus(job.id, "analyzing", "Analyzing codebase...");
+        console.log(`🔄 Updating job status to analyzing...`);
+        try {
+          await this.updateJobStatus(job.id, "analyzing", "Analyzing codebase...");
+          console.log(`✅ Job status updated to analyzing`);
+        } catch (error) {
+          console.error(`❌ Failed to update job status to analyzing:`, error);
+          // Continue anyway
+        }
+        
+        console.log(`🚀 Starting CLI execution for ${repoPath}...`);
         const result = await this.cliExecutor.execute(repoPath, {
           prompt: job.prompt,
           onProgress: async (progress) => {
+            console.log(`📊 Progress update: ${progress}`);
             await this.updateJobProgress(job.id, progress);
           },
         });
+        console.log(`✅ CLI execution completed with ${result.success ? 'success' : 'failure'}`);
         
         // Save results
+        console.log(`💾 Saving results...`);
         await this.updateJobStatus(job.id, "gathering", "Saving results...");
         await this.saveResults(job, result);
         
@@ -294,7 +342,9 @@ export class PermanentWorker {
           workerId: this.config.workerId,
           leaseMs: this.config.leaseTime,
         });
-      } catch (_error) {
+      } catch (error) {
+        console.warn(`Heartbeat failed for job ${jobId}:`, error instanceof Error ? error.message : error);
+        // Continue - heartbeat failures are not critical if job completes successfully
       }
     }, this.config.heartbeatInterval);
   }
@@ -329,7 +379,9 @@ export class PermanentWorker {
         progress,
         currentStep,
       });
-    } catch (_error) {
+    } catch (error) {
+      console.warn(`Failed to update job progress for ${jobId}:`, error instanceof Error ? error.message : error);
+      // Continue - progress updates are not critical for job completion
     }
   }
   

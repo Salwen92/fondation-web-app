@@ -35,7 +35,7 @@ interface RepoCardProps {
 export function RepoCard({ repo, userId }: RepoCardProps) {
   const router = useRouter();
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId: repo._id });
-  const startAnalysis = useMutation(api.jobs.startAnalysis);
+  const createJob = useMutation(api.jobs.create);
   
   // Get actual docs count from latest completed job
   const docsCount = latestJob?.status === "completed" ? latestJob.docsCount ?? 0 : 0;
@@ -62,25 +62,27 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
     }
   };
 
-  // Handle test analysis
+  // Handle test analysis - now uses proper job queue
   const handleTest = async () => {
     try {
-      const { jobId } = await startAnalysis({
-        repositoryId: repo._id,
+      const result = await createJob({
         userId,
-        repoUrl: `https://github.com/${repo.fullName}`,
+        repositoryId: repo._id,
+        prompt: `Test analysis for ${repo.fullName}`,
       });
       
-      // Navigate to job detail page
-      router.push(`/jobs/${jobId}`);
-    } catch (_error) {
+      // Navigate to course view with the new job
+      const [owner, repoName] = repo.fullName.split('/');
+      router.push(`/course/${owner}/${repoName}/${result.jobId}`);
+    } catch (error) {
+      console.error("Failed to create test job:", error);
     }
   };
 
-  // Job status calculations
-  const isProcessing = latestJob && ["pending", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
+  // Job status calculations - includes 'claimed' status for queue consistency
+  const isProcessing = latestJob && ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
   const isCompleted = latestJob?.status === "completed";
-  const isFailed = latestJob?.status === "failed";
+  const isFailed = latestJob?.status === "failed" || latestJob?.status === "dead";
   const isCanceled = latestJob?.status === "canceled";
 
   return (

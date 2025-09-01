@@ -1,69 +1,96 @@
 version: '3.8'
 
 services:
-  fondation-worker:
+  # Fondation Worker Service
+  worker:
     image: fondation/cli:latest
     container_name: fondation-worker
-    command: ["worker", "--convex-url", "${CONVEX_URL}"]
+    restart: unless-stopped
     environment:
+      # Required: Convex Database URL
       - CONVEX_URL=${CONVEX_URL}
+      
+      # Required: Authentication Tokens
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
-      - NODE_ENV=production
-      - POLL_INTERVAL=5000
-    volumes:
-      - ./workspace:/workspace
-      - ./output:/output
-      # Mount git config for authentication
-      - ~/.gitconfig:/root/.gitconfig:ro
-      - ~/.ssh:/root/.ssh:ro
-    restart: unless-stopped
-    networks:
-      - fondation-network
+      
+      # Worker Configuration
+      - WORKER_ID=${WORKER_ID:-worker-prod}
+      - POLL_INTERVAL=${POLL_INTERVAL:-5000}
+      - LEASE_TIME=${LEASE_TIME:-300000}
+      - HEARTBEAT_INTERVAL=${HEARTBEAT_INTERVAL:-60000}
+      - MAX_CONCURRENT_JOBS=${MAX_CONCURRENT_JOBS:-1}
+      
+      # Docker Flag
+      - DOCKER_CONTAINER=true
+      
+      # Temp Directory
+      - TEMP_DIR=/tmp/fondation
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Logging
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-
-  # Optional: Run CLI commands
-  fondation-cli:
-    image: fondation/cli:latest
-    container_name: fondation-cli
-    environment:
-      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
-      - NODE_ENV=production
-    volumes:
-      - ./workspace:/workspace
-      - ./output:/output
+    
+    # Network
     networks:
       - fondation-network
-    profiles:
-      - cli
-    stdin_open: true
-    tty: true
+    
+    # Volumes for persistent data
+    volumes:
+      - worker-temp:/tmp/fondation
+      - worker-cache:/root/.cache
+    
+    command: worker
 
+  # Optional: Multiple workers for scaling
+  worker-2:
+    extends:
+      service: worker
+    container_name: fondation-worker-2
+    environment:
+      # Inherit all from worker service
+      - CONVEX_URL=${CONVEX_URL}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
+      - WORKER_ID=${WORKER_ID_2:-worker-prod-2}
+      - POLL_INTERVAL=${POLL_INTERVAL:-5000}
+      - LEASE_TIME=${LEASE_TIME:-300000}
+      - HEARTBEAT_INTERVAL=${HEARTBEAT_INTERVAL:-60000}
+      - MAX_CONCURRENT_JOBS=${MAX_CONCURRENT_JOBS:-1}
+      - DOCKER_CONTAINER=true
+      - TEMP_DIR=/tmp/fondation
+    profiles:
+      - scale
+
+# Networks
 networks:
   fondation-network:
     driver: bridge
 
-# Usage:
-# 1. Create .env file with:
-#    CONVEX_URL=https://your-deployment.convex.cloud
-#    GITHUB_TOKEN=ghp_your_token
-#    CLAUDE_CODE_OAUTH_TOKEN=sk-ant-your_token
-#
-# 2. Build image:
-#    docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
-#
-# 3. Start worker:
-#    docker-compose up -d fondation-worker
-#
-# 4. View logs:
-#    docker-compose logs -f fondation-worker
-#
-# 5. Run CLI commands (optional):
-#    docker-compose run --rm fondation-cli analyze --repo owner/name
-#
-# 6. Stop worker:
-#    docker-compose down
+# Volumes
+volumes:
+  worker-temp:
+    driver: local
+  worker-cache:
+    driver: local

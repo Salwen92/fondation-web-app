@@ -37,11 +37,12 @@ This document outlines the security measures, best practices, and procedures for
 
 #### Production Secrets
 ```bash
-# Never commit these
-CONVEX_URL              # Convex deployment URL
-NEXTAUTH_SECRET         # Session encryption key
-GITHUB_CLIENT_SECRET    # GitHub OAuth secret
-ENCRYPTION_KEY          # 64-char hex for token encryption
+# Never commit these - Use environment variables only
+CONVEX_URL                  # Convex deployment URL
+AUTH_SECRET                 # NextAuth session encryption key
+AUTH_GITHUB_SECRET          # GitHub OAuth secret
+CLAUDE_CODE_OAUTH_TOKEN     # Claude Code OAuth token
+GITHUB_TOKEN                # GitHub Personal Access Token
 ```
 
 #### Development
@@ -53,23 +54,34 @@ ENCRYPTION_KEY          # 64-char hex for token encryption
 
 | Secret Type | Storage Location | Access Method | Rotation Frequency |
 |------------|------------------|---------------|-------------------|
-| Claude Credentials | `/srv/claude-creds/` | Read-only volume mount | Quarterly |
-| GitHub OAuth | Environment variable | Process env | Yearly |
+| Claude OAuth Token | Environment variable | Process env | Yearly |
+| GitHub Personal Access Token | Environment variable | Process env | Every 90 days |
+| GitHub OAuth Secret | Environment variable | Process env | Yearly |
 | Session Secret | Environment variable | Process env | Yearly |
-| Encryption Key | Environment variable | Process env | Never (would invalidate data) |
 
 ### Secret Rotation Procedures
 
-#### Rotating Claude Credentials
+#### Rotating Claude OAuth Token
 ```bash
-# 1. Backup existing credentials
-./backup-creds.sh
+# 1. Generate new token
+bunx claude auth
 
-# 2. Re-authenticate
-./auth-claude.sh
+# 2. Update environment variables in docker-compose.worker.yml
+CLAUDE_CODE_OAUTH_TOKEN=sk-ant-new-token-here
 
 # 3. Restart worker
-sudo systemctl restart fondation-worker
+docker-compose -f docker-compose.worker.yml down
+docker-compose -f docker-compose.worker.yml up -d
+```
+
+#### Rotating GitHub Personal Access Token
+```bash
+# 1. Create new token at https://github.com/settings/personal-access-tokens
+# 2. Update environment variables
+GITHUB_TOKEN=ghp_new-token-here
+
+# 3. Restart services
+docker-compose -f docker-compose.worker.yml restart
 ```
 
 #### Rotating GitHub OAuth

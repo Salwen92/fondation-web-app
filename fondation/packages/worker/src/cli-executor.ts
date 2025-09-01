@@ -66,7 +66,9 @@ export class CLIExecutor {
               kind: yamlFile.kind,
               chapterIndex: -1 // YAML files don't have chapter index
             });
-          } catch (_err) {
+          } catch (err) {
+            console.warn(`Failed to parse YAML file ${yamlFile.path}:`, err instanceof Error ? err.message : err);
+            // Continue processing other files
           }
         }
       }
@@ -148,8 +150,9 @@ export class CLIExecutor {
       }
       return documents;
 
-    } catch (_error) {
-      return documents;
+    } catch (error) {
+      console.error('Error parsing output files:', error instanceof Error ? error.message : error);
+      return documents; // Return partial results
     }
   }
   
@@ -163,29 +166,29 @@ export class CLIExecutor {
     return new Promise(async (resolve, reject) => {
       
       try {
-        // Check if we're already inside Docker container
+        // ENFORCE CONTAINER ARCHITECTURE: Worker MUST run inside Docker container
         const isInsideDocker = process.env.DOCKER_CONTAINER === 'true' || 
                               existsSync('/.dockerenv');
         
-        let analyzeCommand: string;
-        
-        if (isInsideDocker) {
-          // We're already inside Docker - run bundled CLI directly with Bun
-          // Use stdbuf to unbuffer output so we see progress messages immediately
-          const runCmd = `cd /app/packages/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 bun run dist/cli.bundled.mjs analyze "${repoPath}" --profile production`;
-          analyzeCommand = runCmd;
-        } else {
-          // External Docker runtime - use authenticated CLI image
-          const image = process.env.FONDATION_WORKER_IMAGE ?? "fondation/cli:authenticated";
-          const repoMount = repoPath;
-          const runCmd = `cd /app/cli && bun dist/cli.bundled.mjs analyze /tmp/repo --profile production`;
-          
-          const dockerCmd =
-            `docker run --rm -v "${repoMount}:/tmp/repo" -v "${repoMount}/.claude-tutorial-output:/output" ` +
-            `-e CLAUDE_OUTPUT_DIR=/output ${image} sh -c '${runCmd}'`;
-          
-          analyzeCommand = dockerCmd;
+        if (!isInsideDocker) {
+          throw new Error(
+            "ARCHITECTURE VIOLATION: Worker must run inside Docker container. " +
+            "Set DOCKER_CONTAINER=true or run worker using docker-compose. " +
+            "External Docker spawning is not supported to maintain consistent architecture."
+          );
         }
+        
+        // Validate required environment variables for Claude integration
+        if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
+          throw new Error(
+            "CLAUDE_CODE_OAUTH_TOKEN environment variable is required for CLI analysis. " +
+            "Ensure the Docker container is started with proper authentication tokens."
+          );
+        }
+        
+        // We're inside Docker - run bundled CLI directly with Bun
+        // Use stdbuf to unbuffer output so we see progress messages immediately
+        const analyzeCommand = `cd /app/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 timeout 3600 bun dist/cli.bundled.mjs analyze "${repoPath}" --profile production`;
         
         // Track the 6-step analysis workflow
         const workflowSteps = [
@@ -246,8 +249,12 @@ export class CLIExecutor {
                 } else if (msg.includes("Analysis complete")) {
                   options.onProgress?.("Step 6/6: Completing analysis").catch(console.error);
                 }
-              } catch (_err) {
-                // Not JSON, fall through to other patterns
+              } catch (err) {
+                // Not valid JSON, fall through to other parsing patterns
+                // This is expected for non-JSON log lines, so only log in debug mode
+                if (process.env.DEBUG) {
+                  console.debug('Non-JSON log line:', trimmedLine);
+                }
               }
             }
             
@@ -304,15 +311,34 @@ export class CLIExecutor {
           }
         });
         
-        // Handle unexpected exits (Docker container dying, etc.)
+        // Handle unexpected exits (process dying, etc.)
         child.on("exit", (code, signal) => {
           // Only handle error cases in exit, let close handle success
           if (!hasFinished && (code !== 0 || signal)) {
             hasFinished = true;
             clearTimeout(timeout);
-            const errorMsg = signal 
-              ? `Docker process killed with signal ${signal}. Last output: ${stderr || stdout || 'No output captured'}`
-              : `Docker process exited with code ${code}. Error: ${stderr || 'No stderr'}\nOutput: ${stdout || 'No stdout'}`;
+            
+            let errorMsg = '';
+            if (signal) {
+              if (signal === 'SIGTERM') {
+                errorMsg = `CLI process timed out after 1 hour and was terminated. This may indicate authentication issues or complex repository analysis.`;
+              } else {
+                errorMsg = `CLI process killed with signal ${signal}.`;
+              }
+            } else if (code === 124) {
+              errorMsg = `CLI process timed out after 1 hour. This may indicate authentication hanging or very complex repository analysis.`;
+            } else {
+              errorMsg = `CLI process exited with code ${code}.`;
+            }
+            
+            // Add output for debugging
+            errorMsg += `\nStderr: ${stderr || 'None'}\nStdout: ${stdout || 'None'}`;
+            
+            // Add specific troubleshooting for common issues
+            if (stderr.includes('auth') || stdout.includes('auth')) {
+              errorMsg += `\n\nAuthentication Issue Detected: Ensure CLAUDE_CODE_OAUTH_TOKEN is properly set and valid.`;
+            }
+            
             reject(new Error(errorMsg));
           }
         });
@@ -333,8 +359,10 @@ export class CLIExecutor {
                 });
                 
                 documents = await Promise.race([parsePromise, timeoutPromise]);
-              } catch (_parseError) {
-                // Continue with empty documents array - files were still generated
+              } catch (parseError) {
+                console.warn('Failed to parse output files (continuing with empty results):', 
+                  parseError instanceof Error ? parseError.message : parseError);
+                // Continue with empty documents array - CLI execution succeeded but parsing failed
               }
               
               resolve({

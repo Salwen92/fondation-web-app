@@ -20,9 +20,8 @@ graph TB
         Q[Job Queue<br/>Atomic Operations]
     end
     
-    subgraph "Processing Layer"
-        WK[Worker Service<br/>Port 8081]
-        D[Docker Container<br/>CLI Executor]
+    subgraph "Processing Layer (Docker Container)"
+        WK[Worker Service<br/>Port 8081<br/>Internal CLI Executor]
     end
     
     subgraph "AI Layer"
@@ -39,10 +38,9 @@ graph TB
     W <-->|WebSocket| C
     C <--> Q
     Q -->|Poll| WK
-    WK -->|Spawn| D
-    D -->|Execute| CL
+    WK -->|Execute| CL
     CL <-->|API| AI
-    D -->|Generate| GD
+    WK -->|Generate| GD
     GD -->|Store| C
     C -->|Serve| W
 ```
@@ -56,8 +54,7 @@ sequenceDiagram
     participant Auth as GitHub OAuth
     participant DB as Convex DB
     participant Queue as Job Queue
-    participant Worker
-    participant Docker as Docker CLI
+    participant Worker as Worker (Docker Container)
     participant Claude as Claude AI
     
     User->>Web: 1. Request analysis
@@ -65,14 +62,12 @@ sequenceDiagram
     Auth-->>Web: 3. Token confirmed
     Web->>DB: 4. Create job
     DB->>Queue: 5. Queue job
-    Queue-->>Worker: 6. Job available
-    Worker->>Docker: 7. Spawn container
-    Docker->>Claude: 8. Analyze repo (6 steps)
-    Claude-->>Docker: 9. Generate content
-    Docker-->>Worker: 10. Return results
-    Worker->>DB: 11. Store documents
-    DB-->>Web: 12. Real-time update
-    Web-->>User: 13. Show course
+    Queue-->>Worker: 6. Job available (claimed)
+    Worker->>Claude: 7. Analyze repo (6 steps)
+    Claude-->>Worker: 8. Generate content
+    Worker->>DB: 9. Store documents
+    DB-->>Web: 10. Real-time update
+    Web-->>User: 11. Show course
 ```
 
 ## Package Structure
@@ -99,7 +94,7 @@ fondation/                      # Root monorepo
 │   ├── worker/                # Job processor
 │   │   └── src/
 │   │       ├── worker.ts     # Main worker loop
-│   │       ├── cli-executor.ts # Docker spawner
+│   │       ├── cli-executor.ts # Internal CLI executor
 │   │       └── config.ts     # Configuration
 │   │
 │   ├── cli/                   # Fondation analyzer
@@ -172,12 +167,13 @@ Build order: `shared` → `cli` → `web`/`worker` (parallel)
 - **State**: Convex real-time subscriptions
 - **Type Safety**: Strict TypeScript with Zod validation
 
-### Worker Package (Node.js)
+### Worker Package (Docker Container)
 - **Purpose**: Job processing and orchestration
 - **Pattern**: Polling with lease-based claiming
-- **Execution**: Spawns Docker containers for isolation
-- **Monitoring**: Health checks on port 8080
+- **Execution**: Runs inside Docker container with internal CLI
+- **Monitoring**: Health checks on port 8081
 - **Scaling**: Configurable concurrent job limit
+- **Architecture**: Enforced container execution (no external Docker spawning)
 
 ### CLI Package (Bundled Node.js)
 - **Build**: Custom esbuild bundler
@@ -318,15 +314,41 @@ GET http://localhost:8080/health
 - **CLI**: Piped to worker logs
 - **Database**: Convex dashboard
 
+## Architectural Compliance
+
+### Single Execution Path Enforcement
+The system enforces a **single, consistent execution path** to prevent architectural violations:
+
+```typescript
+// Worker validates container environment on startup
+if (!isInsideDocker) {
+  throw new Error("Worker must run inside Docker container");
+}
+```
+
+### Eliminated Anti-Patterns
+- ❌ **External Docker Spawning**: Removed worker spawning separate containers
+- ❌ **Parallel Job Systems**: Eliminated dual job creation paths
+- ❌ **Silent Failures**: All errors now logged with proper context
+- ❌ **Status Inconsistencies**: Unified status handling across all components
+
+### Architecture Flow Validation
+```
+✅ CORRECT: UI → jobs.create → Queue → Worker (Docker) → CLI (Internal) → Complete
+❌ REMOVED: UI → startAnalysis → Convex Scheduler → Mock Execution
+❌ REMOVED: Worker → External Docker Spawn → CLI (Separate Container)
+```
+
 ## Key Design Decisions
 
 1. **Monorepo**: Simplified dependency management
 2. **TypeScript**: Type safety across packages
 3. **Convex**: Real-time without WebSocket complexity
-4. **Docker**: Consistent execution environment
+4. **Docker**: Consistent execution environment (enforced)
 5. **OAuth**: No API key management
 6. **Biome**: Fast, consistent linting
 7. **Bun**: Fast package management
+8. **Single Container**: All processing within one Docker container
 
 ---
 

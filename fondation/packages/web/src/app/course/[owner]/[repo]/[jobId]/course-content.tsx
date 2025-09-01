@@ -16,6 +16,7 @@ import { RefreshCw, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-reac
 import { useToast } from '@/components/ui/use-toast';
 import dynamic from 'next/dynamic';
 import { logger } from '@/lib/logger';
+import { RegenerateModal } from '@/components/repos/regenerate-modal';
 
 const MermaidRenderer = dynamic(
   () => import('@/components/markdown/mermaid-renderer').then(mod => mod.MermaidRenderer),
@@ -30,7 +31,7 @@ interface CourseContentProps {
 
 export default function CourseContent({ owner, repo, jobId }: CourseContentProps) {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
-  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showRegenerateModal, setShowRegenerateModal] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -47,8 +48,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
   );
   const repository = repositories?.[0];
 
-  // Mutation to trigger regeneration
-  const triggerAnalyze = useMutation(api.repositories.triggerAnalyze);
+  // Remove old regeneration mutation - now handled by modal
 
   // Fetch docs for this job
   const docs = useQuery(api.docs.listByJobId, { 
@@ -96,54 +96,15 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
     }
   }, [selectedDoc, selectedSlug, docs]);
 
-  // Handle regenerate
-  const handleRegenerate = async () => {
-    if (!repository) { return; }
-    
-    setIsRegenerating(true);
-    try {
-      const result = await triggerAnalyze({ 
-        repositoryId: repository._id 
-      });
-      
-      // Trigger the Cloud Run service to actually process the job
-      if (result.jobId) {
-        const response = await fetch("/api/analyze-proxy", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            jobId: result.jobId,
-            repositoryUrl: `https://github.com/${repository.fullName}`,
-            branch: repository.defaultBranch || "main",
-            callbackUrl: `${env.NEXT_PUBLIC_APP_URL}/api/webhook/job-callback`,
-            callbackToken: result.callbackToken,
-          }),
-        });
-        
-        if (!response.ok) {
-          throw new Error("Échec du démarrage du service d'analyse");
-        }
-      }
-      
-      toast({
-        title: "Régénération démarrée",
-        description: "Votre cours est en cours de régénération. Cela peut prendre 30 à 60 minutes.",
-      });
+  // Handle regenerate click - open modal
+  const handleRegenerateClick = () => {
+    if (!repository) return;
+    setShowRegenerateModal(true);
+  };
 
-      // Navigate to new job - use result.jobId not the entire result object
-      router.push(`/course/${owner}/${repo}/${result.jobId}`);
-    } catch (error) {
-      logger.error('Failed to regenerate', error instanceof Error ? error : new Error(String(error)));
-      toast({
-        title: "Échec de la régénération",
-        description: "Échec du démarrage de la régénération. Veuillez réessayer.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsRegenerating(false);
-    }
+  // Handle regenerate completion - navigate to new job
+  const handleRegenerateComplete = (newJobId: string) => {
+    router.push(`/course/${owner}/${repo}/${newJobId}`);
   };
 
   // Get status icon and color
@@ -153,6 +114,8 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
         return { icon: CheckCircle, color: 'text-green-500', label: 'Terminé' };
       case 'running':
         return { icon: Clock, color: 'text-blue-500', label: 'Génération...' };
+      case 'claimed':
+        return { icon: Clock, color: 'text-blue-500', label: 'Réclamé par le worker...' };
       case 'cloning':
         return { icon: Clock, color: 'text-blue-500', label: 'Clonage du dépôt...' };
       case 'analyzing':
@@ -160,7 +123,10 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
       case 'gathering':
         return { icon: Clock, color: 'text-blue-500', label: 'Collecte des données...' };
       case 'failed':
+      case 'dead':
         return { icon: XCircle, color: 'text-red-500', label: 'Échoué' };
+      case 'canceled':
+        return { icon: XCircle, color: 'text-gray-500', label: 'Annulé' };
       case 'pending':
         return { icon: Clock, color: 'text-yellow-500', label: 'En attente' };
       default:
@@ -178,7 +144,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
 
   if (!docs || docs.length === 0) {
     // If job is still running, show generating state
-    const activeStatuses = ['pending', 'cloning', 'analyzing', 'gathering', 'running'];
+    const activeStatuses = ['pending', 'claimed', 'cloning', 'analyzing', 'gathering', 'running'];
     if (job?.status && activeStatuses.includes(job.status)) {
       const statusDisplay = getStatusDisplay(job?.status);
       const StatusIcon = statusDisplay.icon;
@@ -359,12 +325,12 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
             {/* Action Buttons */}
             <div className="flex items-center gap-3">
               <button
-                onClick={handleRegenerate}
-                disabled={isRegenerating || job?.status === 'running'}
+                onClick={handleRegenerateClick}
+                disabled={job?.status === 'running'}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
-                {isRegenerating ? 'Démarrage...' : 'Régénérer le cours'}
+                <RefreshCw className="w-4 h-4" />
+                Régénérer le cours
               </button>
               
               <button
@@ -631,6 +597,16 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
           </div>
         </div>
       </div>
+      
+      {/* Regenerate Modal */}
+      {repository && (
+        <RegenerateModal 
+          repository={repository}
+          isOpen={showRegenerateModal}
+          onClose={() => setShowRegenerateModal(false)}
+          onComplete={handleRegenerateComplete}
+        />
+      )}
     </div>
   );
 }

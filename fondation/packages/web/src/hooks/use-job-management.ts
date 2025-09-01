@@ -78,9 +78,9 @@ export function useJobManagement({
     }
   };
 
-  const isProcessing = latestJob && ["pending", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
+  const isProcessing = latestJob && ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
   const isCompleted = latestJob?.status === "completed";
-  const isFailed = latestJob?.status === "failed";
+  const isFailed = latestJob?.status === "failed" || latestJob?.status === "dead";
   const isCanceled = latestJob?.status === "canceled";
 
   return {

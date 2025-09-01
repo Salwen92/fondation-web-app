@@ -1,399 +1,344 @@
-# Deployment Guide
+# Fondation Production Deployment Guide
 
-This guide covers building and deploying Fondation to production.
+This comprehensive guide covers deploying the Fondation platform to production using Docker Compose, including the web application (Vercel), worker service (Docker), and Convex backend.
 
 ## Table of Contents
-1. [Building for Production](#building-for-production)
-2. [Docker Deployment](#docker-deployment)
-3. [Environment Variables](#environment-variables)
-4. [Platform-Specific Guides](#platform-specific-guides)
-5. [Monitoring & Logging](#monitoring--logging)
+1. [Architecture Overview](#architecture-overview)
+2. [Environment Configuration](#environment-configuration)
+3. [Deploy Convex Backend](#deploy-convex-backend)
+4. [Deploy Web Application](#deploy-web-application)
+5. [Deploy Worker Service](#deploy-worker-service)
+6. [Production Checklist](#production-checklist)
+7. [Maintenance Operations](#maintenance-operations)
+8. [Troubleshooting](#troubleshooting)
+9. [Security Considerations](#security-considerations)
+10. [Backup and Recovery](#backup-and-recovery)
 
-## Building for Production
+## Architecture Overview
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Vercel    │────▶│   Convex    │◀────│   Worker    │
+│  (Next.js)  │     │  (Backend)  │     │  (Docker)   │
+└─────────────┘     └─────────────┘     └─────────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   GitHub    │
+                    │     API     │
+                    └─────────────┘
+```
+
+## Environment Configuration
 
 ### Prerequisites
-- Node.js 20+
-- Docker Desktop
-- Bun package manager
+- Docker and Docker Compose installed
+- Convex account configured
 - GitHub OAuth App (production URLs)
+- Claude Code OAuth token
+- Bun package manager
 
-### Build All Packages
+### Required Environment Variables
 
-```bash
-# From monorepo root
-cd /Users/salwen/Documents/Cyberscaling/fondation-web-app/fondation
-
-# Clean previous builds
-bun run clean
-
-# Build everything in correct order
-bun run build
-
-# Verify builds
-ls -la packages/*/dist/
-```
-
-## Docker Deployment
-
-### Building the CLI Docker Image
-
-The CLI runs in Docker for consistent execution and authentication management.
-
-#### Step 1: Build TypeScript Sources (Critical Order)
+Create a `.env.production` file:
 
 ```bash
-# Build from root (REQUIRED - respects dependencies)
-npx tsc --build --force
+# Convex Configuration
+CONVEX_URL=https://your-deployment.convex.cloud
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 
-# Or if that fails, build individually:
-cd packages/shared && npx tsc --build
-cd ../cli && npx tsc --build
+# Authentication
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+CLAUDE_CODE_OAUTH_TOKEN=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# GitHub OAuth (for web app)
+AUTH_GITHUB_ID=your_github_oauth_app_id
+AUTH_GITHUB_SECRET=your_github_oauth_app_secret
+AUTH_SECRET=your_random_auth_secret
+
+# Worker Configuration
+WORKER_ID=worker-prod
+POLL_INTERVAL=5000
+LEASE_TIME=300000
+HEARTBEAT_INTERVAL=60000
+MAX_CONCURRENT_JOBS=1
 ```
 
-#### Step 2: Bundle the CLI
+## Deploy Convex Backend
+
+### Initial Setup
 
 ```bash
-cd packages/cli
-node scripts/bundle-cli.js --production
+# Install Convex CLI
+npm install -g convex
 
-# Expected output:
-# 📦 Bundle created: 476.22KB (0.47MB)
-#    - Source files: 25
-#    - Dependencies bundled: 209
-# ✅ CLI test passed
+# Login to Convex
+npx convex login
+
+# Deploy to production
+npx convex deploy --prod
 ```
 
-#### Step 3: Verify Bundle Artifacts
+### Environment Variables in Convex Dashboard
+
+Set these in your Convex dashboard:
+- `GITHUB_TOKEN`: Your GitHub personal access token
+- `CLAUDE_CODE_OAUTH_TOKEN`: Your Claude Code OAuth token
+
+## Deploy Web Application
+
+### Deploy to Vercel
 
 ```bash
-# Check bundled CLI
-ls -lh dist/cli.bundled.mjs
-# Should show: -rwxr-xr-x 476K cli.bundled.mjs
+# Install Vercel CLI
+npm install -g vercel
 
-# Check prompts directory
-ls -la dist/prompts/
-# Should contain all .md prompt files
+# Login to Vercel
+vercel login
+
+# Deploy from packages/web directory
+cd packages/web
+vercel --prod
 ```
 
-#### Step 4: Build Docker Image
+### Environment Variables in Vercel
+
+Configure in your Vercel project settings:
+- `NEXT_PUBLIC_CONVEX_URL`: Your Convex deployment URL
+- `AUTH_GITHUB_ID`: GitHub OAuth App ID
+- `AUTH_GITHUB_SECRET`: GitHub OAuth App Secret
+- `AUTH_SECRET`: Random secret for NextAuth
+
+## Deploy Worker Service
+
+### Container Architecture Requirements
+
+**IMPORTANT**: The worker MUST run inside a Docker container. The system enforces this requirement and will fail if run outside Docker.
 
 ```bash
-cd packages/cli
-docker build -f Dockerfile.production -t fondation/cli:latest .
+# ✅ CORRECT: Worker runs inside Docker container
+docker-compose -f docker-compose.worker.yml up -d
 
-# Verify image
-docker images | grep fondation/cli
+# ❌ INCORRECT: Worker cannot run directly on host
+cd packages/worker && bun run dev  # This will fail
 ```
 
-### Docker Authentication Process
-
-The CLI requires OAuth authentication with Claude.
-
-#### Step 1: Start Container for Authentication
+### Using Docker Compose (Recommended)
 
 ```bash
-# Start container with persistent process
-docker run -d --name fondation-auth fondation/cli:latest tail -f /dev/null
+# 1. Build the Docker image  
+docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
 
-# Verify running
-docker ps | grep fondation-auth
+# 2. Tag with version
+docker tag fondation/cli:latest fondation/cli:v1.0.0
+
+# 3. Deploy with docker-compose
+docker-compose -f docker-compose.worker.yml up -d
+
+# 4. Check deployment status
+docker-compose -f docker-compose.worker.yml ps
+docker-compose -f docker-compose.worker.yml logs -f worker
 ```
 
-#### Step 2: Authenticate with Claude
+### Scaling Workers
 
 ```bash
-# Run interactive authentication
-# IMPORTANT: Use bunx instead of npx with Bun-based images
-docker exec -it fondation-auth bunx claude auth
-# OR
-docker exec -it fondation-auth bun x claude auth
+# Deploy with scaling profile for multiple workers (if supported)
+docker-compose -f docker-compose.worker.yml --profile scale up -d
 
-# Follow prompts:
-# 1. URL shown: https://claude.ai/authorize?...
-# 2. Press Enter to open browser
-# 3. Complete OAuth in browser
-# 4. Terminal shows "✓ Authentication successful"
+# Or scale specific service
+docker-compose -f docker-compose.worker.yml up -d --scale worker=3
 ```
 
-#### Step 3: Save Authenticated Image
+### Health Monitoring
 
 ```bash
-# Commit authenticated state
-docker commit fondation-auth fondation/cli:authenticated
+# Check worker health
+curl http://localhost:8081/health
 
-# Tag with version
-docker tag fondation/cli:authenticated fondation/cli:1.0.0-beta.9-auth
+# View logs
+docker-compose logs -f worker
 
-# Clean up temp container
-docker stop fondation-auth && docker rm fondation-auth
-```
-
-### Production Docker Usage
-
-```bash
-# Run analysis on repository
-docker run --rm \
-  -v /path/to/repository:/workspace \
-  -v /path/to/output:/output \
-  fondation/cli:authenticated \
-  analyze /workspace --output-dir /output
-```
-
-## Environment Variables
-
-### Production Environment Setup
-
-```bash
-# Web Application (Vercel/Railway/etc)
-NEXT_PUBLIC_APP_URL=https://your-domain.com
-NEXTAUTH_URL=https://your-domain.com
-AUTH_SECRET=<production-secret>
-GITHUB_CLIENT_ID=<production-oauth-id>
-GITHUB_CLIENT_SECRET=<production-oauth-secret>
-
-# Convex (Production)
-NEXT_PUBLIC_CONVEX_URL=https://your-prod.convex.cloud
-CONVEX_DEPLOYMENT=prod:your-deployment
-
-# Worker Service
-WORKER_GATEWAY_URL=https://worker.your-domain.com
-FONDATION_WORKER_IMAGE=fondation/cli:authenticated
-MAX_CONCURRENT_JOBS=5
-```
-
-## Platform-Specific Guides
-
-### Deploying to Vercel (Web)
-
-1. **Connect Repository**
-   ```bash
-   vercel link
-   ```
-
-2. **Set Environment Variables**
-   ```bash
-   vercel env add GITHUB_CLIENT_ID production
-   vercel env add GITHUB_CLIENT_SECRET production
-   vercel env add AUTH_SECRET production
-   ```
-
-3. **Deploy**
-   ```bash
-   cd packages/web
-   vercel --prod
-   ```
-
-### Deploying to Railway (Worker)
-
-1. **Create New Project**
-   ```bash
-   railway init
-   ```
-
-2. **Configure Dockerfile**
-   ```dockerfile
-   FROM node:20-alpine
-   WORKDIR /app
-   COPY packages/worker/dist ./dist
-   COPY packages/worker/package.json ./
-   RUN npm install --production
-   CMD ["node", "dist/index.js"]
-   ```
-
-3. **Deploy**
-   ```bash
-   railway up
-   ```
-
-### Deploying to AWS ECS (Worker)
-
-1. **Build and Push Image**
-   ```bash
-   aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URI
-   docker build -t fondation-worker packages/worker
-   docker tag fondation-worker:latest $ECR_URI/fondation-worker:latest
-   docker push $ECR_URI/fondation-worker:latest
-   ```
-
-2. **Create Task Definition**
-   ```json
-   {
-     "family": "fondation-worker",
-     "containerDefinitions": [{
-       "name": "worker",
-       "image": "${ECR_URI}/fondation-worker:latest",
-       "environment": [
-         {"name": "CONVEX_URL", "value": "..."},
-         {"name": "FONDATION_WORKER_IMAGE", "value": "..."}
-       ]
-     }]
-   }
-   ```
-
-### Deploying to Google Cloud Run (Worker)
-
-```bash
-# Build and deploy
-gcloud builds submit --tag gcr.io/$PROJECT_ID/fondation-worker
-gcloud run deploy fondation-worker \
-  --image gcr.io/$PROJECT_ID/fondation-worker \
-  --platform managed \
-  --set-env-vars CONVEX_URL=$CONVEX_URL
-```
-
-## CI/CD Pipeline
-
-### GitHub Actions Example
-
-```yaml
-name: Deploy Production
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy-web:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: oven-sh/setup-bun@v1
-      - run: bun install
-      - run: bun run build:web
-      - uses: vercel/action@v1
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-
-  deploy-worker:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build Docker image
-        run: |
-          docker build -f packages/worker/Dockerfile -t worker .
-          docker tag worker:latest ${{ secrets.REGISTRY }}/worker:${{ github.sha }}
-      - name: Push to registry
-        run: docker push ${{ secrets.REGISTRY }}/worker:${{ github.sha }}
-```
-
-## Monitoring & Logging
-
-### Essential Metrics
-
-1. **Web Application**
-   - Response times
-   - Error rates
-   - Active users
-   - GitHub API rate limits
-
-2. **Worker Service**
-   - Jobs processed/hour
-   - Average processing time
-   - Failure rate
-   - Docker container health
-
-3. **Convex Database**
-   - Function execution times
-   - Database size
-   - Real-time connections
-
-### Logging Setup
-
-```javascript
-// Worker logging
-import pino from 'pino';
-
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true
-    }
-  }
-});
-
-// Log job processing
-logger.info({ jobId, status }, 'Job processed');
-```
-
-### Health Checks
-
-```javascript
-// Worker health endpoint
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    jobs: jobQueue.length
-  });
-});
+# Check resource usage
+docker stats fondation-worker
 ```
 
 ## Production Checklist
 
-### Before Deployment
-- [ ] All tests passing (`bun run test`)
-- [ ] TypeScript builds without errors (`bun run typecheck`)
-- [ ] Docker images built and tagged
-- [ ] Environment variables configured
+### Pre-Deployment
+- [ ] All environment variables configured
 - [ ] Database migrations completed
 - [ ] SSL certificates configured
-
-### After Deployment
-- [ ] Health checks passing
-- [ ] Monitoring configured
-- [ ] Logs aggregating properly
 - [ ] Backup strategy in place
-- [ ] Rollback plan documented
+- [ ] Monitoring configured
 
-## Troubleshooting Production
+### Deployment Steps
+1. [ ] Deploy Convex backend
+2. [ ] Deploy web application to Vercel
+3. [ ] Build Docker images
+4. [ ] Start worker services with docker-compose
+5. [ ] Verify health checks passing
 
-### Common Issues
+### Post-Deployment
+- [ ] Test authentication flow
+- [ ] Test repository analysis workflow
+- [ ] Monitor worker logs
+- [ ] Verify database connectivity
+- [ ] Check performance metrics
 
-#### Docker Authentication Expires
+## Maintenance Operations
+
+### Update Worker Service
+
 ```bash
-# Re-authenticate
-docker run -it fondation/cli:latest npx claude auth
-docker commit <container-id> fondation/cli:authenticated
+# Pull latest changes
+git pull origin main
+
+# Rebuild Docker image
+docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
+docker tag fondation/cli:latest fondation/cli:v1.0.1
+
+# Update running containers
+docker-compose -f docker-compose.worker.yml down
+docker-compose -f docker-compose.worker.yml up -d
 ```
 
-#### Worker Can't Connect to Convex
-- Verify CONVEX_URL is correct
-- Check network connectivity
-- Ensure deployment is active
+### View Logs
 
-#### High Memory Usage
-- Increase container limits
-- Implement job batching
-- Add memory monitoring
+```bash
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f worker
+
+# Last 100 lines
+docker-compose logs --tail=100 worker
+```
+
+### Restart Services
+
+```bash
+# Restart all services
+docker-compose restart
+
+# Restart specific service
+docker-compose restart worker
+```
+
+### Clean Up Docker Resources
+
+```bash
+# Remove stopped containers
+docker container prune -f
+
+# Remove unused images
+docker image prune -a -f
+
+# Remove unused volumes
+docker volume prune -f
+
+# Complete cleanup
+docker system prune -a -f --volumes
+```
+
+## Troubleshooting
+
+### Worker Not Processing Jobs
+1. Check worker logs: `docker-compose logs -f worker`
+2. Verify Convex connection: Check CONVEX_URL
+3. Check authentication tokens
+4. Restart worker: `docker-compose restart worker`
+
+### Jobs Stuck in Database
+1. Connect to Convex dashboard
+2. Navigate to Data tab
+3. Find stuck jobs in `jobs` table
+4. Update status to "failed" or delete
+
+### Docker Memory Issues
+1. Check memory usage: `docker stats`
+2. Adjust limits in docker-compose.yml
+3. Restart Docker daemon if necessary
+
+### Authentication Failures
+1. **Container Architecture Error**:
+   ```bash
+   Error: Worker must run inside Docker container
+   ```
+   **Solution**: Always run worker via Docker Compose, not directly on host
+
+2. **Claude Authentication Hanging**:
+   ```bash
+   # Test Claude authentication in container
+   docker exec -it fondation-worker sh -c 'cd /app/cli && echo "test" | bun node_modules/.bin/claude'
+   ```
+
+3. **GitHub Token Issues**:
+   - Verify GitHub token has required scopes
+   - Check token expiration dates
+   - Ensure tokens are properly set in environment variables
+
+4. **Environment Variable Problems**:
+   ```bash
+   # Check environment variables in running container
+   docker exec fondation-worker env | grep -E "(CLAUDE|GITHUB)"
+   ```
 
 ## Security Considerations
 
-### Production Security Checklist
-- [ ] Use secrets management (AWS Secrets Manager, etc.)
-- [ ] Enable CORS for production domain only
-- [ ] Implement rate limiting
-- [ ] Use HTTPS everywhere
-- [ ] Rotate secrets regularly
-- [ ] Audit dependencies for vulnerabilities
-- [ ] Enable container scanning
-- [ ] Implement least privilege IAM
+### Secrets Management
+- Never commit `.env` files to version control
+- Use Docker secrets for sensitive data
+- Rotate tokens regularly
+- Use least-privilege principle
 
-## Scaling Strategies
+### Network Security
+- Use HTTPS for all external communications
+- Implement rate limiting
+- Use private networks for inter-service communication
+- Enable Docker's built-in firewall rules
 
-### Horizontal Scaling
-- **Web**: Deploy behind load balancer
-- **Worker**: Run multiple instances
-- **Database**: Convex auto-scales
+### Monitoring and Alerting
+- Set up alerts for worker failures
+- Monitor CPU and memory usage
+- Track job completion times
+- Alert on authentication failures
 
-### Vertical Scaling
-- Increase container resources
-- Optimize bundle sizes
-- Implement caching layers
+## Backup and Recovery
+
+### Database Backups
+Convex automatically handles database backups. For additional safety:
+- Export critical data periodically
+- Test restore procedures regularly
+- Document recovery time objectives (RTO)
+
+### Docker Volume Backups
+
+```bash
+# Backup worker volumes
+docker run --rm -v fondation_worker-temp:/source -v $(pwd):/backup alpine \
+  tar czf /backup/worker-temp-backup.tar.gz -C /source .
+
+docker run --rm -v fondation_worker-cache:/source -v $(pwd):/backup alpine \
+  tar czf /backup/worker-cache-backup.tar.gz -C /source .
+```
+
+### Performance Tuning
+
+```yaml
+# In docker-compose.yml, adjust resources:
+deploy:
+  resources:
+    limits:
+      cpus: '4'      # Increase for more processing power
+      memory: 4G     # Increase for larger repositories
+    reservations:
+      cpus: '1'
+      memory: 1G
+```
 
 ---
 
 For development setup, see [Development Guide](./DEVELOPMENT.md).
-For troubleshooting, see [Troubleshooting Guide](./TROUBLESHOOTING.md).
+For Docker Compose configuration, see [docker-compose.worker.yml](../docker-compose.worker.yml).

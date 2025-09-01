@@ -1,8 +1,9 @@
 services:
   worker:
-    image: fondation/worker:authenticated
+    image: fondation/cli:latest
     container_name: fondation-worker
     restart: unless-stopped
+    command: worker
     environment:
       - CONVEX_URL=${CONVEX_URL:-https://basic-stoat-666.convex.cloud}
       - CONVEX_DEPLOYMENT=${CONVEX_DEPLOYMENT:-dev:basic-stoat-666}
@@ -15,6 +16,7 @@ services:
       - MAX_CONCURRENT_JOBS=${MAX_CONCURRENT_JOBS:-1}
       - TEMP_DIR=/tmp/fondation
       - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
     volumes:
       # Use named volume for better persistence
       - worker-repos:/tmp/fondation

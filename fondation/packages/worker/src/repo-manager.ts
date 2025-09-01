@@ -68,7 +68,9 @@ export class RepoManager {
     try {
       await rm(repoPath, { recursive: true, force: true });
       this.repos.delete(jobId);
-    } catch (_error) {
+    } catch (error) {
+      console.warn(`Failed to cleanup repository for job ${jobId}:`, error instanceof Error ? error.message : error);
+      // Continue - cleanup failures are not critical
     }
   }
   
@@ -83,7 +85,9 @@ export class RepoManager {
     // Also try to clean the entire temp directory
     try {
       await rm(this.tempDir, { recursive: true, force: true });
-    } catch (_error) {
+    } catch (error) {
+      console.warn(`Failed to cleanup temp directory ${this.tempDir}:`, error instanceof Error ? error.message : error);
+      // Continue - temp directory cleanup failure is not critical
     }
   }
 }

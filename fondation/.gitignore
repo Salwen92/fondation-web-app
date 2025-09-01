@@ -28,6 +28,8 @@ bun-debug.log*
 # Local env files
 .env
 .env*.local
+.env.tokens
+.env.docker
 
 # Vercel
 .vercel
