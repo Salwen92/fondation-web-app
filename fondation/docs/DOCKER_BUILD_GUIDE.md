@@ -70,55 +70,56 @@ The Dockerfile uses a multi-stage build process:
 
 ## Authentication with Claude
 
-### Important: Use Bun Commands, Not NPX
+### ✅ Recommended: Environment Variable Authentication
 
-Since we're using Bun images, traditional npm/npx commands won't work. Use these instead:
+The Docker container uses environment variables for authentication. This is the **only supported production method**:
 
-1. **Start a container for authentication:**
+1. **Ensure you have a valid token in your .env file:**
    ```bash
-   docker run -d --name fondation-auth fondation/cli:latest tail -f /dev/null
+   # Check your .env file contains:
+   CLAUDE_CODE_OAUTH_TOKEN=sk-ant-your-token-here
    ```
 
-2. **Authenticate with Claude (use bunx, not npx):**
+2. **Run CLI commands with environment variable:**
    ```bash
-   docker exec -it fondation-auth bunx claude auth
-   # OR
-   docker exec -it fondation-auth bun x claude auth
+   # Source environment and run analyze command
+   source .env && docker run --rm \
+     -v /path/to/repo:/workspace \
+     -v /path/to/output:/output \
+     -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
+     fondation/cli:latest analyze /workspace --output-dir /output
    ```
 
-3. **Save the authenticated image:**
+3. **For production deployment, use docker-compose:**
    ```bash
-   docker commit fondation-auth fondation/cli:authenticated
-   docker tag fondation/cli:authenticated fondation/cli:$(date +%Y-%m-%d)-auth
+   # Use the provided docker-compose file
+   source .env && docker-compose -f docker-compose.yml up -d
    ```
 
-4. **Clean up:**
+4. **Test authentication works:**
    ```bash
-   docker stop fondation-auth && docker rm fondation-auth
+   # Verify CLI version with authentication
+   source .env && docker run --rm \
+     -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
+     fondation/cli:latest --version
    ```
 
-### Persistent Authentication (Recommended)
+### ❌ Interactive Authentication (Development Only)
 
-To avoid re-authenticating every time, mount the Claude authentication directory as a volume:
+**⚠️ Warning:** Interactive authentication (`docker exec -it ... bunx claude auth`) **does not work reliably** and will fail in:
+- Production environments
+- CI/CD pipelines  
+- Non-interactive environments
+- Automated deployments
 
+For **local development only**, you can use:
 ```bash
-# Create a persistent directory for Claude auth
-mkdir -p ~/.claude-docker-auth
-
-# Run container with auth volume mounted
-docker run -d \
-  --name fondation-persistent \
-  -v ~/.claude-docker-auth:/root/.config/claude \
-  fondation/cli:latest tail -f /dev/null
-
-# Authenticate once (credentials will persist)
-docker exec -it fondation-persistent bunx claude auth
-
-# Use the authenticated container
-docker exec fondation-persistent bun dist/cli.bundled.mjs analyze /workspace --output-dir /output
+# Only works with interactive terminal access
+docker run -it --rm fondation/cli:latest sh
+# Inside container: bunx claude auth
 ```
 
-The authentication will persist across container restarts as long as the volume is mounted.
+**Always use environment variables for reliable authentication.**
 
 ## Common Issues and Solutions
 

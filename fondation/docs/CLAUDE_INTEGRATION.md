@@ -67,9 +67,12 @@ The Docker image handles Claude SDK setup automatically:
 RUN cd /app/cli && bun add @anthropic-ai/claude-code@latest
 ```
 
-To authenticate in Docker:
+To authenticate in Docker (use environment variables):
 ```bash
-docker run -it fondation/cli:latest bunx claude auth
+# Set token in .env file and run with environment variable
+source .env && docker run --rm \
+  -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
+  fondation/cli:latest --version
 ```
 
 ## Usage in Code

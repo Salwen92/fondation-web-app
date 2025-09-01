@@ -127,13 +127,15 @@ Authorization callback URL: http://localhost:3000/api/auth/callback/github
 ### Claude Authentication Issues
 
 #### Problem: "OAuth token has expired" in Docker
-**Solution**: Re-authenticate the container:
+**Solution**: Use environment variable authentication:
 ```bash
-docker run -d --name auth fondation/cli:latest tail -f /dev/null
-docker exec -it auth npx claude auth
-# Complete browser flow
-docker commit auth fondation/cli:authenticated
-docker stop auth && docker rm auth
+# Check your .env file has the token
+echo $CLAUDE_CODE_OAUTH_TOKEN
+
+# Run with environment variable
+source .env && docker run --rm \
+  -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
+  fondation/cli:latest --version
 ```
 
 ### Session Issues
@@ -174,14 +176,19 @@ for (const file of promptFiles) {
 #### Problem: Analyze command hangs in Docker
 **Checklist**:
 ```bash
-# 1. Check authentication
-docker exec <container> ls /root/.claude.json
+# 1. Check environment variable is set
+echo $CLAUDE_CODE_OAUTH_TOKEN
 
 # 2. Check bash installed
 docker exec <container> bash --version
 
 # 3. Check SDK installed
 docker exec <container> ls node_modules/@anthropic-ai/
+
+# 4. Test authentication
+source .env && docker run --rm \
+  -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
+  fondation/cli:latest --version
 ```
 
 ## Database Issues

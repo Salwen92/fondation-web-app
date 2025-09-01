@@ -165,27 +165,21 @@ bun run dev:worker
 # 1. Build base CLI image
 docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
 
-# 2. Create authentication container
-docker run -d --name auth fondation/cli:latest tail -f /dev/null
-
-# 3. Authenticate interactively (requires browser)
-docker exec -it auth npx claude auth
-
-# 4. Commit authenticated image
-docker commit auth fondation/cli:authenticated
-docker rm -f auth
+# 2. Deploy with environment variable authentication
+# (No separate authenticated image needed)
 ```
 
 ### Production Deployment
 
 ```bash
-# Deploy worker with authenticated image
-docker run -d \
+# Deploy worker with environment variable authentication
+source .env && docker run -d \
   --name fondation-worker \
   --restart unless-stopped \
   -e CONVEX_URL=https://your-deployment.convex.cloud \
+  -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
   -e WORKER_ID=worker-1 \
-  fondation/cli:authenticated
+  fondation/cli:latest
 ```
 
 ## Docker Build
@@ -194,7 +188,7 @@ docker run -d \
 
 For complete instructions, see:
 - `DOCKER_BUILD_GUIDE.md` - Docker build process
-- `CLAUDE.md` - E2E testing and troubleshooting
+- `../../docs/CLAUDE_INTEGRATION.md` - E2E testing and troubleshooting
 
 
 ## Health Checks
@@ -290,14 +284,13 @@ npx convex dashboard
 
 ### Claude CLI authentication issues
 ```bash
-# Test authentication
-docker run --rm fondation/cli:authenticated sh -c 'npx claude -p "test"'
+# Test authentication with environment variable
+source .env && docker run --rm \
+  -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
+  fondation/cli:latest --version
 
-# Re-authenticate if needed
-docker run -d --name auth fondation/cli:latest tail -f /dev/null
-docker exec -it auth npx claude auth
-docker commit auth fondation/cli:authenticated
-docker rm -f auth
+# Check environment variable is set
+echo $CLAUDE_CODE_OAUTH_TOKEN
 ```
 
 ### Step 4+ Analysis Failures

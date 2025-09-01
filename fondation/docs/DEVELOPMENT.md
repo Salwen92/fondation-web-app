@@ -4,7 +4,7 @@ This guide covers the complete development workflow for the Fondation monorepo.
 
 ## Available Scripts
 
-For a complete list of all 50+ scripts, see [COMMANDS.md](../COMMANDS.md). Here are the most important ones:
+For a complete list of all 50+ scripts, see [COMMANDS.md](COMMANDS.md). Here are the most important ones:
 
 ### Daily Development
 ```bash

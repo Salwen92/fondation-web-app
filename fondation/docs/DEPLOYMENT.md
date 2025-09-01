@@ -258,7 +258,7 @@ docker system prune -a -f --volumes
 
 ### Docker Memory Issues
 1. Check memory usage: `docker stats`
-2. Adjust limits in docs/docker-compose.yml
+2. Adjust limits in docker-compose.yml
 3. Restart Docker daemon if necessary
 
 ### Authentication Failures
@@ -270,8 +270,9 @@ docker system prune -a -f --volumes
 
 2. **Claude Authentication Hanging**:
    ```bash
-   # Test Claude authentication in container
-   docker exec -it fondation-worker sh -c 'cd /app/cli && echo "test" | bun node_modules/.bin/claude'
+   # Test Claude authentication with environment variable
+   source .env && docker run --rm -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
+     fondation/cli:latest --version
    ```
 
 3. **GitHub Token Issues**:
@@ -327,7 +328,7 @@ docker run --rm -v fondation_worker-cache:/source -v $(pwd):/backup alpine \
 ### Performance Tuning
 
 ```yaml
-# In docs/docker-compose.yml, adjust resources:
+# In docker-compose.yml, adjust resources:
 deploy:
   resources:
     limits:
@@ -341,4 +342,4 @@ deploy:
 ---
 
 For development setup, see [Development Guide](./DEVELOPMENT.md).
-For Docker Compose configuration, see [docker-compose.worker.yml](../docker-compose.worker.yml).
+For Docker Compose configuration, see [docker-compose.worker.yml](docker-compose.worker.yml).

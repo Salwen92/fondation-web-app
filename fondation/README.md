@@ -59,7 +59,7 @@ Get up and running in 5 minutes:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/fondation.git
+git clone https://github.com/fondation/fondation.git
 cd fondation
 
 # 2. Install and build
@@ -91,7 +91,7 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for detailed setup instruct
 ### Additional Resources
 - 🔐 [Security Guide](docs/SECURITY.md) - Security best practices
 - 📊 [Configuration Audit](docs/CONFIGURATION_AUDIT.md) - Configuration standardization
-- 📋 [Commands Reference](COMMANDS.md) - All available scripts explained
+- 📋 [Commands Reference](docs/COMMANDS.md) - All available scripts explained
 
 ## 📁 Project Structure
 
@@ -163,14 +163,12 @@ See [Development Guide](docs/DEVELOPMENT.md) for complete workflow documentation
 # Build CLI image from monorepo root
 bun run build:docker
 
-# Authenticate with Claude (using bunx in Bun image)
-docker run -it fondation/cli:latest bunx claude auth
-
-# Deploy worker
-docker run -d \
+# Deploy worker with environment variable authentication
+source .env && docker run -d \
   --name fondation-worker \
   -e CONVEX_URL=your-convex-url \
-  fondation/cli:authenticated
+  -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
+  fondation/cli:latest
 ```
 
 See [Deployment Guide](docs/DEPLOYMENT.md) for production deployment.
@@ -199,7 +197,9 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+Copyright © 2025 Fondation. All Rights Reserved.
+
+This is proprietary software. See [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -211,8 +211,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## 🔗 Links
 
 - [Documentation](docs/)
-- [Issue Tracker](https://github.com/your-org/fondation/issues)
-- [Discussions](https://github.com/your-org/fondation/discussions)
+- [Issue Tracker](https://github.com/fondation/fondation/issues)
+- [Discussions](https://github.com/fondation/fondation/discussions)
 - [Changelog](CHANGELOG.md)
 
 ---

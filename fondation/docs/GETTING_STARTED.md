@@ -162,9 +162,11 @@ bun run build
 
 ### Docker authentication issues
 ```bash
-# Authenticate CLI for worker
-docker run -it fondation/cli:latest npx claude auth
-# Follow browser authentication flow
+# Use environment variable authentication (recommended)
+docker run --rm --env-file .env fondation/cli:latest --version
+
+# Ensure your .env file contains:
+# CLAUDE_CODE_OAUTH_TOKEN=your-token-here
 ```
 
 ## Next Steps

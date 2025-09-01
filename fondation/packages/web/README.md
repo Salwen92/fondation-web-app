@@ -166,7 +166,7 @@ bun run build
 
 ### Worker Deployment
 
-See `DOCKER_BUILD_GUIDE.md` and `CLAUDE.md` for complete worker deployment instructions.
+See `../../docs/DOCKER_BUILD_GUIDE.md` and `../../docs/CLAUDE_INTEGRATION.md` for complete worker deployment instructions.
 
 ## 🔑 Security
 
@@ -215,7 +215,7 @@ See `CONTRIBUTING.md` for detailed development setup and guidelines.
 
 - `README.md` - Main project overview
 - `DOCKER_BUILD_GUIDE.md` - Worker deployment
-- `CLAUDE.md` - E2E testing guide
+- `../../docs/CLAUDE_INTEGRATION.md` - E2E testing guide
 - `CONTRIBUTING.md` - Development setup
 - `../worker/README.md` - Worker service details
 
