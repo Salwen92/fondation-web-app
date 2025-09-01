@@ -68,7 +68,9 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
     handleRegenerateClick,
     handleComplete,
     handleClose,
-    canRegenerate
+    canRegenerate,
+    activeJob: regenerationJob,
+    isRegenerating
   } = useRegenerate(repository, {
     onComplete: (newJobId) => {
       const [owner, repoName] = repo.fullName.split('/');
@@ -101,11 +103,12 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
     }
   };
 
-  // Job status calculations - includes 'claimed' status for queue consistency
-  const isProcessing = latestJob && ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
-  const isCompleted = latestJob?.status === "completed";
-  const isFailed = latestJob?.status === "failed" || latestJob?.status === "dead";
-  const isCanceled = latestJob?.status === "canceled";
+  // Job status calculations - prioritize regeneration job when active
+  const currentJob = isRegenerating ? regenerationJob : latestJob;
+  const isProcessing = currentJob && ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(currentJob.status);
+  const isCompleted = currentJob?.status === "completed";
+  const isFailed = currentJob?.status === "failed" || currentJob?.status === "dead";
+  const isCanceled = currentJob?.status === "canceled";
 
   return (
     <motion.div
@@ -139,8 +142,8 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
                 </a>
               </div>
               <JobStatusBadge 
-                status={latestJob?.status} 
-                progress={latestJob?.progress} 
+                status={currentJob?.status} 
+                progress={currentJob?.progress} 
               />
             </div>
 
@@ -187,17 +190,17 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
             </div>
 
             {/* Progress Bar for active jobs */}
-            {isProcessing && latestJob && (
+            {isProcessing && currentJob && (
               <ProgressBar 
-                currentStep={latestJob.currentStep ?? 0}
-                totalSteps={latestJob.totalSteps ?? 7}
+                currentStep={currentJob.currentStep ?? 0}
+                totalSteps={currentJob.totalSteps ?? 7}
                 className="mb-4"
               />
             )}
 
             {/* Actions */}
             <JobActions
-              status={latestJob?.status as any}
+              status={currentJob?.status as any}
               isProcessing={!!isProcessing}
               isCompleted={!!isCompleted}
               isFailed={!!isFailed}
@@ -205,7 +208,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
               onGenerate={handleGenerate}
               onCancel={handleCancel}
               onViewCourse={handleViewCourse}
-              onRegenerate={handleRegenerateClick}
+              onRegenerate={isRegenerating ? undefined : handleRegenerateClick} // Disable regenerate during active regeneration
               onTest={handleTest}
               repositoryName={repo.name}
             />

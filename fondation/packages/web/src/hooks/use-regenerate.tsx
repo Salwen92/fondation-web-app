@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import React from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/generated/api";
 import type { Id } from "@convex/generated/dataModel";
 import { toast } from "sonner";
@@ -23,6 +24,11 @@ export function useRegenerate(repository?: Repository, options: RegenerateOption
   const [isStarting, setIsStarting] = useState(false);
 
   const regenerate = useMutation(api.jobs.regenerate);
+  
+  // Track the active regeneration job for real-time updates
+  const activeJob = useQuery(api.jobs.getById, 
+    currentJobId ? { id: currentJobId } : "skip"
+  );
 
   const handleRegenerateClick = () => {
     if (!repository) {
@@ -74,6 +80,13 @@ export function useRegenerate(repository?: Repository, options: RegenerateOption
     options.onComplete?.(jobId);
   };
 
+  // Auto-complete when active job finishes
+  React.useEffect(() => {
+    if (activeJob?.status === "completed" && currentJobId) {
+      handleComplete(activeJob._id);
+    }
+  }, [activeJob?.status, activeJob?._id, currentJobId]);
+
   const handleClose = () => {
     setIsModalOpen(false);
   };
@@ -83,6 +96,7 @@ export function useRegenerate(repository?: Repository, options: RegenerateOption
     isModalOpen,
     currentJobId,
     isStarting,
+    activeJob, // Provide the active regeneration job for real-time updates
     
     // Actions
     handleRegenerateClick,
@@ -96,5 +110,8 @@ export function useRegenerate(repository?: Repository, options: RegenerateOption
     
     // Repository check
     canRegenerate: Boolean(repository),
+    
+    // Status helpers
+    isRegenerating: Boolean(currentJobId && activeJob && ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(activeJob.status)),
   };
 }
