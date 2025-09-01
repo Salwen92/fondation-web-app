@@ -155,7 +155,7 @@ export async function loadConfig(options: LoadConfigOptions = {}): Promise<CLICo
         )
       ]);
       
-      const result = await loadWithTimeout;
+      const result = await loadWithTimeout as any;
       if (!result) {
         throw new Error(`Configuration file not found: ${options.configPath}`);
       }
