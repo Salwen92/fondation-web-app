@@ -41,7 +41,7 @@ export function useRegenerate(repository?: Repository, options: RegenerateOption
   };
 
   const handleRegenerate = async () => {
-    if (!repository) return;
+    if (!repository) { return; }
     
     setIsStarting(true);
     try {
@@ -57,7 +57,6 @@ export function useRegenerate(repository?: Repository, options: RegenerateOption
         description: "Le processus de régénération a commencé."
       });
     } catch (error) {
-      console.error("Failed to start regeneration:", error);
       const errorMessage = error instanceof Error ? error.message : "Impossible de démarrer la régénération";
       
       toast.error("Erreur", {
@@ -85,7 +84,7 @@ export function useRegenerate(repository?: Repository, options: RegenerateOption
     if (activeJob?.status === "completed" && currentJobId) {
       handleComplete(activeJob._id);
     }
-  }, [activeJob?.status, activeJob?._id, currentJobId]);
+  }, [activeJob?.status, activeJob?._id, currentJobId, handleComplete]);
 
   const handleClose = () => {
     setIsModalOpen(false);

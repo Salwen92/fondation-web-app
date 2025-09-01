@@ -1,10 +1,9 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery, } from 'convex/react';
 import { api } from '@convex/generated/api';
 import type { Id } from '@convex/generated/dataModel';
 import { notFound, useRouter } from 'next/navigation';
-import { env } from '@/env';
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

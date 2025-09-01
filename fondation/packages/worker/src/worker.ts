@@ -5,7 +5,6 @@ import { RepoManager } from "./repo-manager.js";
 import { HealthServer } from "./health.js";
 import { api } from "@convex/generated/api";
 import { getSimpleCrypto } from "./simple-crypto";
-import { isDevelopment, isInsideDocker } from "@fondation/shared/environment";
 const safeDeobfuscate = getSimpleCrypto();
 
 // Type aliases for IDs to avoid import issues
@@ -111,14 +110,9 @@ export class PermanentWorker {
     const { developmentMode, executionMode } = this.config;
     
     if (developmentMode) {
-      console.log("🔧 Development mode detected - relaxed execution environment validation");
-      console.log(`📍 Execution mode: ${executionMode}`);
       
       if (executionMode === 'local') {
-        console.log("💻 Local execution mode - Docker container validation bypassed");
-        console.log("⚠️  Note: This is only allowed in development mode");
       } else {
-        console.log("🐳 Container execution mode in development");
       }
       
       return;
@@ -126,7 +120,7 @@ export class PermanentWorker {
     
     // Production mode - enforce strict container requirements
     const isInsideDocker = process.env.DOCKER_CONTAINER === 'true' || 
-                          require('fs').existsSync('/.dockerenv');
+                          require('node:fs').existsSync('/.dockerenv');
     
     if (!isInsideDocker) {
       throw new Error(
@@ -139,30 +133,21 @@ export class PermanentWorker {
         "For development mode, set NODE_ENV=development to bypass this check."
       );
     }
-    
-    console.log("✅ Production container environment validated - running inside Docker");
   }
   
   async start(): Promise<void> {
-    console.log("🔄 Starting worker main loop...");
     this.isRunning = true;
     
     // Start health server
     this.healthServer.listen(8081); // Health check endpoint
-    console.log(`🏥 Health server listening on port 8081`);
-    
-    // Main polling loop
-    console.log(`🔁 Starting polling loop (interval: ${this.config.pollInterval}ms)`);
     while (this.isRunning) {
       try {
         await this.pollAndProcess();
         await this.sleep(this.config.pollInterval);
-      } catch (error) {
-        console.error("❌ Error in polling loop:", error);
+      } catch (_error) {
         await this.sleep(this.config.pollInterval * 2); // Backoff on error
       }
     }
-    console.log("⏹️ Worker main loop stopped");
   }
   
   async stop(): Promise<void> {
@@ -191,15 +176,12 @@ export class PermanentWorker {
     }
     
     try {
-      // Claim a job from the queue
-      console.log(`Polling for jobs (workerId: ${this.config.workerId})`);
       const claimedJob = await this.convex.mutation(api.queue.claimOne, {
         workerId: this.config.workerId,
         leaseMs: this.config.leaseTime,
       });
       
       if (claimedJob) {
-        console.log(`✅ Claimed job: ${claimedJob.id}`);
         const job: Job = {
           id: claimedJob.id as string,
           repositoryId: claimedJob.repositoryId as string,
@@ -219,10 +201,8 @@ export class PermanentWorker {
             this.activeJobs.delete(job.id);
           });
       } else {
-        console.log(`No jobs available to claim`);
       }
-    } catch (error) {
-      console.error(`❌ Error claiming job:`, error);
+    } catch (_error) {
     }
   }
   
@@ -230,10 +210,6 @@ export class PermanentWorker {
     const startTime = Date.now();
     
     try {
-      console.log(`🔄 Processing job ${job.id} for repository ${job.repositoryId}`);
-      
-      // Fetch repository details to get URL
-      console.log(`📁 Fetching repository details for ${job.repositoryId}`);
       const repository = await this.convex.query(api.repositories.getByRepositoryId, {
         repositoryId: job.repositoryId as any,
       });
@@ -241,7 +217,6 @@ export class PermanentWorker {
       if (!repository) {
         throw new Error(`Repository ${job.repositoryId} not found`);
       }
-      console.log(`✅ Repository found: ${repository.fullName}`);
       
       // Start heartbeat to maintain lease
       const heartbeatInterval = this.startHeartbeat(job.id);
@@ -249,9 +224,6 @@ export class PermanentWorker {
       try {
         // Update status to running
         await this.updateJobStatus(job.id, "running", "Initializing...");
-        
-        // Get the user record to access their GitHub token
-        console.log(`👤 Fetching user details for userId: ${repository.userId}`);
         const user = await this.convex.query(api.users.getUserById, {
           userId: repository.userId as any,
         });
@@ -259,10 +231,6 @@ export class PermanentWorker {
         if (!user?.githubId) {
           throw new Error(`User not found or missing GitHub ID for repository ${repository.fullName}`);
         }
-        console.log(`✅ User found: ${user.githubId} (${user.username})`);
-        
-        // Get user's GitHub token for repository access
-        console.log(`🔑 Fetching GitHub token for user: ${user.githubId}`);
         let userGithubToken = await this.convex.query(api.users.getGitHubToken, {
           githubId: user.githubId,
         });
@@ -270,12 +238,10 @@ export class PermanentWorker {
         // Deobfuscate the token if found
         if (userGithubToken) {
           userGithubToken = safeDeobfuscate(userGithubToken);
-          console.log(`🔑 GitHub token deobfuscated successfully`);
         }
 
         // Fallback to environment token if user token not found
         if (!userGithubToken) {
-          console.log('⚠️ No user GitHub token found, using environment fallback');
           userGithubToken = process.env.GITHUB_TOKEN ?? null;
           if (!userGithubToken) {
             throw new Error(
@@ -284,50 +250,29 @@ export class PermanentWorker {
             );
           }
         }
-
-        console.log(`🔑 Using token: ${userGithubToken ? 'Found' : 'Not found'}`);
-        
-        // Clone repository
-        console.log(`📦 Updating job status to cloning...`);
         try {
           await this.updateJobStatus(job.id, "cloning", "Cloning repository...");
-          console.log(`✅ Job status updated to cloning`);
-        } catch (error) {
-          console.error(`❌ Failed to update job status to cloning:`, error);
+        } catch (_error) {
           // Continue anyway - the job may still work
         }
         const repoUrl = `https://github.com/${repository.fullName}.git`;
-        console.log(`🔄 Starting clone of ${repoUrl}...`);
         const repoPath = await this.repoManager.cloneRepo(
           repoUrl,
           repository.defaultBranch || "main",
           job.id,
           userGithubToken || undefined
         );
-        console.log(`✅ Repository cloned to ${repoPath}`);
-        
-        // Execute CLI
-        console.log(`🔄 Updating job status to analyzing...`);
         try {
           await this.updateJobStatus(job.id, "analyzing", "Analyzing codebase...");
-          console.log(`✅ Job status updated to analyzing`);
-        } catch (error) {
-          console.error(`❌ Failed to update job status to analyzing:`, error);
+        } catch (_error) {
           // Continue anyway
         }
-        
-        console.log(`🚀 Starting CLI execution for ${repoPath}...`);
         const result = await this.cliExecutor.execute(repoPath, {
           prompt: job.prompt,
           onProgress: async (progress) => {
-            console.log(`📊 Progress update: ${progress}`);
             await this.updateJobProgress(job.id, progress);
           },
         });
-        console.log(`✅ CLI execution completed with ${result.success ? 'success' : 'failure'}`);
-        
-        // Save results
-        console.log(`💾 Saving results...`);
         await this.updateJobStatus(job.id, "gathering", "Saving results...");
         await this.saveResults(job, result);
         
@@ -345,8 +290,6 @@ export class PermanentWorker {
         await this.repoManager.cleanup(job.id);
       }
     } catch (error) {
-      console.error(`❌ Job ${job.id} failed with error:`, error);
-      console.error(`❌ Error details:`, error instanceof Error ? error.stack : error);
       await this.failJob(job.id, error instanceof Error ? error.message : String(error));
       this.stats.failed++;
     } finally {
@@ -362,8 +305,7 @@ export class PermanentWorker {
           workerId: this.config.workerId,
           leaseMs: this.config.leaseTime,
         });
-      } catch (error) {
-        console.warn(`Heartbeat failed for job ${jobId}:`, error instanceof Error ? error.message : error);
+      } catch (_error) {
         // Continue - heartbeat failures are not critical if job completes successfully
       }
     }, this.config.heartbeatInterval);
@@ -408,7 +350,6 @@ export class PermanentWorker {
       
       // If all extractions fail, log for debugging but continue
       if (currentStep === 0) {
-        console.warn(`Failed to extract step number from progress: "${progress}"`);
       }
     }
     
@@ -420,8 +361,7 @@ export class PermanentWorker {
         currentStep,
         totalSteps: 6, // Set the correct total steps for the UI
       });
-    } catch (error) {
-      console.warn(`Failed to update job progress for ${jobId}:`, error instanceof Error ? error.message : error);
+    } catch (_error) {
       // Continue - progress updates are not critical for job completion
     }
   }

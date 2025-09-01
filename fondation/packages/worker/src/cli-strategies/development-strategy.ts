@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import { existsSync } from "node:fs";
 import { promisify } from "node:util";
-import { CLIExecutionStrategy, CLIResult } from "./base-strategy.js";
+import type { CLIExecutionStrategy, CLIResult } from "./base-strategy.js";
 import { dev } from "@fondation/shared/environment";
 
 const execAsync = promisify(exec);
@@ -54,8 +54,7 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
     try {
       // First check if Claude is authenticated on host
       const { stdout } = await execAsync('bunx claude --help');
-      console.log('✅ Claude CLI available on host');
-    } catch (error) {
+    } catch (_error) {
       // Check for environment variable as fallback
       if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
         errors.push(
@@ -67,7 +66,7 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
     // Check for required tools
     try {
       await execAsync('bun --version');
-    } catch (error) {
+    } catch (_error) {
       errors.push("Bun runtime not available for development execution");
     }
     
@@ -86,9 +85,6 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
   ): Promise<CLIResult> {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('🔧 Development Mode: Executing CLI locally');
-        console.log('📁 Repository path:', repoPath);
-        console.log('🚀 CLI path:', this.cliPath);
         
         // Determine execution command based on CLI path
         const cliPackageDir = resolvePath(join(__dirname, '../../../cli'));
@@ -96,17 +92,13 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
         if (this.cliPath.includes('cli.ts') || this.cliPath.includes('src')) {
           // Execute TypeScript source directly with Bun (preferred for development)
           command = `cd "${cliPackageDir}" && bun src/cli.ts analyze "${repoPath}" --profile development`;
-          console.log('💻 Using TypeScript source execution');
         } else {
           // Execute bundled version with Bun (fallback)
           command = `cd "${cliPackageDir}" && bun dist/cli.bundled.mjs analyze "${repoPath}" --profile development`;
-          console.log('📦 Using bundled execution');
         }
         
-        console.log('🔨 Command:', command);
-        
         // Track the 6-step analysis workflow (French UI)
-        const workflowSteps = [
+        const _workflowSteps = [
           "Extraction des abstractions",
           "Analyse des relations", 
           "Ordonnancement des chapitres",
@@ -127,7 +119,6 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
         
         // Set development-friendly timeout (longer for debugging)
         const timeout = setTimeout(() => {
-          console.log('⏰ Development execution timeout - killing process');
           child.kill('SIGTERM');
         }, 7200000); // 2 hours for development debugging
         
@@ -166,10 +157,9 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
                 } else if (msg.includes("Analysis complete")) {
                   options.onProgress?.("Étape 6/6: Finalisation de l'analyse").catch(console.error);
                 }
-              } catch (err) {
+              } catch (_err) {
                 // Development: Log parsing errors for debugging
                 if (dev.allows('debug_logging')) {
-                  console.debug('🐛 Non-JSON log line (dev):', trimmedLine);
                 }
               }
             }
@@ -186,7 +176,6 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
               trimmedLine.includes("Analyzing") || 
               trimmedLine.includes("Processing")
             )) {
-              console.log('📋 Dev CLI Output:', trimmedLine);
             }
           }
         });
@@ -197,7 +186,6 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
           
           // In development, log stderr immediately for debugging
           if (dev.allows('debug_logging')) {
-            console.error('🔍 Dev CLI Stderr:', text);
           }
         });
         
@@ -247,7 +235,6 @@ export class DevelopmentCLIStrategy implements CLIExecutionStrategy {
             clearTimeout(timeout);
             
             if (code === 0) {
-              console.log('✅ Development CLI execution completed successfully');
               
               // Parse output files (reuse parsing logic from original CLI executor)
               const documents = await this.parseOutputFiles(repoPath);

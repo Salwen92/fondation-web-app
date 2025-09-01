@@ -4,7 +4,6 @@ import {
   isInsideDocker, 
   getExecutionMode,
   dev,
-  environmentInfo
 } from "@fondation/shared/environment";
 
 // Local type until workspace resolution is fixed
@@ -25,7 +24,7 @@ type WorkerConfig = {
 export function createConfig(): WorkerConfig {
   const executionMode = getExecutionMode();
   const developmentMode = isDevelopment();
-  const isDocker = isInsideDocker();
+  const _isDocker = isInsideDocker();
   
   // Generate worker ID based on execution mode
   const workerId = process.env.WORKER_ID || 
@@ -59,7 +58,7 @@ export function createConfig(): WorkerConfig {
 /**
  * Determine CLI path based on environment and execution mode
  */
-function getCLIPath(developmentMode: boolean, executionMode: string): string {
+function getCLIPath(developmentMode: boolean, _executionMode: string): string {
   // Allow explicit override
   if (process.env.CLI_PATH) {
     return process.env.CLI_PATH;
@@ -69,7 +68,6 @@ function getCLIPath(developmentMode: boolean, executionMode: string): string {
     // In development, prefer source execution if available
     const sourcePath = dev.paths.cliSource();
     if (sourcePath) {
-      console.log('🔧 Development mode: Using CLI source execution');
       return sourcePath;
     }
     
@@ -107,11 +105,9 @@ export function validateConfig(config: WorkerConfig): void {
   
   // Environment-specific validation
   if (config.developmentMode) {
-    console.log('🔧 Development mode validation - relaxed requirements');
     
     // In development, CLI path should exist or be buildable
     if (config.cliPath?.includes('src/cli.ts')) {
-      console.log('📝 Development CLI source path detected');
     }
   } else {
     // Production mode - stricter validation
@@ -127,14 +123,4 @@ export function validateConfig(config: WorkerConfig): void {
   if (errors.length > 0) {
     throw new Error(`Configuration validation failed:\n${errors.join('\n')}`);
   }
-  
-  // Log configuration for debugging
-  console.log('✅ Worker configuration validated:', {
-    workerId: config.workerId,
-    executionMode: config.executionMode,
-    developmentMode: config.developmentMode,
-    cliPath: config.cliPath,
-    tempDir: config.tempDir,
-    convexUrl: config.convexUrl ? '✓ Set' : '✗ Missing'
-  });
 }

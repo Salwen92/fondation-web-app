@@ -98,8 +98,7 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
       // Navigate to course view with the new job
       const [owner, repoName] = repo.fullName.split('/');
       router.push(`/course/${owner}/${repoName}/${result.jobId}`);
-    } catch (error) {
-      console.error("Failed to create test job:", error);
+    } catch (_error) {
     }
   };
 

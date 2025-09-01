@@ -7,7 +7,7 @@ import type { Id } from "@convex/generated/dataModel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { AlertCircle, RefreshCw, CheckCircle, XCircle } from "lucide-react";
+import { AlertCircle, RefreshCw, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { ProgressBar } from "./progress-bar";
 
@@ -49,7 +49,6 @@ export function RegenerateModal({ repository, isOpen, onClose, onComplete }: Reg
         description: "Le processus de régénération a commencé."
       });
     } catch (error) {
-      console.error("Failed to start regeneration:", error);
       toast.error("Erreur", {
         description: error instanceof Error ? error.message : "Impossible de démarrer la régénération"
       });

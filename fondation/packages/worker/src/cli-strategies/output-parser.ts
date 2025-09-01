@@ -18,12 +18,10 @@ export class OutputParser {
     const outputDir = join(repoPath, ".claude-tutorial-output");
     
     if (!existsSync(outputDir)) {
-      console.log('📁 No output directory found:', outputDir);
       return documents;
     }
 
     try {
-      console.log('📁 Parsing output files from:', outputDir);
       
       // 1. Parse YAML files
       const yamlFiles = [
@@ -45,9 +43,7 @@ export class OutputParser {
               kind: yamlFile.kind,
               chapterIndex: -1 // YAML files don't have chapter index
             });
-            console.log('✅ Parsed YAML file:', yamlFile.path);
-          } catch (err) {
-            console.warn(`Failed to parse YAML file ${yamlFile.path}:`, err instanceof Error ? err.message : err);
+          } catch (_err) {
             // Continue processing other files
           }
         }
@@ -59,8 +55,6 @@ export class OutputParser {
         const chapterFiles = readdirSync(chaptersDir)
           .filter(f => f.endsWith(".md"))
           .sort();
-        
-        console.log(`📚 Found ${chapterFiles.length} chapter files`);
         
         for (let i = 0; i < chapterFiles.length; i++) {
           const fileName = chapterFiles[i];
@@ -79,7 +73,6 @@ export class OutputParser {
             chapterIndex: i
           });
         }
-        console.log('✅ Parsed chapter files:', chapterFiles.length);
       }
 
       // 3. Parse reviewed chapters directory
@@ -88,8 +81,6 @@ export class OutputParser {
         const reviewedFiles = readdirSync(reviewedDir)
           .filter(f => f.endsWith(".md"))
           .sort();
-        
-        console.log(`📖 Found ${reviewedFiles.length} reviewed chapter files`);
         
         for (let i = 0; i < reviewedFiles.length; i++) {
           const fileName = reviewedFiles[i];
@@ -107,7 +98,6 @@ export class OutputParser {
             chapterIndex: i
           });
         }
-        console.log('✅ Parsed reviewed chapter files:', reviewedFiles.length);
       }
 
       // 4. Parse tutorials directory
@@ -116,8 +106,6 @@ export class OutputParser {
         const tutorialFiles = readdirSync(tutorialsDir)
           .filter(f => f.endsWith(".md"))
           .sort();
-        
-        console.log(`🎓 Found ${tutorialFiles.length} tutorial files`);
         
         for (let i = 0; i < tutorialFiles.length; i++) {
           const fileName = tutorialFiles[i];
@@ -135,14 +123,10 @@ export class OutputParser {
             chapterIndex: i
           });
         }
-        console.log('✅ Parsed tutorial files:', tutorialFiles.length);
       }
-      
-      console.log(`📊 Total documents parsed: ${documents.length}`);
       return documents;
 
-    } catch (error) {
-      console.error('Error parsing output files:', error instanceof Error ? error.message : error);
+    } catch (_error) {
       return documents; // Return partial results
     }
   }

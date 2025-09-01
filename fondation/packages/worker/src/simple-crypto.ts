@@ -30,8 +30,7 @@ export function deobfuscateToken(obfuscatedToken: string): string {
     try {
       const base64Part = obfuscatedToken.slice(4); // Remove 'obf_' prefix
       return Buffer.from(base64Part, 'base64').toString('utf-8');
-    } catch (error) {
-      console.error('Failed to deobfuscate token', error instanceof Error ? error : new Error(String(error)));
+    } catch (_error) {
       return obfuscatedToken; // Return as-is if deobfuscation fails
     }
   }

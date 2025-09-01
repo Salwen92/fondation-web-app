@@ -10,8 +10,7 @@
 
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { CLIExecutionStrategy, CLIResult } from "./base-strategy.js";
+import type { CLIExecutionStrategy, CLIResult } from "./base-strategy.js";
 
 export class ProductionCLIStrategy implements CLIExecutionStrategy {
   private cliPath: string;
@@ -71,14 +70,9 @@ export class ProductionCLIStrategy implements CLIExecutionStrategy {
   ): Promise<CLIResult> {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('🐳 Production Mode: Executing CLI in Docker container');
-        console.log('📁 Repository path:', repoPath);
-        console.log('🚀 CLI path:', this.cliPath);
         
         // Use production Docker command - exactly as in original implementation
         const analyzeCommand = `cd /app/cli && HOME=/home/worker NODE_PATH=/app/node_modules stdbuf -o0 -e0 timeout 3600 bun dist/cli.bundled.mjs analyze "${repoPath}" --profile production`;
-        
-        console.log('🔨 Production command:', analyzeCommand);
         
         // Track the 6-step analysis workflow (French UI)
         const workflowSteps = [
@@ -141,10 +135,9 @@ export class ProductionCLIStrategy implements CLIExecutionStrategy {
                 } else if (msg.includes("Analysis complete")) {
                   options.onProgress?.("Étape 6/6: Finalisation de l'analyse").catch(console.error);
                 }
-              } catch (err) {
+              } catch (_err) {
                 // Not valid JSON, fall through to other parsing patterns
                 if (process.env.DEBUG) {
-                  console.debug('Non-JSON log line:', trimmedLine);
                 }
               }
             }
@@ -235,7 +228,6 @@ export class ProductionCLIStrategy implements CLIExecutionStrategy {
             clearTimeout(timeout);
             
             if (code === 0) {
-              console.log('✅ Production CLI execution completed successfully');
               
               // Parse the generated files from the output directory with timeout
               let documents: CLIResult['documents'] = [];
@@ -246,9 +238,7 @@ export class ProductionCLIStrategy implements CLIExecutionStrategy {
                 });
                 
                 documents = await Promise.race([parsePromise, timeoutPromise]);
-              } catch (parseError) {
-                console.warn('Failed to parse output files (continuing with empty results):', 
-                  parseError instanceof Error ? parseError.message : parseError);
+              } catch (_parseError) {
                 // Continue with empty documents array - CLI execution succeeded but parsing failed
               }
               

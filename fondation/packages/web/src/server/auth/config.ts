@@ -81,8 +81,6 @@ export const authConfig = {
             const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "";
             const client = new ConvexHttpClient(convexUrl);
             
-            console.log(`Authenticating GitHub user: ${profile.login || profile.name} (ID: ${profile.id})`);
-            
             // Create or update user with GitHub token - this handles account switching
             await client.mutation(api.users.createOrUpdateUser, {
               githubId: String(profile.id),
@@ -97,10 +95,7 @@ export const authConfig = {
               githubId: String(profile.id),
               accessToken: obfuscatedToken,
             });
-            
-            console.log(`GitHub token updated for user ${profile.login || profile.name}`);
-          } catch (error) {
-            console.error("Failed to store GitHub token during sign-in:", error);
+          } catch (_error) {
             // Don't block sign-in if token storage fails
           }
         }
@@ -119,7 +114,6 @@ export const authConfig = {
   // Force re-authentication to ensure fresh tokens
   events: {
     async signOut() {
-      console.log("User signed out - forcing fresh authentication on next login");
     },
   },
 } satisfies NextAuthConfig;

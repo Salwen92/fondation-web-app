@@ -20,9 +20,9 @@ export function getEnvironment(): Environment {
   
   // Check NODE_ENV
   const nodeEnv = process.env.NODE_ENV?.toLowerCase();
-  if (nodeEnv === 'production') return 'production';
-  if (nodeEnv === 'test') return 'test';
-  if (nodeEnv === 'development') return 'development';
+  if (nodeEnv === 'production') { return 'production'; }
+  if (nodeEnv === 'test') { return 'test'; }
+  if (nodeEnv === 'development') { return 'development'; }
   
   // Default to development if not specified
   return 'development';
@@ -155,7 +155,7 @@ export const dev = {
    * Check if development mode allows a specific feature
    */
   allows: (feature: 'docker_bypass' | 'mock_auth' | 'hot_reload' | 'debug_logging'): boolean => {
-    if (!isDevelopment()) return false;
+    if (!isDevelopment()) { return false; }
     
     switch (feature) {
       case 'docker_bypass':
@@ -184,7 +184,7 @@ export const dev = {
 // Helper functions for file system checks
 function existsSync(path: string): boolean {
   try {
-    require('fs').statSync(path);
+    require('node:fs').statSync(path);
     return true;
   } catch {
     return false;
@@ -193,7 +193,7 @@ function existsSync(path: string): boolean {
 
 function readFileSync(path: string, encoding: string): string {
   try {
-    return require('fs').readFileSync(path, encoding);
+    return require('node:fs').readFileSync(path, encoding);
   } catch {
     return '';
   }

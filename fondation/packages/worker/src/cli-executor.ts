@@ -23,28 +23,16 @@ export class CLIExecutor {
       onProgress?: (step: string) => Promise<void>;
     }
   ): Promise<CLIResult> {
-    try {
-      console.log(`🚀 CLI Executor: Using ${CLIStrategyFactory.getStrategyName()} strategy`);
       
       // Create appropriate strategy for current environment
       const strategy = CLIStrategyFactory.create(this.cliPath);
-      
-      // Validate strategy can run in current environment
-      console.log(`🔍 Validating ${strategy.getName()}...`);
       const validation = await strategy.validate();
       
       if (!validation.valid) {
         throw new Error(`CLI execution validation failed:\n${validation.errors.join('\n')}`);
       }
       
-      console.log(`✅ ${strategy.getName()} validation passed`);
-      
       // Execute using the strategy
       return await strategy.execute(repoPath, options);
-      
-    } catch (error) {
-      console.error('❌ CLI Executor failed:', error instanceof Error ? error.message : error);
-      throw error;
-    }
   }
 }

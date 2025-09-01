@@ -15,12 +15,9 @@ export class CLIStrategyFactory {
    */
   static create(cliPath: string): CLIExecutionStrategy {
     if (isDevelopment()) {
-      console.log('🔧 Creating Development CLI Strategy');
       return new DevelopmentCLIStrategy(cliPath);
-    } else {
-      console.log('🐳 Creating Production CLI Strategy');
-      return new ProductionCLIStrategy(cliPath);
     }
+      return new ProductionCLIStrategy(cliPath);
   }
   
   /**

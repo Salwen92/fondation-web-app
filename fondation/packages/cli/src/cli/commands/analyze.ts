@@ -249,13 +249,8 @@ Use "fondation --help" for more information about global options.`,
         stack: errorStack,
         fullError: JSON.stringify(error, null, 2),
       });
-      
-      // Also log to console directly to ensure visibility
-      console.error('ANALYSIS ERROR:', errorMessage);
       if (errorStack) {
-        console.error('STACK TRACE:', errorStack);
       }
-      console.error('FULL ERROR OBJECT:', error);
       
       logger.debug('Full error details', { error });
       process.exit(1);
