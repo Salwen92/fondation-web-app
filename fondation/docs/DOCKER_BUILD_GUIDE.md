@@ -77,7 +77,7 @@ The Docker container uses environment variables for authentication. This is the 
 1. **Ensure you have a valid token in your .env file:**
    ```bash
    # Check your .env file contains:
-   CLAUDE_CODE_OAUTH_TOKEN="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"
+   CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-YOUR-TOKEN-HERE"
    ```
 
 2. **Run CLI commands with environment variable:**
@@ -160,7 +160,7 @@ The worker service uses the standard image with token authentication:
 ```bash
 # In your worker configuration
 FONDATION_WORKER_IMAGE=fondation/cli:latest
-CLAUDE_CODE_OAUTH_TOKEN="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"
+CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-YOUR-TOKEN-HERE"
 ```
 
 ### Docker Compose Example

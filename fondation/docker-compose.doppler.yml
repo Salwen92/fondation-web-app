@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Fondation Worker Service with Doppler
+  worker:
+    image: fondation/cli:latest
+    container_name: fondation-worker
+    restart: unless-stopped
+    environment:
+      # Doppler Token - This is the only required environment variable
+      # Generate with: doppler configs tokens create --project fondation --config prod --plain
+      - DOPPLER_TOKEN=${DOPPLER_TOKEN_WORKER}
+      
+      # Docker Flag (still needed for container detection)
+      - DOCKER_CONTAINER=true
+      
+      # Temp Directory
+      - TEMP_DIR=/tmp/fondation
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Network
+    networks:
+      - fondation-network
+    
+    # Volumes for persistent data
+    volumes:
+      - worker-temp:/tmp/fondation
+      - worker-cache:/root/.cache
+    
+    command: worker
+
+  # Optional: Multiple workers for scaling
+  worker-2:
+    extends:
+      service: worker
+    container_name: fondation-worker-2
+    environment:
+      # Each worker gets its own Doppler token
+      - DOPPLER_TOKEN=${DOPPLER_TOKEN_WORKER_2}
+      - DOCKER_CONTAINER=true
+      - TEMP_DIR=/tmp/fondation
+    profiles:
+      - scale
+
+# Networks
+networks:
+  fondation-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  worker-temp:
+    driver: local
+  worker-cache:
+    driver: local

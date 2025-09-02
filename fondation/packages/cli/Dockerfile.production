@@ -49,9 +49,15 @@ RUN bun build src/index.ts --outfile dist/worker.bundled.mjs --target=node --for
 # Stage 2: Runtime with slim Bun image
 FROM oven/bun:1.2.5-slim
 
-# Install bash and curl for Claude SDK and git for repository access
+# Install bash, curl for Claude SDK, git for repository access, and Doppler CLI
 RUN apt-get update && \
-    apt-get install -y bash curl git && \
+    apt-get install -y bash curl git ca-certificates gnupg && \
+    # Install Doppler CLI
+    curl -Ls --tlsv1.2 --proto "=https" --retry 3 \
+        https://cli.doppler.com/install.sh | sh && \
+    # Clean up
+    apt-get remove -y gnupg && \
+    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -87,11 +93,11 @@ ENV NODE_ENV=production \
 # Verify CLI works
 RUN bun /app/cli/dist/cli.bundled.mjs --version
 
-# Default entrypoint runs the CLI using Bun
-# Use: docker run fondation/cli:latest [command] [args]
+# Default entrypoint runs the CLI using Doppler + Bun
+# Use: docker run -e DOPPLER_TOKEN=<token> fondation/cli:latest [command] [args]
 # Examples:
-#   docker run fondation/cli:latest analyze --repo owner/name
-#   docker run fondation/cli:latest worker --convex-url <url>
-# Note: We use 'bun' directly for clarity (not the 'node' symlink)
-ENTRYPOINT ["bun", "/app/cli/dist/cli.bundled.mjs"]
+#   docker run -e DOPPLER_TOKEN=$TOKEN fondation/cli:latest analyze --repo owner/name
+#   docker run -e DOPPLER_TOKEN=$TOKEN fondation/cli:latest worker --convex-url <url>
+# Note: If DOPPLER_TOKEN is not provided, falls back to environment variables
+ENTRYPOINT ["sh", "-c", "if [ -n \"$DOPPLER_TOKEN\" ]; then doppler run -- bun /app/cli/dist/cli.bundled.mjs \"$@\"; else bun /app/cli/dist/cli.bundled.mjs \"$@\"; fi", "--"]
 CMD ["--help"]

@@ -115,7 +115,7 @@ FONDATION_EXECUTION_MODE=local
 
 ```bash
 # Claude OAuth Token (for API access)
-CLAUDE_CODE_OAUTH_TOKEN="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"
+CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-YOUR-TOKEN-HERE"
 
 # GitHub Token (for private repo access)
 GITHUB_TOKEN=ghp_your-github-token
