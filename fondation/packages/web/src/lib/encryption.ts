@@ -64,6 +64,11 @@ export function encryptToken(plaintext: string): string {
     throw new Error('Cannot encrypt empty string');
   }
   
+  // Don't double-encrypt
+  if (isEncrypted(plaintext)) {
+    return plaintext;
+  }
+  
   try {
     const key = getEncryptionKey();
     const iv = crypto.randomBytes(IV_LENGTH);
