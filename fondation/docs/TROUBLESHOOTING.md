@@ -421,8 +421,8 @@ docker ps
 # Check image exists
 docker images | grep fondation
 
-# Check authentication
-docker run --rm fondation/cli:authenticated --version
+# Check authentication with token
+docker run --rm -e CLAUDE_CODE_OAUTH_TOKEN="${CLAUDE_CODE_OAUTH_TOKEN}" fondation/cli:latest --version
 ```
 
 ## Quick Fixes

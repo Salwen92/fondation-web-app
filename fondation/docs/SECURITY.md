@@ -67,7 +67,7 @@ GITHUB_TOKEN                # GitHub Personal Access Token
 bunx claude auth
 
 # 2. Update environment variables in docker-compose.worker.yml
-CLAUDE_CODE_OAUTH_TOKEN=sk-ant-new-token-here
+CLAUDE_CODE_OAUTH_TOKEN="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"
 
 # 3. Restart worker
 docker-compose -f docker-compose.worker.yml down

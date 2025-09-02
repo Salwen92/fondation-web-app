@@ -25,14 +25,7 @@ Fondation uses the Claude SDK (`@anthropic-ai/claude-code`) to provide AI-powere
    bun dist/cli.bundled.mjs
    ```
 
-2. **Use `bunx` instead of `npx`:**
-   ```bash
-   # ❌ Incorrect
-   npx claude auth
-   
-   # ✅ Correct
-   bunx claude auth
-   ```
+2. **Use `bunx` instead of `npx` for package execution**
 
 3. **In Docker containers:**
    - The `node` command is a symlink to `bun`
@@ -48,9 +41,10 @@ Fondation uses the Claude SDK (`@anthropic-ai/claude-code`) to provide AI-powere
    bun add @anthropic-ai/claude-code
    ```
 
-2. **Authenticate:**
+2. **Authenticate (on host system only):**
    ```bash
-   bunx claude auth
+   # For host system development
+   claude -p "1+1"  # Test authentication
    ```
 
 3. **Test the integration:**
@@ -121,7 +115,7 @@ FONDATION_EXECUTION_MODE=local
 
 ```bash
 # Claude OAuth Token (for API access)
-CLAUDE_CODE_OAUTH_TOKEN=sk-ant-your-token-here
+CLAUDE_CODE_OAUTH_TOKEN="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"
 
 # GitHub Token (for private repo access)
 GITHUB_TOKEN=ghp_your-github-token
@@ -140,7 +134,7 @@ bun run dev
 
 **Docker:**
 ```bash
-docker run -e CLAUDE_CODE_OAUTH_TOKEN="sk-ant-..." fondation/cli:latest
+docker run --rm -e CLAUDE_CODE_OAUTH_TOKEN="${CLAUDE_CODE_OAUTH_TOKEN}" fondation/cli:latest analyze /workspace
 ```
 
 **Docker Compose:**

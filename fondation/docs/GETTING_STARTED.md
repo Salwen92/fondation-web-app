@@ -166,7 +166,7 @@ bun run build
 docker run --rm --env-file .env fondation/cli:latest --version
 
 # Ensure your .env file contains:
-# CLAUDE_CODE_OAUTH_TOKEN=your-token-here
+CLAUDE_CODE_OAUTH_TOKEN="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"
 ```
 
 ## Next Steps

@@ -77,7 +77,7 @@ The Docker container uses environment variables for authentication. This is the 
 1. **Ensure you have a valid token in your .env file:**
    ```bash
    # Check your .env file contains:
-   CLAUDE_CODE_OAUTH_TOKEN=sk-ant-your-token-here
+   CLAUDE_CODE_OAUTH_TOKEN="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"
    ```
 
 2. **Run CLI commands with environment variable:**
@@ -104,22 +104,13 @@ The Docker container uses environment variables for authentication. This is the 
      fondation/cli:latest --version
    ```
 
-### ❌ Interactive Authentication (Development Only)
+### ❌ Interactive Authentication (Does Not Work)
 
-**⚠️ Warning:** Interactive authentication (`docker exec -it ... bunx claude auth`) **does not work reliably** and will fail in:
-- Production environments
-- CI/CD pipelines  
-- Non-interactive environments
-- Automated deployments
+**⚠️ Warning:** Interactive authentication (`docker exec -it ... bunx claude auth`) **does not work in Docker containers**.
 
-For **local development only**, you can use:
-```bash
-# Only works with interactive terminal access
-docker run -it --rm fondation/cli:latest sh
-# Inside container: bunx claude auth
-```
+The Claude CLI requires OAuth token authentication via environment variable when running in containers.
 
-**Always use environment variables for reliable authentication.**
+**Always use the `CLAUDE_CODE_OAUTH_TOKEN` environment variable for Docker authentication.**
 
 ## Common Issues and Solutions
 
@@ -152,22 +143,24 @@ docker run --rm fondation/cli:latest --version
 mkdir -p /tmp/test-repo
 echo "console.log('test');" > /tmp/test-repo/index.js
 
-# Run analysis
+# Run analysis with authentication
 docker run --rm \
+  -e CLAUDE_CODE_OAUTH_TOKEN="${CLAUDE_CODE_OAUTH_TOKEN}" \
   -v /tmp/test-repo:/workspace \
   -v /tmp/output:/output \
-  fondation/cli:authenticated \
+  fondation/cli:latest \
   analyze /workspace --output-dir /output
 ```
 
 ## Production Deployment
 
-### Using the Authenticated Image
-The worker service needs to use the authenticated Docker image:
+### Using Docker with Authentication
+The worker service uses the standard image with token authentication:
 
 ```bash
 # In your worker configuration
-FONDATION_WORKER_IMAGE=fondation/cli:authenticated
+FONDATION_WORKER_IMAGE=fondation/cli:latest
+CLAUDE_CODE_OAUTH_TOKEN="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"
 ```
 
 ### Docker Compose Example
@@ -175,9 +168,10 @@ FONDATION_WORKER_IMAGE=fondation/cli:authenticated
 version: '3.8'
 services:
   worker:
-    image: fondation/cli:authenticated
+    image: fondation/cli:latest
     environment:
       - CONVEX_URL=${CONVEX_URL}
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
       - NODE_ENV=production
     volumes:
       - ./workspaces:/workspace
@@ -190,7 +184,7 @@ services:
 ### Updating the CLI
 1. Make changes to the CLI code
 2. Rebuild the Docker image with a new tag
-3. Re-authenticate if Claude SDK was updated
+3. Ensure `CLAUDE_CODE_OAUTH_TOKEN` is set in environment
 4. Update the worker service to use the new image
 
 ### Cleaning Up Old Images
@@ -198,7 +192,7 @@ services:
 # List all Fondation images
 docker images | grep fondation
 
-# Remove old images (keep authenticated ones)
+# Remove old images
 docker rmi fondation/cli:old-tag
 
 # Remove dangling images
@@ -211,7 +205,7 @@ docker image prune -f
 2. **Build from monorepo root** to access all packages
 3. **Multi-stage builds** keep the final image size reasonable
 4. **Document platform-specific issues** for team members on different architectures
-5. **Test authentication** before marking an image as production-ready
+5. **Test with OAuth token** before marking an image as production-ready
 6. **Understand execution methods**:
    - `bun run script-name` - Runs npm scripts defined in package.json
    - `bun file.mjs` - Directly executes a bundled JavaScript file with Bun runtime

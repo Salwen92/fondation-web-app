@@ -49,7 +49,7 @@ NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 
 # Authentication
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
-CLAUDE_CODE_OAUTH_TOKEN=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+CLAUDE_CODE_OAUTH_TOKEN="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"
 
 # GitHub OAuth (for web app)
 AUTH_GITHUB_ID=your_github_oauth_app_id
