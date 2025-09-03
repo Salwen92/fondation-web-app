@@ -28,7 +28,7 @@ The worker is a long-running process with dual execution modes:
 ### 🔧 **Development Mode**
 - **Runtime**: Local Bun/Node.js process (no Docker required)
 - **CLI Execution**: Direct TypeScript source execution (`bun src/cli.ts`)
-- **Authentication**: Uses host Claude CLI authentication (`bunx claude auth`)
+- **Authentication**: Uses host Claude CLI authentication
 - **Hot Reload**: Automatic restarts on file changes with `tsx watch`
 - **Debug**: Enhanced logging and error reporting
 
@@ -133,7 +133,7 @@ CLAUDE_CODE_OAUTH_TOKEN=sk-ant-... # Claude API authentication
 GITHUB_TOKEN=ghp_...               # GitHub private repo access
 
 # Docker
-FONDATION_WORKER_IMAGE=fondation/cli:authenticated  # Docker image with Claude auth
+FONDATION_WORKER_IMAGE=fondation/cli:latest  # Standard Docker image
 
 # Paths
 TEMP_DIR=/tmp/fondation           # Production temp directory
@@ -157,7 +157,7 @@ bun run dev:worker
 ```
 
 ### 🏭 **Production Authentication**  
-⚠️ **Production only**: Requires pre-authenticated Docker image. See `DOCKER_BUILD_GUIDE.md` for complete setup.
+Requires `CLAUDE_CODE_OAUTH_TOKEN` environment variable. See `DOCKER_BUILD_GUIDE.md` for complete setup.
 
 ### Quick Setup
 
@@ -166,7 +166,6 @@ bun run dev:worker
 docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
 
 # 2. Deploy with environment variable authentication
-# (No separate authenticated image needed)
 ```
 
 ### Production Deployment
@@ -216,14 +215,14 @@ docker run -d \
   --name worker-1 \
   -e WORKER_ID=worker-1 \
   -e CONVEX_URL=https://your-deployment.convex.cloud \
-  fondation/cli:authenticated
+  fondation/cli:latest
 
 # Worker 2  
 docker run -d \
   --name worker-2 \
   -e WORKER_ID=worker-2 \
   -e CONVEX_URL=https://your-deployment.convex.cloud \
-  fondation/cli:authenticated
+  fondation/cli:latest
 ```
 
 ## Troubleshooting

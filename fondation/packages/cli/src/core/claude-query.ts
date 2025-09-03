@@ -116,8 +116,8 @@ export class ClaudeQueryProcessor {
             'exit_plan_mode',
           ],
           cwd: this.options.workingDirectory || process.cwd(),
-          // Temporarily disable passing executable path to test if it causes delay
-          // ...(claudeCodeExecutablePath && { pathToClaudeCodeExecutable: claudeCodeExecutablePath }),
+          // Pass absolute path to Claude Code executable to avoid path resolution issues
+          ...(claudeCodeExecutablePath && { pathToClaudeCodeExecutable: claudeCodeExecutablePath }),
           ...(this.options.model && { model: this.options.model }),
           ...(this.options.maxThinkingTokens &&
             this.options.maxThinkingTokens > 0 && {
@@ -138,6 +138,7 @@ export class ClaudeQueryProcessor {
       this.logger.trace('Executing Claude query', {
         allowedTools: queryOptions.options.allowedTools,
         claudeCodePath: claudeCodeExecutablePath,
+        passedToSDK: queryOptions.options.pathToClaudeCodeExecutable,
       });
 
       for await (const message of queryWithAbortHandling(queryOptions)) {

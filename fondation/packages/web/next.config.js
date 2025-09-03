@@ -7,7 +7,14 @@ import path from 'path';
 /** @type {import("next").NextConfig} */
 const config = {
   experimental: {
-    externalDir: true
+    externalDir: true,
+    turbo: {
+      resolveAlias: {
+        '@convex': path.resolve(process.cwd(), '../../convex'),
+        '@convex/generated': path.resolve(process.cwd(), '../../convex/_generated'),
+        '@fondation/shared': path.resolve(process.cwd(), '../shared/src'),
+      }
+    }
   },
   transpilePackages: ['@fondation/shared'],
   webpack: (config) => {

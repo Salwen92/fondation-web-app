@@ -172,3 +172,28 @@ export const getGitHubToken = query({
     return user.githubAccessToken;
   },
 });
+
+export const clearAllGitHubTokens = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Get all users with GitHub tokens
+    const users = await ctx.db.query("users").collect();
+    let clearedCount = 0;
+    
+    for (const user of users) {
+      if (user.githubAccessToken) {
+        await ctx.db.patch(user._id, {
+          githubAccessToken: undefined
+        });
+        clearedCount++;
+        console.log(`Cleared token for user ${user.githubId || user._id}`);
+      }
+    }
+    
+    return { 
+      success: true, 
+      message: `Cleared ${clearedCount} GitHub tokens`,
+      clearedCount 
+    };
+  }
+});

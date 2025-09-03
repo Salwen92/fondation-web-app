@@ -38,7 +38,22 @@ This comprehensive guide covers deploying the Fondation platform to production u
 - Claude Code OAuth token
 - Bun package manager
 
-### Required Environment Variables
+### Environment Configuration
+
+#### Option A: Using Doppler (Recommended for Production)
+
+```bash
+# Generate service token for production
+doppler configs tokens create --project fondation --config prd --name "Production Token" --plain
+
+# Save token securely
+export DOPPLER_TOKEN_PROD="dp.st.prd.xxxxxxxxxxxx"
+
+# Deploy with Doppler
+docker run -e DOPPLER_TOKEN="$DOPPLER_TOKEN_PROD" fondation/cli:latest worker
+```
+
+#### Option B: Manual Environment Variables
 
 Create a `.env.production` file:
 
@@ -49,7 +64,7 @@ NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 
 # Authentication
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
-CLAUDE_CODE_OAUTH_TOKEN=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-YOUR-TOKEN-HERE"
 
 # GitHub OAuth (for web app)
 AUTH_GITHUB_ID=your_github_oauth_app_id

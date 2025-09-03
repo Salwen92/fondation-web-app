@@ -25,6 +25,11 @@ tsconfig.tsbuildinfo
 .env*
 !.env.example
 
+# Doppler
+.doppler.yaml
+.doppler/
+env-backup-*.tar.gz
+
 # Logs
 *.log
 convex.log

@@ -34,6 +34,24 @@ Setup complete in 45.2s
 
 ## Step 2: Configure Environment (2 minutes)
 
+### Option A: Using Doppler (Recommended for Teams)
+
+```bash
+# Install Doppler if needed
+brew install dopplerhq/cli/doppler  # macOS
+
+# Setup Doppler
+doppler login  # Opens browser for authentication
+doppler setup  # Select: fondation → dev_local
+
+# Verify configuration
+doppler secrets  # Shows all secrets
+```
+
+**That's it!** Secrets are automatically managed. Skip to Step 3.
+
+### Option B: Using .env.local (Traditional)
+
 ```bash
 # Copy environment template
 cp .env.example .env.local
@@ -51,9 +69,15 @@ GITHUB_CLIENT_SECRET=your_github_oauth_app_secret
 
 # Auth Secret (required)
 AUTH_SECRET=generate_with_openssl_rand_base64_32
+
+# Encryption Key (required - must be same across all services)
+ENCRYPTION_KEY=generate_with_openssl_rand_hex_32
+
+# Claude OAuth Token (required for worker)
+CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
 ```
 
-### Quick GitHub OAuth Setup:
+#### Quick GitHub OAuth Setup:
 1. Go to https://github.com/settings/applications/new
 2. Fill in:
    - **Application name**: Fondation Local
@@ -62,17 +86,33 @@ AUTH_SECRET=generate_with_openssl_rand_base64_32
 3. Click "Register application"
 4. Copy Client ID and Client Secret to `.env.local`
 
-### Generate Auth Secret:
+#### Generate Auth Secret:
 ```bash
 # Generate and copy this value
 openssl rand -base64 32
 ```
 
+#### Generate Encryption Key:
+```bash
+# Generate a secure 32-byte hex key
+openssl rand -hex 32
+# IMPORTANT: Use the same key for both web and worker services!
+```
+
+#### Get Claude Token:
+```bash
+# Authenticate with Claude
+bunx claude auth
+```
+
 ## Step 3: Start Development (1 minute)
 
 ```bash
-# Start all services
+# With Doppler (if configured in Step 2A)
 bun run dev
+
+# With .env.local (if configured in Step 2B)
+bun run dev:nodoppler
 ```
 
 This starts three services in parallel:
@@ -166,7 +206,7 @@ bun run build
 docker run --rm --env-file .env fondation/cli:latest --version
 
 # Ensure your .env file contains:
-# CLAUDE_CODE_OAUTH_TOKEN=your-token-here
+CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-YOUR-TOKEN-HERE"
 ```
 
 ## Next Steps

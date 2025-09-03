@@ -13,13 +13,11 @@
  */
 
 import { spawn } from "node:child_process";
+import { DebugLogger, isDevelopment } from "../utils/environment.js";
 
 // Re-export types from interface for backward compatibility
 export type { CLIExecutionStrategy, CLIResult } from "./base-strategy-interface";
 import type { CLIExecutionStrategy, CLIResult } from "./base-strategy-interface";
-
-// Progress parsing utilities
-import { ProgressParser, type ProgressMapping } from "../progress-parser";
 
 // Configuration types for strategy customization
 export interface CommandConfig {
@@ -35,8 +33,6 @@ export interface ValidationResult {
   warnings?: string[];
 }
 
-// ProgressMapping now imported from progress-parser.ts
-
 /**
  * Abstract base strategy implementing Template Method pattern
  * 
@@ -45,9 +41,12 @@ export interface ValidationResult {
  */
 export abstract class BaseStrategy implements CLIExecutionStrategy {
   protected cliPath: string;
+  private stdoutBuffer: string = ''; // Buffer for incomplete JSON lines
+  protected logger: DebugLogger;
   
   constructor(cliPath: string) {
     this.cliPath = cliPath;
+    this.logger = new DebugLogger('BaseStrategy');
   }
   
   // Abstract methods that subclasses must implement (Strategy-specific behavior)
@@ -64,15 +63,6 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
     return undefined; // No heartbeat by default
   }
   
-  protected getProgressMapping(): ProgressMapping {
-    // Use centralized progress mapping from ProgressParser
-    return ProgressParser.getDefaultProgressMapping();
-  }
-  
-  protected getWorkflowSteps(): string[] {
-    // Use centralized workflow steps from ProgressParser
-    return ProgressParser.getWorkflowSteps('fr');
-  }
   
   protected shouldLogDebugInfo(): boolean {
     return false; // Override in development strategy
@@ -86,6 +76,9 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
       onProgress?: (step: string) => Promise<void>;
     }
   ): Promise<CLIResult> {
+    // Reset buffer for each execution to prevent cross-job contamination
+    this.stdoutBuffer = '';
+    
     // Step 1: Validate environment
     const validation = await this.validate();
     if (!validation.valid) {
@@ -108,29 +101,61 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
     options: { onProgress?: (step: string) => Promise<void>; },
     repoPath: string
   ): Promise<CLIResult> {
+    this.logger.log(`========== Starting process execution ==========`);
+    this.logger.log(`Strategy: ${this.getName()}`);
+    this.logger.log(`Command: ${config.command}`);
+    this.logger.log(`Repo path: ${repoPath}`);
+    this.logger.log(`Timeout: ${config.timeout || 'none'}`);
+    this.logger.log(`Heartbeat interval: ${config.heartbeatInterval || 'none'}`);
+    this.logger.log(`Environment variables count: ${Object.keys(config.env).length}`);
+    
     return new Promise(async (resolve, reject) => {
       try {
+        this.logger.log(`Spawning CLI process`);
         // Spawn the CLI process
-        const child = spawn('sh', ['-c', config.command], {
+        // In development, run from repository directory for proper path resolution
+        // In production, use default working directory (container's workdir)
+        const spawnOptions: any = {
           env: config.env,
           stdio: ['pipe', 'pipe', 'pipe']
-        });
+        };
+        
+        if (isDevelopment()) {
+          spawnOptions.cwd = repoPath; // Only set cwd in development
+        }
+        
+        const child = spawn('sh', ['-c', config.command], spawnOptions);
+        this.logger.log(`✅ CLI process spawned with PID: ${child.pid}`);
         
         // Set up timeout if specified
         let timeout: NodeJS.Timeout | undefined;
         if (config.timeout) {
+          this.logger.log(`Setting up timeout: ${config.timeout}ms`);
           timeout = setTimeout(() => {
+            this.logger.log(`⏰ Timeout reached, terminating process`);
             child.kill('SIGTERM');
           }, config.timeout);
         }
         
-        // Set up heartbeat if specified
+        // Set up heartbeat if specified (tracking only, no progress interference)
         let heartbeat: NodeJS.Timeout | undefined;
+        let lastProgressMessage = '';
+        let lastProgressTime = 0;
+        let hasReceivedCliProgress = false; // Track if we've received any real CLI progress
         if (config.heartbeatInterval) {
+          this.logger.log(`Setting up heartbeat: ${config.heartbeatInterval}ms`);
           const startTime = Date.now();
           heartbeat = setInterval(() => {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            options.onProgress?.(`Étape 1/6: Analyse en cours... (${elapsed}s)`).catch(console.error);
+            this.logger.debug(`♥ Heartbeat: ${elapsed}s elapsed`);
+            
+            // Only send heartbeat progress if:
+            // 1. We haven't received any real CLI progress yet (initial state)
+            // 2. AND it's been more than 30 seconds since last activity
+            const timeSinceLastProgress = Date.now() - lastProgressTime;
+            if (!hasReceivedCliProgress && timeSinceLastProgress > 30000) { // 30 seconds of silence
+              options.onProgress?.(`Étape 1/6: Analyse en cours... (${elapsed}s)`).catch(console.error);
+            }
           }, config.heartbeatInterval);
         }
         
@@ -141,13 +166,64 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
         // Handle stdout - common progress parsing logic
         child.stdout?.on("data", (data) => {
           const text = data.toString();
+          if (isDevelopment()) {
+            const timestamp = new Date().toISOString();
+            this.logger.debug(`[${timestamp}] STDOUT chunk: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
+          
+            // Log specific patterns we care about
+            if (text.includes('Prompt completed')) {
+              this.logger.debug(`[${timestamp}] 🎯 PROMPT COMPLETED DETECTED`);
+            }
+            if (text.includes('Claude Code SDK Message')) {
+              this.logger.debug(`[${timestamp}] 📨 SDK Message received`);
+            }
+            if (text.includes('Analysis complete')) {
+              this.logger.debug(`[${timestamp}] ✅ ANALYSIS COMPLETE DETECTED`);
+            }
+            if (text.includes('error') || text.includes('Error')) {
+              this.logger.debug(`[${timestamp}] ⚠️  ERROR DETECTED in stdout: ${text.substring(0, 200)}`);
+            }
+          }
+          
           stdout += text;
-          this.parseProgressMessages(text, options.onProgress);
+          
+          // Buffer stdout to prevent JSON message splitting across chunks
+          this.stdoutBuffer += text;
+          const lines = this.stdoutBuffer.split('\n');
+          
+          // Keep the last potentially incomplete line in buffer
+          this.stdoutBuffer = lines.pop() || '';
+          
+          // Wrap onProgress to track when real progress messages are received
+          const progressCallback = options.onProgress ? async (message: string) => {
+            // Prevent duplicate progress messages
+            if (message !== lastProgressMessage) {
+              lastProgressMessage = message;
+              lastProgressTime = Date.now();
+              hasReceivedCliProgress = true; // Mark that we've received real CLI progress
+              await options.onProgress!(message);
+            }
+          } : undefined;
+          
+          // Process complete lines only to prevent malformed JSON parsing
+          for (const line of lines) {
+            if (line.trim()) {
+              // Import and use ProgressHandler directly here
+              import('../progress-handler.js').then(({ ProgressHandler }) => {
+                const progressInfo = ProgressHandler.processProgress(line);
+                if (progressInfo && progressCallback) {
+                  const uiMessage = ProgressHandler.formatForUI(progressInfo);
+                  progressCallback(uiMessage);
+                }
+              }).catch(console.error);
+            }
+          }
         });
         
         // Handle stderr - common error collection
         child.stderr?.on("data", (data) => {
           const text = data.toString();
+          this.logger.debug(`STDERR chunk: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
           stderr += text;
           
           if (this.shouldLogDebugInfo()) {
@@ -157,6 +233,7 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
         
         // Handle process errors
         child.on("error", (error) => {
+          this.logger.error(`Process error: ${error.message}`);
           if (!hasFinished) {
             hasFinished = true;
             this.cleanup(timeout, heartbeat);
@@ -166,9 +243,11 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
         
         // Handle unexpected exits
         child.on("exit", (code, signal) => {
+          this.logger.log(`Process exit: code=${code}, signal=${signal}`);
           if (!hasFinished && (code !== 0 || signal)) {
             hasFinished = true;
             this.cleanup(timeout, heartbeat);
+            this.logger.error(`Process exited unexpectedly`);
             
             const errorMsg = this.formatErrorMessage(code, signal, stdout, stderr, config);
             reject(new Error(errorMsg));
@@ -177,15 +256,23 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
         
         // Handle successful completion
         child.on("close", async (code) => {
+          const timestamp = new Date().toISOString();
+          this.logger.log(`[${timestamp}] Process close: code=${code}`);
           if (!hasFinished) {
             hasFinished = true;
             this.cleanup(timeout, heartbeat);
             
             if (code === 0) {
+              this.logger.log(`[${timestamp}] ✅ Process completed successfully`);
+              this.logger.debug(`[${timestamp}] Final stdout length: ${stdout.length}`);
+              this.logger.debug(`[${timestamp}] Final stderr length: ${stderr.length}`);
               try {
+                this.logger.debug(`[${timestamp}] Parsing output files from: ${repoPath}`);
                 // Parse output files (shared logic)
                 const documents = await this.parseOutputFiles(repoPath);
+                this.logger.log(`[${timestamp}] ✅ Parsed ${documents?.length || 0} documents`);
                 
+                this.logger.log(`========== Process execution completed successfully ==========`);
                 resolve({
                   success: true,
                   documents,
@@ -198,6 +285,7 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
                   },
                 });
               } catch (parseError) {
+                this.logger.debug(`⚠️ Parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
                 // Continue with empty documents - parsing failure doesn't fail the job
                 resolve({
                   success: true,
@@ -213,6 +301,7 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
                 });
               }
             } else {
+              this.logger.error(`Process failed with exit code ${code}`);
               const errorMsg = `${this.getName()} exited with code ${code}: ${stderr || stdout || 'No output captured'}`;
               reject(new Error(errorMsg));
             }
@@ -225,18 +314,6 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
     });
   }
   
-  /**
-   * Parse progress messages from CLI output using centralized ProgressParser
-   * Replaces 50+ lines of duplicate parsing logic with single ProgressParser call
-   */
-  private parseProgressMessages(text: string, onProgress?: (step: string) => Promise<void>): void {
-    // Use ProgressParser to handle all progress parsing patterns
-    ProgressParser.parseMultilineOutput(
-      text,
-      onProgress,
-      this.getProgressMapping()
-    );
-  }
   
   /**
    * Format error message with strategy-specific context

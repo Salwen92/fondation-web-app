@@ -7,7 +7,7 @@
 import type { CLIExecutionStrategy } from "./base-strategy";
 import { DevelopmentCLIStrategy } from "./development-strategy";
 import { ProductionCLIStrategy } from "./production-strategy";
-import { isDevelopment } from "@fondation/shared/environment";
+import { isDevelopment } from "../utils/environment.js";
 
 export class CLIStrategyFactory {
   /**

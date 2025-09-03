@@ -7,6 +7,7 @@
 import { ConvexClient } from "convex/browser";
 import { PermanentWorker } from "./worker";
 import { createConfig, validateConfig } from "./config";
+import { WorkerLogger } from "./worker-logger";
 
 async function main() {
   
@@ -15,34 +16,54 @@ async function main() {
     process.exit(0);
   }
   
-  try {
-    // Import config functions
-    const config = createConfig();
-    validateConfig(config);
-    const convexClient = new ConvexClient(config.convexUrl);
-    const worker = new PermanentWorker(config, convexClient);
+  // Initialize startup logger
+  const startupLogger = new WorkerLogger('startup');
   
-    // Graceful shutdown handlers
-    process.on("SIGTERM", async () => {
-      await worker.stop();
-      process.exit(0);
-    });
-    
-    process.on("SIGINT", async () => {
-      await worker.stop();
-      process.exit(0);
-    });
-    try {
-      await worker.start();
-    } catch (_error) {
-      process.exit(1);
+  const config = await startupLogger.safeExecute(
+    'load-config',
+    async () => {
+      const config = createConfig();
+      validateConfig(config);
+      return config;
     }
-  } catch (_error) {
+  );
+  
+  if (!config) {
+    startupLogger.logError('worker-startup', new Error('Failed to load configuration'));
+    process.exit(1);
+  }
+  
+  const convexClient = new ConvexClient(config.convexUrl);
+  const worker = new PermanentWorker(config, convexClient);
+
+  // Graceful shutdown handlers
+  process.on("SIGTERM", async () => {
+    await worker.stop();
+    process.exit(0);
+  });
+  
+  process.on("SIGINT", async () => {
+    await worker.stop();
+    process.exit(0);
+  });
+  
+  const startSuccess = await startupLogger.safeExecute(
+    'worker-start',
+    async () => {
+      await worker.start();
+      return true;
+    }
+  );
+  
+  if (!startSuccess) {
+    startupLogger.logError('worker-startup', new Error('Worker failed to start'));
     process.exit(1);
   }
 }
 
 // Execute
-main().catch((_error) => {
+main().catch((error) => {
+  const emergencyLogger = new WorkerLogger('emergency');
+  emergencyLogger.logError('main-execution', error);
   process.exit(1);
 });

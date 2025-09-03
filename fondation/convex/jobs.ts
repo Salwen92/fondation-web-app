@@ -11,6 +11,7 @@ export const create = mutation({
     prompt: v.string(),
   },
   handler: async (ctx, args) => {
+    // Start job creation
     const callbackToken = uuidv4();
     const now = Date.now();
 
@@ -60,6 +61,7 @@ export const create = mutation({
       totalSteps: 6,
       progress: "Initializing...",
     });
+    // Job created successfully
 
     // Get user's GitHub token
     const user = await ctx.db.get(args.userId);
@@ -67,7 +69,7 @@ export const create = mutation({
     
     // Don't trigger worker service from here in development
     // The client will trigger it directly to avoid localhost restrictions
-    console.log("Job created, client will trigger worker service");
+    // Client will trigger worker service in development
 
     return {
       jobId,

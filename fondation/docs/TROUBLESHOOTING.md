@@ -206,6 +206,22 @@ import { internal } from "./_generated/api";
 await ctx.scheduler.runAfter(0, internal.jobs.runWorker, { jobId });
 ```
 
+### Token Decryption Failed
+
+#### Problem: Worker fails with "Token decryption failed"
+**Cause**: Web app and worker are using different ENCRYPTION_KEY values.
+
+**Solution**: Ensure both services use the same encryption key:
+```bash
+# For Doppler setup
+doppler secrets set ENCRYPTION_KEY="$(openssl rand -hex 32)" --project fondation --config dev_local
+
+# For .env setup - add to both web/.env.local and worker/.env
+ENCRYPTION_KEY="same-32-byte-hex-key-here"
+
+# Restart both services after updating
+```
+
 ### Job Stuck in Pending
 
 #### Problem: Jobs stay "pending" forever
@@ -278,13 +294,41 @@ const job = useQuery(api.jobs.getJob, { jobId });
 
 ## Environment Variable Issues
 
-### Missing Variables
+### Doppler Configuration Problems
+
+#### Problem: "Could not find requested secret"
+**Cause**: Wrong Doppler config selected (e.g., using `dev_personal` instead of `dev_local`)
+**Solution**: 
+```bash
+# Switch to correct config with secrets
+doppler setup --project fondation --config dev_local
+doppler secrets  # Verify secrets are visible
+```
+
+#### Problem: "Doppler Error: authentication required"
+**Solution**: 
+```bash
+doppler login  # Authenticate via browser
+```
+
+#### Problem: Secrets not injected when running `bun run dev`
+**Solution**: 
+```bash
+# Verify Doppler is configured
+doppler configure
+# If not configured, run setup
+doppler setup --project fondation --config dev_local
+```
+
+### Traditional .env Variables
 
 #### Problem: "GITHUB_CLIENT_ID is not defined"
 **Solution**: Copy and configure .env.example:
 ```bash
 cp .env.example .env.local
 # Edit with your values
+# Then use the non-Doppler command:
+bun run dev:nodoppler
 ```
 
 ### Convex Auto-configuration
@@ -421,8 +465,8 @@ docker ps
 # Check image exists
 docker images | grep fondation
 
-# Check authentication
-docker run --rm fondation/cli:authenticated --version
+# Check authentication with token
+docker run --rm -e CLAUDE_CODE_OAUTH_TOKEN="${CLAUDE_CODE_OAUTH_TOKEN}" fondation/cli:latest --version
 ```
 
 ## Quick Fixes

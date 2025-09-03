@@ -1,6 +1,8 @@
 import type { DefaultSession, NextAuthConfig } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import { env } from "@/env";
+import { getScopeConfiguration, validateTokenScopes, logScopeUsage } from "@/lib/github-scopes";
+import { logAuthentication, logTokenAccess, SecurityEventType, logSecurityEvent, SecurityEventSeverity } from "@/lib/security-audit";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -37,7 +39,8 @@ export const authConfig = {
       clientSecret: env.GITHUB_CLIENT_SECRET ?? "",
       authorization: {
         params: {
-          scope: "read:user user:email repo",
+          // Use scope management for proper permission control
+          scope: getScopeConfiguration(),
         },
       },
     }),
@@ -71,6 +74,33 @@ export const authConfig = {
     },
     signIn: async ({ account, profile }) => {
       if (account?.provider === "github" && profile) {
+        // Validate token scopes
+        if (account.access_token) {
+          const validation = await validateTokenScopes(account.access_token);
+          
+          if (!validation.valid) {
+            console.error('Token missing required scopes:', validation.missing);
+            // Log security event
+            logSecurityEvent(
+              SecurityEventType.TOKEN_VALIDATION_FAILED,
+              'Token missing required scopes',
+              {
+                userId: String(profile.id),
+                severity: SecurityEventSeverity.WARNING,
+                metadata: { missingScopes: validation.missing },
+              }
+            );
+            // Still allow sign-in but log the issue
+          }
+          
+          // Log scope usage for security auditing
+          logScopeUsage(
+            String(profile.id),
+            validation.scopes,
+            'signin'
+          );
+        }
+        
         // Always store/update GitHub access token for each sign-in (handles account switching)
         if (account.access_token) {
           try {
@@ -95,8 +125,24 @@ export const authConfig = {
               githubId: String(profile.id),
               accessToken: obfuscatedToken,
             });
-          } catch (_error) {
-            // Don't block sign-in if token storage fails
+            
+            // Log successful authentication
+            logAuthentication(String(profile.id), true, {
+              provider: 'github',
+              username: String(profile.login || profile.name),
+            });
+          } catch (error) {
+            // Log the error but don't block sign-in
+            logSecurityEvent(
+              SecurityEventType.TOKEN_CREATED,
+              'Failed to store GitHub token',
+              {
+                userId: String(profile.id),
+                severity: SecurityEventSeverity.ERROR,
+                result: 'failure',
+                error: error instanceof Error ? error.message : String(error),
+              }
+            );
           }
         }
         return true;

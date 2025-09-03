@@ -1,7 +1,9 @@
 # Docker Build Guide - Fondation CLI
 
 ## Overview
-This guide documents the Docker build process for the Fondation CLI, including solutions to common issues encountered during development.
+This guide documents the Docker build process for the Fondation CLI, including production deployment with Doppler secret management.
+
+**IMPORTANT**: This project uses a single, secure docker-compose file: `docker-compose.doppler.yml`
 
 ## Important: Bun vs Alpine Compatibility Issue
 
@@ -18,37 +20,74 @@ We use the official Bun Docker images (`oven/bun`) instead of Node.js Alpine ima
 - Use Debian instead of Alpine (slightly larger but fully compatible)
 - Support both AMD64 and ARM64 architectures
 
-## Building the Docker Image
+## Production Setup Guide
 
 ### Prerequisites
 - Docker Desktop installed and running
-- Access to the monorepo root directory
-- Bun installed locally (for development)
+- Doppler CLI installed and authenticated (`doppler login`)
+- Access to the Fondation Doppler project
 
-### Build Process
+### Step 1: Build the Production Image
 
 1. **Navigate to the monorepo root:**
    ```bash
-   cd /path/to/fondation-web-app/fondation
+   cd fondation-web-app/fondation
    ```
 
-2. **Build the Docker image:**
+2. **Build the production Docker image:**
    ```bash
-   # Using the automated script (recommended)
-   bun run build:docker
-   
-   # Or manually with Docker CLI
    docker build -f packages/cli/Dockerfile.production \
      -t fondation/cli:latest \
      -t fondation/cli:$(date +%Y-%m-%d) \
      .
    ```
 
-   Note: Build from the monorepo root, not the CLI package directory, as it needs access to shared packages.
-
 3. **Verify the build:**
    ```bash
    docker images | grep fondation/cli
+   ```
+
+### Step 2: Configure Doppler Secrets
+
+1. **Ensure Claude token is set in production config:**
+   ```bash
+   doppler secrets set CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-YOUR-TOKEN" \
+     --config prd --project fondation
+   ```
+
+2. **Verify secrets are configured:**
+   ```bash
+   doppler secrets --config prd --project fondation
+   ```
+
+### Step 3: Production Deployment
+
+1. **Generate Doppler token for deployment:**
+   ```bash
+   DOPPLER_TOKEN_WORKER=$(doppler configs tokens create worker-prod-$(date +%Y%m%d) \
+     --project fondation --config prd --plain)
+   ```
+
+2. **Deploy using docker-compose:**
+   ```bash
+   DOPPLER_TOKEN_WORKER="$DOPPLER_TOKEN_WORKER" \
+     docker-compose -f docker-compose.doppler.yml up -d
+   ```
+
+### Step 4: Test the Deployment
+
+1. **Check worker status:**
+   ```bash
+   docker-compose -f docker-compose.doppler.yml logs worker
+   ```
+
+2. **Test analyze command:**
+   ```bash
+   DOPPLER_TOKEN_WORKER="$DOPPLER_TOKEN_WORKER" \
+     docker-compose -f docker-compose.doppler.yml run --rm \
+     -v /path/to/repo:/workspace \
+     -v /path/to/output:/output \
+     worker analyze /workspace --output-dir /output
    ```
 
 ## Multi-Stage Dockerfile Explained
@@ -70,56 +109,53 @@ The Dockerfile uses a multi-stage build process:
 
 ## Authentication with Claude
 
-### ✅ Recommended: Environment Variable Authentication
+### ✅ Production Method: Doppler Secret Management
 
-The Docker container uses environment variables for authentication. This is the **only supported production method**:
+**IMPORTANT**: Production deployments use Doppler for secure secret management. Never use environment variables directly in production.
 
-1. **Ensure you have a valid token in your .env file:**
+#### For New Developers - Initial Setup:
+
+1. **Get access to Doppler:**
    ```bash
-   # Check your .env file contains:
-   CLAUDE_CODE_OAUTH_TOKEN=sk-ant-your-token-here
+   # Install Doppler CLI
+   curl -Ls https://cli.doppler.com/install.sh | sudo sh
+   
+   # Authenticate
+   doppler login
+   
+   # Set up project locally
+   cd fondation && doppler setup --project fondation --config prd
    ```
 
-2. **Run CLI commands with environment variable:**
+2. **Verify you have access:**
    ```bash
-   # Source environment and run analyze command
-   source .env && docker run --rm \
-     -v /path/to/repo:/workspace \
-     -v /path/to/output:/output \
-     -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
-     fondation/cli:latest analyze /workspace --output-dir /output
+   doppler secrets --config prd --project fondation
    ```
 
-3. **For production deployment, use docker-compose:**
-   ```bash
-   # Use the provided docker-compose file
-   source .env && docker-compose -f docker-compose.yml up -d
-   ```
+#### For Production Deployment:
 
-4. **Test authentication works:**
-   ```bash
-   # Verify CLI version with authentication
-   source .env && docker run --rm \
-     -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
-     fondation/cli:latest --version
-   ```
+**Always use `docker-compose.doppler.yml` - this is the ONLY production docker-compose file:**
 
-### ❌ Interactive Authentication (Development Only)
-
-**⚠️ Warning:** Interactive authentication (`docker exec -it ... bunx claude auth`) **does not work reliably** and will fail in:
-- Production environments
-- CI/CD pipelines  
-- Non-interactive environments
-- Automated deployments
-
-For **local development only**, you can use:
 ```bash
-# Only works with interactive terminal access
-docker run -it --rm fondation/cli:latest sh
-# Inside container: bunx claude auth
+# 1. Generate deployment token
+DOPPLER_TOKEN_WORKER=$(doppler configs tokens create deployment-$(date +%Y%m%d) \
+  --project fondation --config prd --plain)
+
+# 2. Deploy
+DOPPLER_TOKEN_WORKER="$DOPPLER_TOKEN_WORKER" \
+  docker-compose -f docker-compose.doppler.yml up -d
+
+# 3. Monitor
+docker-compose -f docker-compose.doppler.yml logs -f worker
 ```
 
-**Always use environment variables for reliable authentication.**
+### ❌ Interactive Authentication (Does Not Work)
+
+**⚠️ Warning:** Interactive authentication (`docker exec -it ... bunx claude auth`) **does not work in Docker containers**.
+
+The Claude CLI requires OAuth token authentication via environment variable when running in containers.
+
+**Always use the `CLAUDE_CODE_OAUTH_TOKEN` environment variable for Docker authentication.**
 
 ## Common Issues and Solutions
 
@@ -152,22 +188,24 @@ docker run --rm fondation/cli:latest --version
 mkdir -p /tmp/test-repo
 echo "console.log('test');" > /tmp/test-repo/index.js
 
-# Run analysis
+# Run analysis with authentication
 docker run --rm \
+  -e CLAUDE_CODE_OAUTH_TOKEN="${CLAUDE_CODE_OAUTH_TOKEN}" \
   -v /tmp/test-repo:/workspace \
   -v /tmp/output:/output \
-  fondation/cli:authenticated \
+  fondation/cli:latest \
   analyze /workspace --output-dir /output
 ```
 
 ## Production Deployment
 
-### Using the Authenticated Image
-The worker service needs to use the authenticated Docker image:
+### Using Docker with Authentication
+The worker service uses the standard image with token authentication:
 
 ```bash
 # In your worker configuration
-FONDATION_WORKER_IMAGE=fondation/cli:authenticated
+FONDATION_WORKER_IMAGE=fondation/cli:latest
+CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-YOUR-TOKEN-HERE"
 ```
 
 ### Docker Compose Example
@@ -175,9 +213,10 @@ FONDATION_WORKER_IMAGE=fondation/cli:authenticated
 version: '3.8'
 services:
   worker:
-    image: fondation/cli:authenticated
+    image: fondation/cli:latest
     environment:
       - CONVEX_URL=${CONVEX_URL}
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
       - NODE_ENV=production
     volumes:
       - ./workspaces:/workspace
@@ -190,7 +229,7 @@ services:
 ### Updating the CLI
 1. Make changes to the CLI code
 2. Rebuild the Docker image with a new tag
-3. Re-authenticate if Claude SDK was updated
+3. Ensure `CLAUDE_CODE_OAUTH_TOKEN` is set in environment
 4. Update the worker service to use the new image
 
 ### Cleaning Up Old Images
@@ -198,7 +237,7 @@ services:
 # List all Fondation images
 docker images | grep fondation
 
-# Remove old images (keep authenticated ones)
+# Remove old images
 docker rmi fondation/cli:old-tag
 
 # Remove dangling images
@@ -211,7 +250,7 @@ docker image prune -f
 2. **Build from monorepo root** to access all packages
 3. **Multi-stage builds** keep the final image size reasonable
 4. **Document platform-specific issues** for team members on different architectures
-5. **Test authentication** before marking an image as production-ready
+5. **Test with OAuth token** before marking an image as production-ready
 6. **Understand execution methods**:
    - `bun run script-name` - Runs npm scripts defined in package.json
    - `bun file.mjs` - Directly executes a bundled JavaScript file with Bun runtime
