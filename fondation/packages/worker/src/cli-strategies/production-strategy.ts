@@ -15,6 +15,7 @@
 
 import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy";
 import { EnvironmentConfig } from "@fondation/shared/environment-config";
+import { shouldIncludeOAuthToken } from "../utils/environment.js";
 
 export class ProductionCLIStrategy extends BaseStrategy {
   
@@ -32,8 +33,17 @@ export class ProductionCLIStrategy extends BaseStrategy {
     const cliErrors: string[] = [];
     
     // Validate CLI bundle exists and is in correct location
-    if (!this.cliPath || !this.cliPath.includes('/app/packages/cli/dist/')) {
-      cliErrors.push("Production mode requires bundled CLI path at /app/packages/cli/dist/");
+    // Accept both legacy and new paths for production CLI
+    const validProductionPaths = [
+      '/app/cli/dist/',
+      '/app/packages/cli/dist/',
+      '/app/cli/node_modules/@fondation/cli/dist/',
+      '/app/node_modules/@fondation/cli/dist/'
+    ];
+    
+    const hasValidPath = validProductionPaths.some(path => this.cliPath?.includes(path));
+    if (!this.cliPath || !hasValidPath) {
+      cliErrors.push(`Production mode requires bundled CLI path in: ${validProductionPaths.join(', ')}`);
     }
     
     // Import existsSync only when needed for CLI path validation
@@ -62,7 +72,8 @@ export class ProductionCLIStrategy extends BaseStrategy {
         HOME: '/home/worker',
         NODE_PATH: '/app/node_modules',
         // Centralized environment variables from singleton
-        ...(envConfig.getClaudeOAuthToken() && {
+        // Use environment-aware token inclusion
+        ...(shouldIncludeOAuthToken() && envConfig.getClaudeOAuthToken() && {
           CLAUDE_CODE_OAUTH_TOKEN: envConfig.getClaudeOAuthToken() as string
         }),
         CONVEX_URL: envConfig.getConvexUrl(),

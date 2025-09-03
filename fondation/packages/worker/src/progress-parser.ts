@@ -26,7 +26,8 @@ export class ProgressParser {
 
   // Default keyword mapping for JSON logs
   private static readonly DEFAULT_MAPPING: ProgressMapping = {
-    "Starting codebase analysis": "Étape 1/6: Initialisation de l'analyse",
+    // Removed "Starting codebase analysis" to prevent duplicate Step 1
+    // FONDATION_STEP messages handle the actual step progression
     "Extracting core abstractions": "Étape 1/6: Extraction des abstractions",
     "Analyzing relationships": "Étape 2/6: Analyse des relations",
     "Determining optimal chapter order": "Étape 3/6: Ordonnancement des chapitres",
@@ -56,7 +57,31 @@ export class ProgressParser {
     const frenchMatch = trimmed.match(/Étape (\d+)\/(\d+):?\s*(.*)/i);
     if (frenchMatch) return trimmed; // Already formatted
 
-    // 2. English step patterns: "Step 2/6: Description" or "Step 2 of 6: Description"  
+    // 2. FONDATION_STEP unique identifiers: "[FONDATION_STEP_2/6] Description"
+    const fondationMatch = trimmed.match(/\[FONDATION_STEP_(\d+)\/(\d+)\]\s*(.*)/i);
+    if (fondationMatch) {
+      const step = parseInt(fondationMatch[1]);
+      const total = parseInt(fondationMatch[2]);
+      let desc = fondationMatch[3] || "";
+      
+      // Clean any trailing JSON artifacts before translation
+      desc = desc.replace(/[}\]"]+$/, '').trim();
+      
+      // Translate common English phrases to French
+      const translations: Record<string, string> = {
+        "Extracting core abstractions from codebase": "Extraction des abstractions principales",
+        "Analyzing relationships between components": "Analyse des relations entre composants",
+        "Determining optimal chapter order": "Détermination de l'ordre optimal des chapitres",
+        "Generating chapter content": "Génération du contenu des chapitres",
+        "Reviewing and enhancing chapters": "Révision et amélioration des chapitres",
+        "Generating interactive tutorials": "Génération de tutoriels interactifs"
+      };
+      
+      desc = translations[desc] || desc || this.getStepName(step - 1, 'fr') || "";
+      return this.formatStep(step, total, desc, 'fr');
+    }
+
+    // 3. English step patterns: "Step 2/6: Description" or "Step 2 of 6: Description"  
     const englishMatch = trimmed.match(/Step (\d+)(?:\/(\d+)| of (\d+)):?\s*(.*)/i);
     if (englishMatch) {
       const step = parseInt(englishMatch[1]);
@@ -101,13 +126,14 @@ export class ProgressParser {
       } catch {} // Ignore malformed JSON
     }
 
-    // 7. Action word detection
-    const lowerMessage = trimmed.toLowerCase();
-    for (const mapping of this.ACTION_MAPPINGS) {
-      if (mapping.words.some(word => lowerMessage.includes(word))) {
-        return this.formatStep(mapping.step, 6, mapping.desc, 'fr');
-      }
-    }
+    // 7. Action word detection - DISABLED to prevent false matches with debug text
+    // Using unique FONDATION_STEP identifiers instead for reliable parsing
+    // const lowerMessage = trimmed.toLowerCase();
+    // for (const mapping of this.ACTION_MAPPINGS) {
+    //   if (mapping.words.some(word => lowerMessage.includes(word))) {
+    //     return this.formatStep(mapping.step, 6, mapping.desc, 'fr');
+    //   }
+    // }
 
     return null; // No pattern matched
   }

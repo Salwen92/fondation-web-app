@@ -7,6 +7,7 @@
  */
 
 import { maskSensitiveData } from './encryption';
+import { isDevelopment } from './utils/environment.js';
 
 export interface LogContext {
   jobId?: string;
@@ -26,9 +27,11 @@ export interface ErrorLogEntry {
 
 export class WorkerLogger {
   private workerId: string;
+  private debugMode: boolean;
 
   constructor(workerId: string) {
     this.workerId = workerId;
+    this.debugMode = isDevelopment();
   }
 
   /**
@@ -71,7 +74,7 @@ export class WorkerLogger {
     const safeError = maskSensitiveData(errorMessage);
     
     // Also log stack trace in development for better debugging
-    const stack = error instanceof Error && process.env.NODE_ENV === 'development' 
+    const stack = error instanceof Error && this.debugMode
       ? error.stack 
       : undefined;
 
@@ -93,11 +96,14 @@ export class WorkerLogger {
    * Log info with structured format
    */
   logInfo(message: string, context: LogContext = {}): void {
-    console.info(message, {
-      timestamp: new Date().toISOString(),
-      workerId: this.workerId,
-      ...context
-    });
+    // Only log detailed debug info in development
+    if (this.debugMode || !message.includes('[DEBUG]')) {
+      console.info(message, {
+        timestamp: new Date().toISOString(),
+        workerId: this.workerId,
+        ...context
+      });
+    }
   }
 
   /**

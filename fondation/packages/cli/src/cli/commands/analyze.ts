@@ -66,7 +66,13 @@ Use "fondation --help" for more information about global options.`,
     const logger: Logger = options._logger;
     const timer = options._timer;
 
-    const projectDir = resolve(process.cwd(), codebasePath);
+    // Environment-aware path resolution
+    // In development, use absolute path resolution
+    // In production/containers, use relative to process.cwd()
+    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.FONDATION_MODE === 'development';
+    const projectDir = isDevelopment 
+      ? resolve(codebasePath) 
+      : resolve(process.cwd(), codebasePath);
     const outputDir = resolve(
       projectDir,
       options.outputDir || config.outputDir || '.claude-tutorial-output',
@@ -101,13 +107,14 @@ Use "fondation --help" for more information about global options.`,
       const totalSteps = steps.length;
       let currentStep = 0;
 
-      // Helper to show progress
+      // Helper to show progress with unique identifiers
       const showProgress = (step: string, message: string) => {
         currentStep++;
         if (isTTY) {
           logger.info(`[${currentStep}/${totalSteps}] ${step}: ${message}`);
         } else {
-          logger.info(message, { step: `${currentStep}/${totalSteps}`, phase: step });
+          // Add unique FONDATION_STEP prefix to distinguish from debug messages
+          logger.info(`[FONDATION_STEP_${currentStep}/${totalSteps}] ${message}`, { step: `${currentStep}/${totalSteps}`, phase: step });
         }
       };
 
@@ -319,8 +326,21 @@ async function runPromptStep(
   const resolvedPromptPath = resolvePromptPath(promptPath);
   let promptContent = await readFile(resolvedPromptPath, 'utf-8');
 
+  // Conditional debug logging - only in development
+  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.FONDATION_MODE === 'development';
+  if (isDevelopment) {
+    logger.info('[DEBUG] RunPromptStep - Path Analysis');
+    logger.info(`[DEBUG] Prompt Path: ${promptPath}`);
+    logger.info(`[DEBUG] Resolved Prompt Path: ${resolvedPromptPath}`);  
+    logger.info(`[DEBUG] Working Directory: ${workingDirectory}`);
+    logger.info(`[DEBUG] Process CWD: ${process.cwd()}`);
+    logger.info(`[DEBUG] Variables: ${JSON.stringify(variables, null, 2)}`);
+    logger.info(`[DEBUG] Model: ${model}`);
+  }
+
   // Replace variables in the prompt
   for (const [key, value] of Object.entries(variables)) {
+    logger.debug('Template replacement', { key, value, workingDirectory });
     promptContent = promptContent.replace(new RegExp(`{{${key}}}`, 'g'), value);
   }
 
@@ -333,41 +353,59 @@ async function runPromptStep(
   // In Docker/bundled environments, force the known path
   let claudeCodePath: string | undefined;
   
-  // Check multiple possible locations for the Claude CLI
-  const possiblePaths = [
-    '/app/cli/node_modules/@anthropic-ai/claude-code/cli.js',  // Bun Docker environment
-    '/app/node_modules/@anthropic-ai/claude-code/cli.js',      // Legacy Docker environment
-    './node_modules/@anthropic-ai/claude-code/cli.js',         // Relative path
-  ];
-  
-  for (const path of possiblePaths) {
-    if (existsSync(path)) {
-      claudeCodePath = path;
-      logger.debug('Found Claude Code executable', { path });
-      break;
+  // Development environment - use absolute path resolution first
+  try {
+    const { createRequire } = await import('node:module');
+    const require = createRequire(import.meta.url);
+    claudeCodePath = require.resolve('@anthropic-ai/claude-code/cli.js');
+    logger.debug('Found Claude Code executable via require.resolve', { path: claudeCodePath });
+  } catch {
+    // Fallback to checking multiple possible locations for the Claude CLI
+    const possiblePaths = [
+      '/app/cli/node_modules/@anthropic-ai/claude-code/cli.js',  // Bun Docker environment
+      '/app/node_modules/@anthropic-ai/claude-code/cli.js',      // Legacy Docker environment
+      './node_modules/@anthropic-ai/claude-code/cli.js',         // Relative path (last resort)
+    ];
+    
+    for (const path of possiblePaths) {
+      if (existsSync(path)) {
+        claudeCodePath = path;
+        logger.debug('Found Claude Code executable at fallback path', { path });
+        break;
+      }
     }
-  }
-  
-  if (!claudeCodePath) {
-    // Development environment - try to resolve
-    try {
-      claudeCodePath = require.resolve('@anthropic-ai/claude-code/cli.js');
-    } catch {
+    
+    if (!claudeCodePath) {
       // Let the SDK use its default path resolution
       logger.debug('Claude Code executable path not found, using SDK default resolution');
     }
   }
 
+  const sdkOptions = {
+    customSystemPrompt: promptContent,
+    allowedTools: ['Write', 'Read', 'LS', 'Glob', 'Grep', 'Edit', 'Bash'],
+    // Use the working directory (repository path) not the CLI process directory
+    cwd: workingDirectory,
+    model,
+    ...(claudeCodePath && { pathToClaudeCodeExecutable: claudeCodePath }),
+  };
+
+  // Conditional debug logging
+  if (isDevelopment) {
+    logger.info('[DEBUG] Claude Code SDK Configuration');
+    logger.info(`[DEBUG] Working Directory Parameter: ${workingDirectory}`);
+    logger.info(`[DEBUG] SDK CWD (should match working directory): ${sdkOptions.cwd}`);
+    logger.info(`[DEBUG] Claude Code Path: ${claudeCodePath}`);
+    logger.info(`[DEBUG] Model: ${sdkOptions.model}`);
+    logger.info(`[DEBUG] Allowed Tools: ${JSON.stringify(sdkOptions.allowedTools)}`);
+    logger.info(`[DEBUG] Has Custom System Prompt: ${!!sdkOptions.customSystemPrompt}`);
+    logger.info(`[DEBUG] System Prompt Length: ${promptContent.length}`);
+  }
+
   for await (const message of query({
     prompt: 'please respect your system prompt very carefully',
     abortController: new AbortController(),
-    options: {
-      customSystemPrompt: promptContent,
-      allowedTools: ['Write', 'Read', 'LS', 'Glob', 'Grep', 'Edit', 'Bash'],
-      cwd: workingDirectory,
-      model,
-      ...(claudeCodePath && { pathToClaudeCodeExecutable: claudeCodePath }),
-    },
+    options: sdkOptions,
   })) {
     messages.push(message);
 
@@ -376,6 +414,34 @@ async function runPromptStep(
         duration: `${message.duration_ms}ms`,
         cost: `$${message.total_cost_usd.toFixed(4)}`,
       });
+      
+      // Conditional debug logging
+      if (isDevelopment) {
+        logger.info('[DEBUG] Claude Code SDK Result Details');
+        logger.info(`[DEBUG] Message Type: ${message.type}`);
+        logger.info(`[DEBUG] Duration: ${message.duration_ms}ms`);
+        logger.info(`[DEBUG] Success: true`);
+        logger.info(`[DEBUG] Output Path From Variables: ${variables.OUTPUT_PATH}`);
+        logger.info(`[DEBUG] Current Directory: ${process.cwd()}`);
+      }
     }
+    
+    // Conditional debug logging
+    if (isDevelopment) {
+      logger.debug('[DEBUG] Claude Code SDK Message', {
+        messageType: message.type,
+        hasContent: !!(message as any).content
+      });
+    }
+  }
+
+  // Conditional debug logging
+  if (isDevelopment) {
+    logger.info('[DEBUG] RunPromptStep Completed - Checking Results', {
+      expectedOutputFile: variables.OUTPUT_PATH,
+      fileExists: variables.OUTPUT_PATH ? existsSync(variables.OUTPUT_PATH) : 'no output path specified',
+      workingDirectory,
+      currentDirectory: process.cwd()
+    });
   }
 }

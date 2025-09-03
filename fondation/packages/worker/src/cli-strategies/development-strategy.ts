@@ -14,14 +14,22 @@
 
 import { exec } from "node:child_process";
 import { existsSync } from "node:fs";
+import path from "node:path";
 import { promisify } from "node:util";
 import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy";
 import { dev } from "@fondation/shared/environment";
 import { EnvironmentConfig } from "@fondation/shared/environment-config";
+import { DebugLogger, isDevelopment, isProduction, shouldIncludeOAuthToken, getCliPath } from "../utils/environment.js";
 
 const execAsync = promisify(exec);
 
 export class DevelopmentCLIStrategy extends BaseStrategy {
+  private debugLogger: DebugLogger;
+  
+  constructor(cliPath: string) {
+    super(cliPath);
+    this.debugLogger = new DebugLogger('DevStrategy');
+  }
   
   getName(): string {
     return "Development CLI Strategy";
@@ -42,12 +50,13 @@ export class DevelopmentCLIStrategy extends BaseStrategy {
       return { valid: false, errors: [...validation.errors, ...cliErrors], warnings: validation.warnings };
     }
     
-    // Check if source/bundle files exist
-    if (this.cliPath.includes('src/cli.ts') && !existsSync(this.cliPath)) {
-      cliErrors.push(`CLI source file not found: ${this.cliPath}`);
-    }
-    if (this.cliPath.includes('dist/cli.bundled.mjs') && !existsSync(this.cliPath)) {
-      cliErrors.push(`CLI bundled file not found: ${this.cliPath}`);
+    // Check if CLI source file exists (use the actual path that will be used in execution)
+    // In production, this strategy shouldn't be used, but let's check anyway
+    if (isDevelopment()) {
+      const actualCliPath = '../cli/src/cli.ts';
+      if (!existsSync(actualCliPath)) {
+        cliErrors.push(`CLI source file not found: ${actualCliPath}`);
+      }
     }
     
     // Check for Claude authentication - prefer host auth in development
@@ -78,28 +87,43 @@ export class DevelopmentCLIStrategy extends BaseStrategy {
   getCommandConfig(repoPath: string): CommandConfig {
     const envConfig = EnvironmentConfig.getInstance();
     
-    // Use relative path from worker's execution context (packages/worker)
-    // Worker executes from packages/worker directory
-    // CLI is located at packages/cli/src/cli.ts
-    const cliPath = '../cli/src/cli.ts';
+    // Use environment-aware CLI path
+    const cliPath = isDevelopment() 
+      ? path.resolve(process.cwd(), '../cli/src/cli.ts')
+      : getCliPath(); // Fallback to production path if somehow used in production
     const command = `bun "${cliPath}" analyze "${repoPath}" --profile dev --verbose`;
+    
+    const baseEnv = {
+      // Filter out Claude Code environment variables that interfere with CLI
+      ...Object.fromEntries(
+        Object.entries(process.env).filter(([key]) => 
+          !key.startsWith('CLAUDE_CODE_') && key !== 'CLAUDECODE'
+        )
+      ),
+      NODE_ENV: 'development',
+      FONDATION_MODE: 'development',
+      // Only pass essential environment variables
+      CONVEX_URL: envConfig.getConvexUrl(),
+    };
+    
+    // Conditionally include OAuth token based on environment
+    const filteredEnv = shouldIncludeOAuthToken() 
+      ? { ...baseEnv, CLAUDE_CODE_OAUTH_TOKEN: envConfig.getClaudeOAuthToken() || '' }
+      : baseEnv; // In development, exclude token to use host auth
+    
+    // Debug: Log all environment variables being passed to CLI (only in development)
+    this.debugLogger.log(`Environment variables being passed to CLI (${Object.keys(filteredEnv).length} total):`);
+    if (isDevelopment()) {
+      Object.entries(filteredEnv).forEach(([key, value]) => {
+        if (key.toLowerCase().includes('claude') || key.toLowerCase().includes('auth') || key.toLowerCase().includes('token')) {
+          this.debugLogger.debug(`⚠️  ${key}=${value?.toString().substring(0, 20)}${value?.toString().length > 20 ? '...' : ''}`);
+        }
+      });
+    }
     
     return {
       command,
-      env: {
-        // Filter out Claude Code environment variables that interfere with CLI
-        ...Object.fromEntries(
-          Object.entries(process.env).filter(([key]) => 
-            !key.startsWith('CLAUDE_CODE_') && key !== 'CLAUDECODE'
-          )
-        ),
-        // In development, use host authentication - DO NOT pass OAuth token
-        NODE_ENV: 'development',
-        FONDATION_MODE: 'development',
-        // Only pass essential environment variables
-        CONVEX_URL: envConfig.getConvexUrl(),
-        // DO NOT pass CLAUDE_CODE_OAUTH_TOKEN in development - let host auth work
-      },
+      env: filteredEnv,
       timeout: undefined, // No timeout in development
       heartbeatInterval: 120000 // 2-minute development progress heartbeat
     };

@@ -19,6 +19,7 @@ import type * as jobs from "../jobs.js";
 import type * as queue from "../queue.js";
 import type * as repositories from "../repositories.js";
 import type * as users from "../users.js";
+import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   jobs: typeof jobs;
   queue: typeof queue;
   repositories: typeof repositories;
+  users: typeof users;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
