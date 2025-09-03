@@ -69,6 +69,11 @@ export class WorkerLogger {
   logError(operation: string, error: any, context: LogContext = {}): void {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const safeError = maskSensitiveData(errorMessage);
+    
+    // Also log stack trace in development for better debugging
+    const stack = error instanceof Error && process.env.NODE_ENV === 'development' 
+      ? error.stack 
+      : undefined;
 
     const logEntry: ErrorLogEntry = {
       operation,
@@ -77,7 +82,8 @@ export class WorkerLogger {
       context: {
         ...context,
         workerId: this.workerId
-      }
+      },
+      ...(stack && { stack })
     };
 
     console.error(`Worker ${operation} failed`, logEntry);

@@ -196,16 +196,25 @@ export class PermanentWorker {
   private async pollAndProcess(): Promise<boolean> {
     // Check if we can take more jobs
     if (this.activeJobs.size >= this.config.maxConcurrentJobs) {
+      // Capacity limit reached
       return false; // No job processed due to capacity limit
     }
+    
+    // Attempt to claim a job
     
     const claimedJob = await this.logger.safeExecute(
       'claim-job',
       async () => {
-        return await this.convex.mutation(api.queue.claimOne, {
+        const result = await this.convex.mutation(api.queue.claimOne, {
           workerId: this.config.workerId,
           leaseMs: this.config.leaseTime,
         });
+        if (result) {
+          this.logger.logInfo(`[Worker] Claimed job: ${result.id}`);
+        } else {
+          // No jobs available
+        }
+        return result;
       }
     );
     
@@ -250,7 +259,8 @@ export class PermanentWorker {
     });
     
     if (!repository) {
-      await this.updateJobStatus(job.id, "failed", `Repository ${job.repositoryId} not found`);
+      this.logger.logError('Repository not found', new Error(`Repository ${job.repositoryId} not found`), { jobId: job.id });
+      await this.failJob(job.id, `Repository ${job.repositoryId} not found`);
       return null;
     }
     
@@ -260,7 +270,8 @@ export class PermanentWorker {
     });
     
     if (!user?.githubId) {
-      await this.updateJobStatus(job.id, "failed", `User not found or missing GitHub ID for repository ${repository.fullName}`);
+      this.logger.logError('User validation failed', new Error(`User not found or missing GitHub ID`), { jobId: job.id });
+      await this.failJob(job.id, `User not found or missing GitHub ID for repository ${repository.fullName}`);
       return null;
     }
     
@@ -270,7 +281,8 @@ export class PermanentWorker {
     });
     
     if (!userGithubToken) {
-      await this.updateJobStatus(job.id, "failed", "GitHub access token not found. Please reconnect your GitHub account.");
+      this.logger.logError('GitHub token not found', new Error(`No token for user ${user.githubId}`), { jobId: job.id });
+      await this.failJob(job.id, "GitHub access token not found. Please reconnect your GitHub account.");
       return null;
     }
     
@@ -279,22 +291,27 @@ export class PermanentWorker {
     try {
       token = safeDecrypt(userGithubToken);
       if (!token || token.length < 10) {
+        // Token too short
         throw new Error("Invalid token format");
       }
+      // Token decrypted successfully
     } catch (error) {
-      await this.updateJobStatus(job.id, "failed", "Invalid GitHub token format. Please reconnect your GitHub account.");
+      this.logger.logError('Token decryption failed', error as Error, { jobId: job.id });
+      await this.failJob(job.id, "Invalid GitHub token format. Please reconnect your GitHub account.");
       return null;
     }
     
     // 5. Basic repository validation
     if (!repository.fullName) {
-      await this.updateJobStatus(job.id, "failed", "Repository missing full name");
+      // Repository missing full name
+      await this.failJob(job.id, "Repository missing full name");
       return null;
     }
     
     // 6. Check job parameters
     if (!job.prompt || job.prompt.trim().length === 0) {
-      await this.updateJobStatus(job.id, "failed", "Job prompt is empty");
+      // Job prompt is empty
+      await this.failJob(job.id, "Job prompt is empty");
       return null;
     }
     
@@ -305,6 +322,7 @@ export class PermanentWorker {
   private async processJob(job: Job): Promise<void> {
     const startTime = Date.now();
     const jobLogger = this.logger.forJob(job.id, job.repositoryId, job.userId);
+    
     
     try {
       // Phase 1: Fast pre-validation checks (fail before expensive operations)

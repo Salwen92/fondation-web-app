@@ -22,6 +22,8 @@ export const claimOne = mutation({
     const leaseTime = args.leaseMs ?? DEFAULT_LEASE_TIME;
     const now = Date.now();
     
+    // Looking for pending jobs ready to run
+    
     // Find oldest pending job that's ready to run
     const job = await ctx.db
       .query("jobs")
@@ -31,16 +33,21 @@ export const claimOne = mutation({
       .first();
     
     if (!job) {
+      // No pending jobs found
       return null;
     }
+    
+    // Found potential job to claim
     
     // Atomic claim with compare-and-swap
     // Re-fetch to ensure it's still pending
     const currentJob = await ctx.db.get(job._id);
     if (!currentJob || currentJob.status !== "pending") {
+      // Job was already claimed by another worker
       return null;
     }
     
+    // Claim the job
     // Claim the job
     await ctx.db.patch(job._id, {
       status: "claimed",
@@ -49,6 +56,7 @@ export const claimOne = mutation({
       updatedAt: now,
     });
     
+    console.log(`[Queue] Job ${job._id} claimed by worker ${args.workerId}`);
     return {
       id: job._id,
       repositoryId: job.repositoryId,
@@ -249,6 +257,7 @@ export const createJob = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now();
+    // Creating new job
     
     // Check for duplicate if dedupeKey provided
     if (args.dedupeKey) {
@@ -277,6 +286,7 @@ export const createJob = mutation({
     }
     
     // Create new job
+    // Insert the job
     const jobId = await ctx.db.insert("jobs", {
       userId: args.userId,
       repositoryId: args.repositoryId,
@@ -292,6 +302,8 @@ export const createJob = mutation({
       totalSteps: 6,
       progress: "Initializing...",
     });
+    
+    console.log(`[Queue] Job created: ${jobId}`);
     
     return { 
       jobId, 

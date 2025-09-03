@@ -475,6 +475,7 @@ doppler run --config prd              # Production
 | `CONVEX_URL` | Database connection | Yes | All |
 | `GITHUB_CLIENT_SECRET` | OAuth secret | Yes | All |
 | `AUTH_SECRET` | NextAuth encryption | Yes | All |
+| `ENCRYPTION_KEY` | Token encryption key | Yes | All services |
 | `WORKER_ID` | Worker identifier | Yes | Worker only |
 | `NODE_ENV` | Environment mode | Yes | All |
 | `POLL_INTERVAL` | Job polling rate | No | Worker only |

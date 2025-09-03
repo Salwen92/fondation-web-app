@@ -70,6 +70,9 @@ GITHUB_CLIENT_SECRET=your_github_oauth_app_secret
 # Auth Secret (required)
 AUTH_SECRET=generate_with_openssl_rand_base64_32
 
+# Encryption Key (required - must be same across all services)
+ENCRYPTION_KEY=generate_with_openssl_rand_hex_32
+
 # Claude OAuth Token (required for worker)
 CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
 ```
@@ -87,6 +90,13 @@ CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
 ```bash
 # Generate and copy this value
 openssl rand -base64 32
+```
+
+#### Generate Encryption Key:
+```bash
+# Generate a secure 32-byte hex key
+openssl rand -hex 32
+# IMPORTANT: Use the same key for both web and worker services!
 ```
 
 #### Get Claude Token:

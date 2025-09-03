@@ -206,6 +206,22 @@ import { internal } from "./_generated/api";
 await ctx.scheduler.runAfter(0, internal.jobs.runWorker, { jobId });
 ```
 
+### Token Decryption Failed
+
+#### Problem: Worker fails with "Token decryption failed"
+**Cause**: Web app and worker are using different ENCRYPTION_KEY values.
+
+**Solution**: Ensure both services use the same encryption key:
+```bash
+# For Doppler setup
+doppler secrets set ENCRYPTION_KEY="$(openssl rand -hex 32)" --project fondation --config dev_local
+
+# For .env setup - add to both web/.env.local and worker/.env
+ENCRYPTION_KEY="same-32-byte-hex-key-here"
+
+# Restart both services after updating
+```
+
 ### Job Stuck in Pending
 
 #### Problem: Jobs stay "pending" forever

@@ -13,9 +13,6 @@
  */
 
 import { exec } from "node:child_process";
-import { join, resolve as resolvePath } from "node:path";
-import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
 import { existsSync } from "node:fs";
 import { promisify } from "node:util";
 import { BaseStrategy, type CommandConfig, type ValidationResult } from "./base-strategy";
@@ -23,8 +20,6 @@ import { dev } from "@fondation/shared/environment";
 import { EnvironmentConfig } from "@fondation/shared/environment-config";
 
 const execAsync = promisify(exec);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export class DevelopmentCLIStrategy extends BaseStrategy {
   
@@ -83,30 +78,27 @@ export class DevelopmentCLIStrategy extends BaseStrategy {
   getCommandConfig(repoPath: string): CommandConfig {
     const envConfig = EnvironmentConfig.getInstance();
     
-    // Determine execution command based on CLI path (same logic as original)
-    const cliPackageDir = resolvePath(join(__dirname, '../../../cli'));
-    let command: string;
-    
-    if (this.cliPath.includes('cli.ts') || this.cliPath.includes('src')) {
-      // Execute TypeScript source directly with Bun (preferred for development)
-      command = `cd "${cliPackageDir}" && bun src/cli.ts analyze "${repoPath}" --profile dev --verbose`;
-    } else {
-      // Execute bundled version with Bun (fallback)
-      command = `cd "${cliPackageDir}" && bun dist/cli.bundled.mjs analyze "${repoPath}" --profile dev --verbose`;
-    }
+    // Use relative path from worker's execution context (packages/worker)
+    // Worker executes from packages/worker directory
+    // CLI is located at packages/cli/src/cli.ts
+    const cliPath = '../cli/src/cli.ts';
+    const command = `bun "${cliPath}" analyze "${repoPath}" --profile dev --verbose`;
     
     return {
       command,
       env: {
-        ...process.env,
-        // In development, let CLI use host authentication or environment variables
+        // Filter out Claude Code environment variables that interfere with CLI
+        ...Object.fromEntries(
+          Object.entries(process.env).filter(([key]) => 
+            !key.startsWith('CLAUDE_CODE_') && key !== 'CLAUDECODE'
+          )
+        ),
+        // In development, use host authentication - DO NOT pass OAuth token
         NODE_ENV: 'development',
         FONDATION_MODE: 'development',
-        // Centralized environment variables from singleton
+        // Only pass essential environment variables
         CONVEX_URL: envConfig.getConvexUrl(),
-        ...(envConfig.getClaudeOAuthToken() && { 
-          CLAUDE_CODE_OAUTH_TOKEN: envConfig.getClaudeOAuthToken() as string
-        }),
+        // DO NOT pass CLAUDE_CODE_OAUTH_TOKEN in development - let host auth work
       },
       timeout: undefined, // No timeout in development
       heartbeatInterval: 120000 // 2-minute development progress heartbeat
