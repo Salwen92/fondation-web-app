@@ -165,8 +165,8 @@ export function maskSensitiveData(text: string): string {
   return text
     // GitHub personal access tokens (classic)
     .replace(/ghp_[a-zA-Z0-9]{36}/g, 'ghp_***')
-    // GitHub personal access tokens (fine-grained)
-    .replace(/github_pat_[a-zA-Z0-9_]{82}/g, 'github_pat_***')
+    // GitHub personal access tokens (fine-grained) - flexible length
+    .replace(/github_pat_[a-zA-Z0-9_]{22,}/g, 'github_pat_***')
     // GitHub OAuth tokens
     .replace(/gho_[a-zA-Z0-9]{36}/g, 'gho_***')
     // GitHub server-to-server tokens
