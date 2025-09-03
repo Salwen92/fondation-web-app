@@ -130,7 +130,25 @@ Fondation supports both **development** and **production** execution modes with 
 
 ### Environment Variables
 
-#### Development-Specific Variables
+#### Using Doppler (Recommended)
+
+All environment variables are managed centrally through Doppler:
+
+```bash
+# One-time setup
+doppler setup --project fondation --config dev_local
+
+# View all secrets
+doppler secrets
+
+# Update a secret
+doppler secrets set WORKER_ID="worker-dev-2"
+
+# Run with secrets auto-injected
+bun run dev
+```
+
+#### Manual Environment Variables (Alternative)
 
 **Essential for Phase 2 Local Testing:**
 ```bash

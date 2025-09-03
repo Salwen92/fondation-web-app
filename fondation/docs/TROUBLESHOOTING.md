@@ -278,13 +278,41 @@ const job = useQuery(api.jobs.getJob, { jobId });
 
 ## Environment Variable Issues
 
-### Missing Variables
+### Doppler Configuration Problems
+
+#### Problem: "Could not find requested secret"
+**Cause**: Wrong Doppler config selected (e.g., using `dev_personal` instead of `dev_local`)
+**Solution**: 
+```bash
+# Switch to correct config with secrets
+doppler setup --project fondation --config dev_local
+doppler secrets  # Verify secrets are visible
+```
+
+#### Problem: "Doppler Error: authentication required"
+**Solution**: 
+```bash
+doppler login  # Authenticate via browser
+```
+
+#### Problem: Secrets not injected when running `bun run dev`
+**Solution**: 
+```bash
+# Verify Doppler is configured
+doppler configure
+# If not configured, run setup
+doppler setup --project fondation --config dev_local
+```
+
+### Traditional .env Variables
 
 #### Problem: "GITHUB_CLIENT_ID is not defined"
 **Solution**: Copy and configure .env.example:
 ```bash
 cp .env.example .env.local
 # Edit with your values
+# Then use the non-Doppler command:
+bun run dev:nodoppler
 ```
 
 ### Convex Auto-configuration

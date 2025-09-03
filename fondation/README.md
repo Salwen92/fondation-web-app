@@ -57,26 +57,41 @@
 
 Get up and running in 5 minutes:
 
+### Option A: With Doppler (Recommended for Teams)
 ```bash
-# 1. Clone the repository
+# 1. Clone and setup
 git clone https://github.com/fondation/fondation.git
-cd fondation
+cd fondation && bun run setup
 
-# 2. Install and build
-bun run setup
+# 2. Configure Doppler for secrets management
+doppler login
+doppler setup  # Select: fondation → dev_local
 
-# 3. Configure environment
-cp .env.example .env.local
-# Edit .env.local with your GitHub OAuth credentials
-
-# 4. Start development
+# 3. Start development (secrets auto-injected)
 bun run dev
 
-# 5. Open browser
+# 4. Open browser
 open http://localhost:3000
 ```
 
-See [Getting Started Guide](docs/GETTING_STARTED.md) for detailed setup instructions.
+### Option B: Traditional Setup (.env files)
+```bash
+# 1. Clone and setup
+git clone https://github.com/fondation/fondation.git
+cd fondation && bun run setup
+
+# 2. Configure environment
+cp .env.example .env.local
+# Edit .env.local with your credentials
+
+# 3. Start development
+bun run dev:nodoppler
+
+# 4. Open browser
+open http://localhost:3000
+```
+
+See [Getting Started Guide](docs/GETTING_STARTED.md) or [Doppler Setup](docs/DOPPLER_SETUP_GUIDE.md) for detailed instructions.
 
 ## 📖 Documentation
 
