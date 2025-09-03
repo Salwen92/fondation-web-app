@@ -45,13 +45,15 @@
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | **Frontend** | Next.js 15, React 19, TypeScript | Modern web UI with App Router |
-| **Styling** | Tailwind CSS, Radix UI | Beautiful, accessible components |
-| **Database** | Convex | Real-time data synchronization |
-| **Backend** | Bun Worker Service | Job processing and orchestration |
-| **AI Engine** | Claude SDK (Anthropic) | Content generation and analysis |
-| **Auth** | NextAuth + GitHub OAuth | Secure user authentication |
-| **Infrastructure** | Docker, Bun Workspace | Containerization and package management |
-| **Code Quality** | Biome, TypeScript | Linting and type checking |
+| **Styling** | Tailwind CSS, Radix UI, shadcn/ui | Beautiful, accessible components |
+| **Database** | Convex | Real-time data sync & serverless functions |
+| **Backend** | Bun Worker Service + CLI | Job processing & AI analysis |
+| **AI Engine** | Claude SDK (@anthropic-ai/claude-code) | Content generation and analysis |
+| **Auth** | NextAuth.js + GitHub OAuth | Secure user authentication |
+| **Secrets** | Doppler | Production secret management |
+| **Infrastructure** | Docker + Bun Workspace | Containerization & monorepo |
+| **Code Quality** | Biome, TypeScript 5.8 | Linting and type checking |
+| **CI/CD** | Docker multi-stage builds | Production deployment |
 
 ## 🚀 Quick Start
 
@@ -60,14 +62,14 @@ Get up and running in 5 minutes:
 ### Option A: With Doppler (Recommended for Teams)
 ```bash
 # 1. Clone and setup
-git clone https://github.com/fondation/fondation.git
-cd fondation && bun run setup
+git clone <your-repo-url>
+cd fondation-web-app/fondation && bun install
 
 # 2. Configure Doppler for secrets management
 doppler login
 doppler setup  # Select: fondation → dev_local
 
-# 3. Start development (secrets auto-injected)
+# 3. Start all services (secrets auto-injected)
 bun run dev
 
 # 4. Open browser
@@ -77,12 +79,12 @@ open http://localhost:3000
 ### Option B: Traditional Setup (.env files)
 ```bash
 # 1. Clone and setup
-git clone https://github.com/fondation/fondation.git
-cd fondation && bun run setup
+git clone <your-repo-url>
+cd fondation-web-app/fondation && bun install
 
 # 2. Configure environment
-cp .env.example .env.local
-# Edit .env.local with your credentials
+# Create .env.local files in packages/web/ and other packages as needed
+# Add required environment variables (see documentation)
 
 # 3. Start development
 bun run dev:nodoppler
@@ -99,105 +101,180 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) or [Doppler Setup](docs/DOP
 - 📘 [**Getting Started**](docs/GETTING_STARTED.md) - 5-minute setup guide
 - 🏗️ [**Architecture Overview**](docs/ARCHITECTURE.md) - System design and data flow
 - 💻 [**Development Guide**](docs/DEVELOPMENT.md) - Development workflow and best practices
-- 🚀 [**Deployment Guide**](docs/DEPLOYMENT.md) - Production deployment instructions
+- 🚀 [**Production Deployment**](docs/PRODUCTION_DEPLOYMENT.md) - Secure production deployment with Doppler
 - 🔧 [**Troubleshooting**](docs/TROUBLESHOOTING.md) - Common issues and solutions
 - 📡 [**API Reference**](docs/API.md) - Complete API documentation
 
 ### Additional Resources
-- 🔐 [Security Guide](docs/SECURITY.md) - Security best practices
+- 🔐 [Security Guide](docs/SECURITY.md) - Security best practices and OAuth setup
+- 🐳 [Docker Build Guide](docs/DOCKER_BUILD_GUIDE.md) - Container build and authentication
+- 🔧 [Claude Integration](docs/CLAUDE_INTEGRATION.md) - AI integration and configuration
 - 📊 [Configuration Audit](docs/CONFIGURATION_AUDIT.md) - Configuration standardization
 - 📋 [Commands Reference](docs/COMMANDS.md) - All available scripts explained
+- 🔍 [Doppler Setup](docs/DOPPLER_SETUP_GUIDE.md) - Secret management configuration
 
 ## 📁 Project Structure
 
 ```
 fondation/
-├── convex/                 # Database functions (shared)
-├── packages/
-│   ├── web/               # Next.js frontend
-│   ├── worker/            # Job processor service
-│   ├── cli/               # AI analyzer (Docker)
-│   └── shared/            # Shared types & utils
-├── docs/                  # Documentation
-└── package.json          # Root orchestration
+├── 📊 convex/                      # Real-time database & API layer
+│   ├── _generated/                 # Auto-generated types & client
+│   ├── docs.ts                     # Document storage functions
+│   ├── jobs.ts                     # Job queue management
+│   ├── queue.ts                    # Worker queue operations
+│   ├── repositories.ts             # Repository data functions
+│   └── users.ts                    # User authentication & data
+│
+├── 📦 packages/                    # Monorepo packages
+│   ├── 🌐 web/                    # Next.js 15 frontend application
+│   │   ├── src/app/               # App Router pages & API routes
+│   │   ├── src/components/        # React components (auth, repos, UI)
+│   │   ├── src/lib/               # Utilities (GitHub client, crypto, etc.)
+│   │   └── src/server/            # NextAuth configuration
+│   │
+│   ├── 🤖 worker/                 # Background job processor
+│   │   ├── src/cli-strategies/    # CLI execution strategies
+│   │   ├── src/progress-handler.ts # Unified progress management
+│   │   ├── src/repo-manager.ts    # Git operations & repo handling
+│   │   └── src/worker.ts          # Main worker orchestration
+│   │
+│   ├── 🔧 cli/                    # AI-powered analysis engine
+│   │   ├── src/cli/commands/      # CLI command implementations
+│   │   ├── src/core/              # Claude AI integration
+│   │   ├── src/ui/                # Terminal UI components
+│   │   ├── prompts/               # AI analysis prompts (6 steps)
+│   │   ├── Dockerfile.production  # Production container
+│   │   └── scripts/               # Build & deployment scripts
+│   │
+│   └── 📚 shared/                 # Shared types & utilities
+│       ├── src/convex-interface.ts # Convex client wrapper
+│       ├── src/environment-config.ts # Environment configuration
+│       └── src/types.ts           # Shared TypeScript types
+│
+├── 📖 docs/                       # Comprehensive documentation
+│   ├── PRODUCTION_DEPLOYMENT.md   # Production setup guide
+│   ├── DOCKER_BUILD_GUIDE.md      # Container build instructions
+│   ├── ARCHITECTURE.md            # System design overview
+│   ├── DEVELOPMENT.md             # Local development guide
+│   └── SECURITY.md                # Security best practices
+│
+├── 🐳 docker-compose.doppler.yml  # Production deployment (Doppler secrets)
+├── 🛠️ scripts/                   # Maintenance & deployment scripts
+└── 📄 package.json               # Root workspace configuration
 ```
 
-## 🎯 Key Features in Detail
+## 🎯 Architecture Overview
 
-### Intelligent Analysis Pipeline
+### 🤖 AI-Powered Analysis Pipeline
 1. **Extract Abstractions** - Identify core components and patterns
-2. **Analyze Relationships** - Map dependencies and interactions
+2. **Analyze Relationships** - Map dependencies and interactions  
 3. **Determine Order** - Structure optimal learning sequence
 4. **Generate Chapters** - Create detailed course content
 5. **Review & Enhance** - Refine and improve material
 6. **Create Tutorials** - Build interactive exercises
 
-### Real-Time Architecture
-- **WebSocket Updates**: Live progress tracking
-- **Atomic Operations**: Prevent race conditions
-- **Lease-Based Claims**: Handle worker failures gracefully
-- **Auto-Scaling**: Database scales automatically with load
+### 🏗️ System Architecture
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Next.js Web   │    │  Convex Database │    │  Worker Service │
+│   Frontend       │◄──►│  Real-time API   │◄──►│  Job Processor  │
+│   (packages/web) │    │  (convex/)       │    │ (packages/worker)│
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                                        │
+                                              ┌─────────────────┐
+                                              │   CLI Engine    │
+                                              │  Docker Container│
+                                              │  (packages/cli) │
+                                              └─────────────────┘
+```
 
-### Security First
-- **OAuth Only**: No API keys in code
-- **Encrypted Tokens**: Secure credential storage
-- **Docker Isolation**: Sandboxed execution
-- **CSRF Protection**: Built-in security headers
+### 🔄 Real-Time Features
+- **Live Progress Updates**: WebSocket-based tracking with French UI localization
+- **Atomic Job Queue**: Prevents duplicate work with lease-based claiming
+- **Smart Retries**: Exponential backoff (5s → 10min) for resilient processing
+- **Horizontal Scaling**: Multiple workers can process jobs simultaneously
+
+### 🔐 Security Architecture
+- **OAuth-Only Authentication**: GitHub OAuth with NextAuth.js
+- **Doppler Secret Management**: Production secrets via encrypted tokens
+- **Container Isolation**: CLI execution in sandboxed Docker environment
+- **Token Encryption**: AES-256 encryption for sensitive data storage
+- **CSRF Protection**: Built-in security headers and validation
 
 ## 🧪 Development
 
 ### Available Scripts
 
 ```bash
-# Development
-bun run dev              # Start all services
-bun run dev:web         # Start web only
-bun run dev:worker      # Start worker only
+# Development (with Doppler)
+bun run dev              # Start all services (web + convex + worker)
+bun run dev:web         # Start Next.js frontend only
+bun run dev:worker      # Start worker service only
+bun run dev:convex      # Start Convex database only
+bun run dev:cli         # Start CLI in development mode
 
-# Building
+# Development (without Doppler - fallback)
+bun run dev:nodoppler   # Traditional .env file approach
+
+# Building & Type Checking
 bun run build           # Build all packages
-bun run typecheck       # Check TypeScript
-bun run lint            # Run linting
+bun run build:cli       # Build CLI package only
+bun run build:worker    # Build worker package only
+bun run typecheck       # TypeScript checking across all packages
+bun run lint            # Biome linting
+bun run check           # Full quality check (lint + format + types)
 
-# Testing
-bun run test            # Run tests
-bun run e2e             # E2E tests
+# Docker Production
+bun run docker:build   # Build production Docker image
+bun run docker:deploy  # Deploy with Doppler secrets
+bun run docker:test    # Test Docker authentication
+
+# Testing & Quality
+bun run test            # Run all tests
+bun run e2e             # End-to-end tests
 
 # Utilities
 bun run clean           # Clean build artifacts
-bun run setup           # Initial setup
+bun run setup           # Initial project setup
+bun run reset           # Full reset (clean + install + build)
 ```
 
 See [Development Guide](docs/DEVELOPMENT.md) for complete workflow documentation.
 
 ## 🐳 Docker Deployment
 
-### Build and Deploy
+### Production Deployment with Doppler
 
 ```bash
-# Build CLI image from monorepo root
-bun run build:docker
+# Build production image
+docker build -f packages/cli/Dockerfile.production -t fondation/cli:latest .
 
-# Deploy worker with environment variable authentication
-source .env && docker run -d \
-  --name fondation-worker \
-  -e CONVEX_URL=your-convex-url \
-  -e CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" \
-  fondation/cli:latest
+# Generate Doppler token
+DOPPLER_TOKEN_WORKER=$(doppler configs tokens create deployment-$(date +%Y%m%d) \
+  --project fondation --config prd --plain)
+
+# Deploy using secure docker-compose
+DOPPLER_TOKEN_WORKER="$DOPPLER_TOKEN_WORKER" \
+  docker-compose -f docker-compose.doppler.yml up -d
 ```
 
-See [Deployment Guide](docs/DEPLOYMENT.md) for production deployment.
+**📚 Complete Guides:**
+- [Production Deployment](docs/PRODUCTION_DEPLOYMENT.md) - Full production setup guide
+- [Docker Build Guide](docs/DOCKER_BUILD_GUIDE.md) - Detailed build instructions
 
 ## 📊 Performance
 
 | Metric | Value |
 |--------|-------|
 | **Job Pickup** | < 5 seconds |
-| **Small Repo** | 2-5 minutes |
-| **Large Repo** | 10-30 minutes |
+| **Small Repo (< 100 files)** | 2-5 minutes |
+| **Medium Repo (100-1000 files)** | 5-15 minutes |
+| **Large Repo (1000+ files)** | 15-30 minutes |
 | **Success Rate** | 95%+ |
-| **Bundle Size** | ~476KB (CLI) |
-| **Memory Usage** | 500MB-1.5GB |
+| **CLI Bundle Size** | ~4.2MB (production) |
+| **Docker Image Size** | ~649MB |
+| **Memory Usage** | 500MB-2GB (depending on repo size) |
+| **Progress Updates** | Real-time (< 1s latency) |
 
 ## 🤝 Contributing
 
@@ -223,19 +300,20 @@ This is proprietary software. See [LICENSE](LICENSE) file for details.
 - [Vercel](https://vercel.com) for Next.js and hosting
 - All our contributors and users
 
-## 🔗 Links
+## 🔗 Quick Links
 
-- [Documentation](docs/)
-- [Issue Tracker](https://github.com/fondation/fondation/issues)
-- [Discussions](https://github.com/fondation/fondation/discussions)
-- [Changelog](CHANGELOG.md)
+- 📖 [Documentation](docs/) - Complete project documentation
+- 🚀 [Production Setup](docs/PRODUCTION_DEPLOYMENT.md) - Deployment guide
+- 🐳 [Docker Guide](docs/DOCKER_BUILD_GUIDE.md) - Container setup
+- 🔧 [Development](docs/DEVELOPMENT.md) - Local development setup
+- 📋 [Changelog](CHANGELOG.md) - Version history and updates
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by the Fondation Team**
+**Built with ❤️ using modern web technologies**
 
-[Website](https://fondation.dev) • [Twitter](https://twitter.com/fondation) • [Discord](https://discord.gg/fondation)
+*AI-Powered Documentation Generation • Real-time Processing • Secure by Design*
 
 </div>
