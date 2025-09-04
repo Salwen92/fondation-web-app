@@ -5,19 +5,70 @@ import type { Id } from '@convex/generated/dataModel';
 import { useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import {
+  AlertCircle,
   Book,
   Calendar,
+  CheckCircle,
+  Clock,
   ExternalLink,
   FileText,
   FolderOpen,
   Loader2,
   Sparkles,
+  XCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+
+// Get status icon and color for job status
+const getStatusDisplay = (status?: string) => {
+  switch (status) {
+    case 'completed':
+      return {
+        icon: CheckCircle,
+        color: 'bg-green-500/10 text-green-500 border-green-500/20',
+        label: 'Terminé',
+      };
+    case 'running':
+    case 'claimed':
+    case 'cloning':
+    case 'analyzing':
+    case 'gathering':
+      return {
+        icon: Clock,
+        color: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+        label: 'En cours',
+      };
+    case 'failed':
+    case 'dead':
+      return {
+        icon: XCircle,
+        color: 'bg-red-500/10 text-red-500 border-red-500/20',
+        label: 'Échoué',
+      };
+    case 'canceled':
+      return {
+        icon: XCircle,
+        color: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
+        label: 'Annulé',
+      };
+    case 'pending':
+      return {
+        icon: Clock,
+        color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+        label: 'En attente',
+      };
+    default:
+      return {
+        icon: AlertCircle,
+        color: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
+        label: 'Inconnu',
+      };
+  }
+};
 
 export default function DocsPage() {
   const { data: session } = useSession();
@@ -34,7 +85,7 @@ export default function DocsPage() {
     session?.user?.id ? { userId: session.user.id as Id<'users'> } : 'skip',
   );
 
-  const completedJobs = jobs?.filter((job) => job.status === 'completed') ?? [];
+  const allJobs = jobs ?? [];
 
   if (!session?.user?.id) {
     return (
@@ -47,12 +98,12 @@ export default function DocsPage() {
     );
   }
 
-  if (completedJobs.length === 0) {
+  if (allJobs.length === 0) {
     return (
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">
-            Documentation
+            Mes Cours
           </h1>
           <p className="text-muted-foreground">
             Tous vos cours générés à partir de vos dépôts GitHub
@@ -84,15 +135,15 @@ export default function DocsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">
-          Documentation
+          Mes Cours
         </h1>
         <p className="text-muted-foreground">
-          {completedJobs.length} cours générés à partir de vos dépôts
+          {allJobs.length} cours générés à partir de vos dépôts
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {completedJobs.map((job, index) => {
+        {allJobs.map((job, index) => {
           const repo = repoMap.get(job.repositoryId);
           if (!repo) {
             return null;
@@ -129,10 +180,22 @@ export default function DocsPage() {
                       </a>
                     </div>
 
-                    <Badge variant="secondary" className="bg-green-500/10 text-green-500">
-                      <FileText className="mr-1 h-3 w-3" />
-                      {job.docsCount ?? 0} documents
-                    </Badge>
+                    <div className="flex gap-2">
+                      {(() => {
+                        const statusDisplay = getStatusDisplay(job.status);
+                        const StatusIcon = statusDisplay.icon;
+                        return (
+                          <Badge variant="secondary" className={`border ${statusDisplay.color}`}>
+                            <StatusIcon className="mr-1 h-3 w-3" />
+                            {statusDisplay.label}
+                          </Badge>
+                        );
+                      })()}
+                      <Badge variant="secondary" className="bg-green-500/10 text-green-500">
+                        <FileText className="mr-1 h-3 w-3" />
+                        {job.docsCount ?? 0} documents
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* Description */}
@@ -140,6 +203,35 @@ export default function DocsPage() {
                     <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                       {repo.description}
                     </p>
+                  )}
+
+                  {/* Progress for running jobs */}
+                  {job.status === 'running' && job.currentStep && (
+                    <div className="mb-4">
+                      <div className="text-sm text-muted-foreground mb-2">
+                        Étape {job.currentStep} sur {job.totalSteps ?? 6}:{' '}
+                        {job.progress ?? 'En cours'}
+                      </div>
+                      <div className="w-full h-2 bg-muted rounded-full">
+                        <div
+                          className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                          style={{ width: `${(job.currentStep / (job.totalSteps ?? 6)) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error message for failed jobs */}
+                  {(job.status === 'failed' || job.status === 'dead') && job.error && (
+                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <XCircle className="h-4 w-4 text-red-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-red-500">Échec de génération</p>
+                          <p className="text-xs text-red-500/80 mt-1">{job.error}</p>
+                        </div>
+                      </div>
+                    </div>
                   )}
 
                   {/* Spacer */}

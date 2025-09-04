@@ -59,7 +59,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <FileText className="h-4 w-4" />
-                <span>Documentation</span>
+                <span>Mes Cours</span>
               </Link>
               <Link
                 href="/dashboard/settings"
