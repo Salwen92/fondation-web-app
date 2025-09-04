@@ -1,6 +1,6 @@
 /**
  * Environment Detection Utility
- * 
+ *
  * Provides centralized environment detection for the Fondation monorepo.
  * Supports development, production, and test environments with clear
  * detection logic and consistent behavior across packages.
@@ -17,13 +17,19 @@ export function getEnvironment(): Environment {
   if (process.env.FONDATION_ENV) {
     return process.env.FONDATION_ENV as Environment;
   }
-  
+
   // Check NODE_ENV
   const nodeEnv = process.env.NODE_ENV?.toLowerCase();
-  if (nodeEnv === 'production') { return 'production'; }
-  if (nodeEnv === 'test') { return 'test'; }
-  if (nodeEnv === 'development') { return 'development'; }
-  
+  if (nodeEnv === 'production') {
+    return 'production';
+  }
+  if (nodeEnv === 'test') {
+    return 'test';
+  }
+  if (nodeEnv === 'development') {
+    return 'development';
+  }
+
   // Default to development if not specified
   return 'development';
 }
@@ -57,23 +63,23 @@ export function getExecutionMode(): ExecutionMode {
   if (process.env.FONDATION_EXECUTION_MODE) {
     return process.env.FONDATION_EXECUTION_MODE as ExecutionMode;
   }
-  
+
   // Check for Docker environment indicators
-  const isInDocker = 
+  const isInDocker =
     process.env.DOCKER_CONTAINER === 'true' ||
     process.env.CONTAINER === 'true' ||
     existsSync('/.dockerenv') ||
-    existsSync('/proc/1/cgroup') && readFileSync('/proc/1/cgroup', 'utf8').includes('docker');
-  
+    (existsSync('/proc/1/cgroup') && readFileSync('/proc/1/cgroup', 'utf8').includes('docker'));
+
   if (isInDocker) {
     return 'docker';
   }
-  
+
   // Check for other container environments (Kubernetes, etc.)
   if (process.env.KUBERNETES_SERVICE_HOST) {
     return 'container';
   }
-  
+
   return 'local';
 }
 
@@ -102,11 +108,11 @@ export function getEnvironmentConfig<T>(config: {
   default?: T;
 }): T | undefined {
   const env = getEnvironment();
-  
+
   if (config[env]) {
     return config[env];
   }
-  
+
   return config.default;
 }
 
@@ -121,17 +127,21 @@ export function validateEnvironment(requirements: {
   const errors: string[] = [];
   const currentEnv = getEnvironment();
   const currentMode = getExecutionMode();
-  
+
   // Check allowed environments
   if (requirements.allowedEnvironments && !requirements.allowedEnvironments.includes(currentEnv)) {
-    errors.push(`Environment '${currentEnv}' not allowed. Allowed: ${requirements.allowedEnvironments.join(', ')}`);
+    errors.push(
+      `Environment '${currentEnv}' not allowed. Allowed: ${requirements.allowedEnvironments.join(', ')}`,
+    );
   }
-  
+
   // Check required execution mode
   if (requirements.requiredExecutionMode && currentMode !== requirements.requiredExecutionMode) {
-    errors.push(`Execution mode '${currentMode}' not allowed. Required: ${requirements.requiredExecutionMode}`);
+    errors.push(
+      `Execution mode '${currentMode}' not allowed. Required: ${requirements.requiredExecutionMode}`,
+    );
   }
-  
+
   // Check required environment variables
   if (requirements.requiredEnvVars) {
     for (const envVar of requirements.requiredEnvVars) {
@@ -140,10 +150,10 @@ export function validateEnvironment(requirements: {
       }
     }
   }
-  
+
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
@@ -155,8 +165,10 @@ export const dev = {
    * Check if development mode allows a specific feature
    */
   allows: (feature: 'docker_bypass' | 'mock_auth' | 'hot_reload' | 'debug_logging'): boolean => {
-    if (!isDevelopment()) { return false; }
-    
+    if (!isDevelopment()) {
+      return false;
+    }
+
     switch (feature) {
       case 'docker_bypass':
         return process.env.FONDATION_DEV_DOCKER_BYPASS !== 'false';
@@ -170,15 +182,18 @@ export const dev = {
         return false;
     }
   },
-  
+
   /**
    * Get development-specific paths
    */
   paths: {
-    cliSource: () => isDevelopment() ? '@fondation/cli/cli.ts' : null,
-    cliBundle: () => isDevelopment() ? '@fondation/cli/dist/cli.bundled.mjs' : '/app/packages/cli/dist/cli.bundled.mjs',
-    tempDir: () => isDevelopment() ? '/tmp/fondation-dev' : '/tmp/fondation'
-  }
+    cliSource: () => (isDevelopment() ? '@fondation/cli/cli.ts' : null),
+    cliBundle: () =>
+      isDevelopment()
+        ? '@fondation/cli/dist/cli.bundled.mjs'
+        : '/app/packages/cli/dist/cli.bundled.mjs',
+    tempDir: () => (isDevelopment() ? '/tmp/fondation-dev' : '/tmp/fondation'),
+  },
 };
 
 // Helper functions for file system checks
@@ -207,5 +222,5 @@ export const environmentInfo = {
   isLocal: isLocalExecution(),
   nodeEnv: process.env.NODE_ENV,
   platform: process.platform,
-  arch: process.arch
+  arch: process.arch,
 };

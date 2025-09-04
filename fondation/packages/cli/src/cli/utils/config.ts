@@ -146,16 +146,19 @@ export async function loadConfig(options: LoadConfigOptions = {}): Promise<CLICo
         searchPlaces: [options.configPath], // Only search the explicit path
         stopDir: process.cwd(), // Don't search up the tree
       });
-      
+
       // Add timeout to prevent hanging
       const loadWithTimeout = Promise.race([
         explorer.load(options.configPath),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error(`Configuration loading timed out after 10 seconds`)), 10000)
-        )
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error(`Configuration loading timed out after 10 seconds`)),
+            10000,
+          ),
+        ),
       ]);
-      
-      const result = await loadWithTimeout as any;
+
+      const result = (await loadWithTimeout) as any;
       if (!result) {
         throw new Error(`Configuration file not found: ${options.configPath}`);
       }

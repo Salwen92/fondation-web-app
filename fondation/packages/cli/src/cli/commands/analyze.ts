@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { isatty } from 'node:tty';
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import type { Logger } from 'pino';
 import { generateChaptersFromYaml } from '../../chapter-generator';
@@ -69,10 +69,9 @@ Use "fondation --help" for more information about global options.`,
     // Environment-aware path resolution
     // In development, use absolute path resolution
     // In production/containers, use relative to process.cwd()
-    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.FONDATION_MODE === 'development';
-    const projectDir = isDevelopment 
-      ? resolve(codebasePath) 
-      : resolve(process.cwd(), codebasePath);
+    const isDevelopment =
+      process.env.NODE_ENV === 'development' || process.env.FONDATION_MODE === 'development';
+    const projectDir = isDevelopment ? resolve(codebasePath) : resolve(process.cwd(), codebasePath);
     const outputDir = resolve(
       projectDir,
       options.outputDir || config.outputDir || '.claude-tutorial-output',
@@ -114,7 +113,10 @@ Use "fondation --help" for more information about global options.`,
           logger.info(`[${currentStep}/${totalSteps}] ${step}: ${message}`);
         } else {
           // Add unique FONDATION_STEP prefix to distinguish from debug messages
-          logger.info(`[FONDATION_STEP_${currentStep}/${totalSteps}] ${message}`, { step: `${currentStep}/${totalSteps}`, phase: step });
+          logger.info(`[FONDATION_STEP_${currentStep}/${totalSteps}] ${message}`, {
+            step: `${currentStep}/${totalSteps}`,
+            phase: step,
+          });
         }
       };
 
@@ -250,19 +252,19 @@ Use "fondation --help" for more information about global options.`,
       // Log error with multiple approaches to ensure it's visible
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
-      
+
       logger.error('Analysis failed', {
         error: errorMessage,
         stack: errorStack,
         fullError: JSON.stringify(error, null, 2),
       });
-      
+
       // Always log to console for debugging visibility
       console.error('ANALYZE COMMAND ERROR:', error);
       if (errorStack) {
         console.error('STACK TRACE:', errorStack);
       }
-      
+
       logger.debug('Full error details', { error });
       process.exit(1);
     }
@@ -272,10 +274,10 @@ Use "fondation --help" for more information about global options.`,
 function resolvePromptPath(promptPath: string): string {
   // Check if we're in a bundled environment
   const isBundled = typeof __filename !== 'undefined' && __filename.includes('cli.bundled.mjs');
-  
+
   // Try multiple locations for prompts
   const possiblePaths = [];
-  
+
   if (isBundled) {
     // For bundled CLI, prompts are in dist/prompts
     const distDir = dirname(__filename);
@@ -284,19 +286,21 @@ function resolvePromptPath(promptPath: string): string {
   } else {
     // For source execution, relative to file location
     try {
-      possiblePaths.push(resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', promptPath));
+      possiblePaths.push(
+        resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', promptPath),
+      );
     } catch {
       // Fallback if import.meta.url is not available
     }
   }
-  
+
   // Always try current working directory as fallback
   possiblePaths.push(resolve(process.cwd(), promptPath));
-  
+
   // Docker-specific path (CLI runs from /app but prompts are in /app/cli/dist/prompts)
   possiblePaths.push(resolve('/app/cli/dist', promptPath));
   possiblePaths.push(resolve('/app/cli', promptPath));
-  
+
   // Try direct path if absolute
   if (promptPath.startsWith('/')) {
     possiblePaths.push(promptPath);
@@ -327,11 +331,12 @@ async function runPromptStep(
   let promptContent = await readFile(resolvedPromptPath, 'utf-8');
 
   // Conditional debug logging - only in development
-  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.FONDATION_MODE === 'development';
+  const isDevelopment =
+    process.env.NODE_ENV === 'development' || process.env.FONDATION_MODE === 'development';
   if (isDevelopment) {
     logger.info('[DEBUG] RunPromptStep - Path Analysis');
     logger.info(`[DEBUG] Prompt Path: ${promptPath}`);
-    logger.info(`[DEBUG] Resolved Prompt Path: ${resolvedPromptPath}`);  
+    logger.info(`[DEBUG] Resolved Prompt Path: ${resolvedPromptPath}`);
     logger.info(`[DEBUG] Working Directory: ${workingDirectory}`);
     logger.info(`[DEBUG] Process CWD: ${process.cwd()}`);
     logger.info(`[DEBUG] Variables: ${JSON.stringify(variables, null, 2)}`);
@@ -352,7 +357,7 @@ async function runPromptStep(
   // Find the Claude Code executable path
   // In Docker/bundled environments, force the known path
   let claudeCodePath: string | undefined;
-  
+
   // Development environment - use absolute path resolution first
   try {
     const { createRequire } = await import('node:module');
@@ -362,11 +367,11 @@ async function runPromptStep(
   } catch {
     // Fallback to checking multiple possible locations for the Claude CLI
     const possiblePaths = [
-      '/app/cli/node_modules/@anthropic-ai/claude-code/cli.js',  // Bun Docker environment
-      '/app/node_modules/@anthropic-ai/claude-code/cli.js',      // Legacy Docker environment
-      './node_modules/@anthropic-ai/claude-code/cli.js',         // Relative path (last resort)
+      '/app/cli/node_modules/@anthropic-ai/claude-code/cli.js', // Bun Docker environment
+      '/app/node_modules/@anthropic-ai/claude-code/cli.js', // Legacy Docker environment
+      './node_modules/@anthropic-ai/claude-code/cli.js', // Relative path (last resort)
     ];
-    
+
     for (const path of possiblePaths) {
       if (existsSync(path)) {
         claudeCodePath = path;
@@ -374,7 +379,7 @@ async function runPromptStep(
         break;
       }
     }
-    
+
     if (!claudeCodePath) {
       // Let the SDK use its default path resolution
       logger.debug('Claude Code executable path not found, using SDK default resolution');
@@ -414,7 +419,7 @@ async function runPromptStep(
         duration: `${message.duration_ms}ms`,
         cost: `$${message.total_cost_usd.toFixed(4)}`,
       });
-      
+
       // Conditional debug logging
       if (isDevelopment) {
         logger.info('[DEBUG] Claude Code SDK Result Details');
@@ -425,12 +430,12 @@ async function runPromptStep(
         logger.info(`[DEBUG] Current Directory: ${process.cwd()}`);
       }
     }
-    
+
     // Conditional debug logging
     if (isDevelopment) {
       logger.debug('[DEBUG] Claude Code SDK Message', {
         messageType: message.type,
-        hasContent: !!(message as any).content
+        hasContent: !!(message as any).content,
       });
     }
   }
@@ -439,9 +444,11 @@ async function runPromptStep(
   if (isDevelopment) {
     logger.info('[DEBUG] RunPromptStep Completed - Checking Results', {
       expectedOutputFile: variables.OUTPUT_PATH,
-      fileExists: variables.OUTPUT_PATH ? existsSync(variables.OUTPUT_PATH) : 'no output path specified',
+      fileExists: variables.OUTPUT_PATH
+        ? existsSync(variables.OUTPUT_PATH)
+        : 'no output path specified',
       workingDirectory,
-      currentDirectory: process.cwd()
+      currentDirectory: process.cwd(),
     });
   }
 }

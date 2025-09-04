@@ -26,9 +26,15 @@ export const workerCommand = new Command('worker')
 
     // Set environment variables for the worker
     process.env.CONVEX_URL = convexUrl;
-    if (githubToken) { process.env.GITHUB_TOKEN = githubToken; }
-    if (claudeToken) { process.env.CLAUDE_CODE_OAUTH_TOKEN = claudeToken; }
-    if (options.pollInterval) { process.env.POLL_INTERVAL = options.pollInterval; }
+    if (githubToken) {
+      process.env.GITHUB_TOKEN = githubToken;
+    }
+    if (claudeToken) {
+      process.env.CLAUDE_CODE_OAUTH_TOKEN = claudeToken;
+    }
+    if (options.pollInterval) {
+      process.env.POLL_INTERVAL = options.pollInterval;
+    }
 
     // Log configuration (without sensitive tokens)
     logger?.info('Worker configuration:');
@@ -40,18 +46,18 @@ export const workerCommand = new Command('worker')
     // In Docker, the worker is bundled separately
     // We'll use execSync to run it as a subprocess
     const { execSync } = await import('node:child_process');
-    
+
     try {
       // Check if we're in Docker environment by checking for the worker bundle
       const fs = require('node:fs');
       const isDocker = fs.existsSync('/app/worker/dist/worker.bundled.mjs');
-      
+
       if (isDocker) {
         logger?.info('Running worker in Docker environment...');
         // Run the bundled worker with Bun
         execSync('bun /app/worker/dist/worker.bundled.mjs', {
           stdio: 'inherit',
-          env: process.env
+          env: process.env,
         });
       } else {
         logger?.info('Running worker in development environment...');
@@ -59,7 +65,7 @@ export const workerCommand = new Command('worker')
         execSync('cd packages/worker && bun run start', {
           stdio: 'inherit',
           env: process.env,
-          cwd: process.cwd()
+          cwd: process.cwd(),
         });
       }
     } catch (error) {

@@ -3,14 +3,23 @@
  * DEPRECATED: Being replaced with encryption.ts for proper AES-256-GCM encryption
  */
 
-import { encryptToken, decryptToken, isEncrypted, isLegacyObfuscated, maskSensitiveData, safeDecrypt } from './encryption';
+import {
+  decryptToken,
+  encryptToken,
+  isEncrypted,
+  isLegacyObfuscated,
+  maskSensitiveData,
+  safeDecrypt,
+} from './encryption';
 
 /**
  * @deprecated Use encryptToken from encryption.ts instead
  */
 export function obfuscateToken(token: string): string {
-  if (!token) { return token; }
-  
+  if (!token) {
+    return token;
+  }
+
   // Migrate to real encryption
   return encryptToken(token);
 }
@@ -19,8 +28,10 @@ export function obfuscateToken(token: string): string {
  * @deprecated Use decryptToken from encryption.ts instead
  */
 export function deobfuscateToken(obfuscatedToken: string): string {
-  if (!obfuscatedToken) { return obfuscatedToken; }
-  
+  if (!obfuscatedToken) {
+    return obfuscatedToken;
+  }
+
   try {
     return decryptToken(obfuscatedToken);
   } catch (_error) {
@@ -39,12 +50,14 @@ export function isObfuscated(token: string): boolean {
  * @deprecated Use encryptToken from encryption.ts instead
  */
 export function safeObfuscate(token: string): string {
-  if (!token) { return token; }
-  
+  if (!token) {
+    return token;
+  }
+
   if (isEncrypted(token) || isLegacyObfuscated(token)) {
     return token; // Already encrypted/obfuscated
   }
-  
+
   return encryptToken(token);
 }
 

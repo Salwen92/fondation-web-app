@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Book, Code2, Loader2, Sparkles, X, FlaskConical, RefreshCw } from "lucide-react";
+import { Book, Loader2, RefreshCw, Sparkles, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface JobActionsProps {
   status?: string;
@@ -13,7 +13,6 @@ interface JobActionsProps {
   onCancel: () => void;
   onViewCourse: () => void;
   onRegenerate?: () => void;
-  onTest?: () => void;
   repositoryName?: string;
 }
 
@@ -30,7 +29,6 @@ export function JobActions({
   onCancel,
   onViewCourse,
   onRegenerate,
-  onTest,
   repositoryName,
 }: JobActionsProps) {
   return (
@@ -64,15 +62,23 @@ export function JobActions({
           disabled={isProcessing}
           className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
           size="sm"
-          id={repositoryName ? `generate-${repositoryName.replace(/[^a-zA-Z0-9]/g, '-')}` : undefined}
-          data-testid={isProcessing ? "generating-button" : (isFailed || isCanceled) ? "retry-button" : "generate-button"}
+          id={
+            repositoryName ? `generate-${repositoryName.replace(/[^a-zA-Z0-9]/g, '-')}` : undefined
+          }
+          data-testid={
+            isProcessing
+              ? 'generating-button'
+              : isFailed || isCanceled
+                ? 'retry-button'
+                : 'generate-button'
+          }
         >
           {isProcessing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Génération...
             </>
-          ) : (isFailed || isCanceled) ? (
+          ) : isFailed || isCanceled ? (
             <>
               <Sparkles className="mr-2 h-4 w-4" />
               Réessayer
@@ -85,7 +91,7 @@ export function JobActions({
           )}
         </Button>
       )}
-      
+
       {/* Cancel button for processing jobs */}
       {isProcessing ? (
         <Button
@@ -97,29 +103,7 @@ export function JobActions({
         >
           <X className="h-4 w-4 text-red-500" />
         </Button>
-      ) : (
-        <>
-          {onTest && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onTest}
-              className="glass border-blue-200 hover:bg-blue-50 hover:border-blue-300"
-              data-testid="repo-test-btn"
-            >
-              <FlaskConical className="h-4 w-4 text-blue-500" />
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="glass"
-            data-testid="code-button"
-          >
-            <Code2 className="h-4 w-4" />
-          </Button>
-        </>
-      )}
+      ) : null}
     </div>
   );
 }

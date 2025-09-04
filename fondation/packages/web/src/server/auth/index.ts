@@ -1,7 +1,7 @@
-import NextAuth, { type Session } from "next-auth";
-import { cache } from "react";
+import NextAuth, { type Session } from 'next-auth';
+import { cache } from 'react';
 
-import { authConfig } from "./config";
+import { authConfig } from './config';
 
 const { auth: uncachedAuth, handlers, signIn, signOut } = NextAuth(authConfig);
 

@@ -2,7 +2,7 @@
  * Input validation and sanitization utilities
  */
 
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Validation result type
@@ -27,10 +27,13 @@ export const patterns = {
 /**
  * Sanitize HTML content
  */
-export function sanitizeHtml(html: string, options?: Parameters<typeof DOMPurify.sanitize>[1]): string {
+export function sanitizeHtml(
+  html: string,
+  options?: Parameters<typeof DOMPurify.sanitize>[1],
+): string {
   const result = DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "p", "br", "ul", "ol", "li", "code", "pre"],
-    ALLOWED_ATTR: ["href", "target", "rel"],
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'code', 'pre'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
     ALLOW_DATA_ATTR: false,
     ...options,
   });
@@ -44,9 +47,9 @@ export function sanitizeHtml(html: string, options?: Parameters<typeof DOMPurify
 export function sanitizeInput(input: string): string {
   return input
     .trim()
-    .replace(/[<>]/g, "") // Remove angle brackets
-    .replace(/javascript:/gi, "") // Remove javascript: protocol
-    .replace(/on\w+\s*=/gi, ""); // Remove event handlers
+    .replace(/[<>]/g, '') // Remove angle brackets
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, ''); // Remove event handlers
 }
 
 /**
@@ -57,11 +60,11 @@ export function validateGitHubRepo(repo: string): ValidationResult {
   const sanitized = sanitizeInput(repo);
 
   if (!sanitized) {
-    errors.push("Le nom du dépôt est requis");
+    errors.push('Le nom du dépôt est requis');
   } else if (!patterns.githubRepo.test(sanitized)) {
-    errors.push("Format invalide. Utilisez: owner/repository");
+    errors.push('Format invalide. Utilisez: owner/repository');
   } else if (sanitized.length > 100) {
-    errors.push("Le nom du dépôt est trop long");
+    errors.push('Le nom du dépôt est trop long');
   }
 
   return {
@@ -111,11 +114,11 @@ export function validateUrl(url: string): ValidationResult {
   // Additional security checks
   try {
     const parsed = new URL(sanitized);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      errors.push("Seuls les protocoles HTTP(S) sont autorisés");
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      errors.push('Seuls les protocoles HTTP(S) sont autorisés');
     }
   } catch {
-    errors.push("URL malformée");
+    errors.push('URL malformée');
   }
 
   return {
@@ -138,7 +141,7 @@ export function validateSearchQuery(query: string, maxLength = 100): ValidationR
   }
 
   // Remove special regex characters that could cause issues
-  sanitized = sanitized.replace(/[.*+?^${}()|[\]\\]/g, "");
+  sanitized = sanitized.replace(/[.*+?^${}()|[\]\\]/g, '');
 
   return {
     isValid: true, // Search queries are always "valid" after sanitization
@@ -156,16 +159,16 @@ export function validateNumber(
     min?: number;
     max?: number;
     integer?: boolean;
-  }
+  },
 ): ValidationResult {
   const errors: string[] = [];
-  const num = typeof value === "string" ? Number.parseFloat(value) : value;
+  const num = typeof value === 'string' ? Number.parseFloat(value) : value;
 
   if (Number.isNaN(num)) {
-    errors.push("Valeur numérique invalide");
+    errors.push('Valeur numérique invalide');
   } else {
     if (options?.integer && !Number.isInteger(num)) {
-      errors.push("La valeur doit être un nombre entier");
+      errors.push('La valeur doit être un nombre entier');
     }
     if (options?.min !== undefined && num < options.min) {
       errors.push(`La valeur doit être au moins ${options.min}`);
@@ -188,10 +191,12 @@ export function validateNumber(
 export function createValidatedForm<T extends Record<string, unknown>>(
   validators: {
     [K in keyof T]: (value: unknown) => ValidationResult;
-  }
+  },
 ) {
   return {
-    validate: (data: Partial<T>): { isValid: boolean; errors: Record<string, string[]>; sanitized: Partial<T> } => {
+    validate: (
+      data: Partial<T>,
+    ): { isValid: boolean; errors: Record<string, string[]>; sanitized: Partial<T> } => {
       const errors: Record<string, string[]> = {};
       const sanitized: Partial<T> = {};
       let isValid = true;
@@ -199,12 +204,12 @@ export function createValidatedForm<T extends Record<string, unknown>>(
       for (const [key, validator] of Object.entries(validators)) {
         const value = data[key as keyof T];
         const result = (validator as (value: unknown) => ValidationResult)(value);
-        
+
         if (!result.isValid) {
           errors[key] = result.errors;
           isValid = false;
         }
-        
+
         if (result.sanitized !== undefined) {
           sanitized[key as keyof T] = result.sanitized as T[keyof T];
         }

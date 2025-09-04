@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 interface Particle {
   x: number;
@@ -16,10 +16,14 @@ export function AnimatedBackground() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) { return; }
+    if (!canvas) {
+      return;
+    }
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) { return; }
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return;
+    }
 
     // Set canvas size
     const resizeCanvas = (): void => {
@@ -27,7 +31,7 @@ export function AnimatedBackground() {
       canvas.height = window.innerHeight;
     };
     resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener('resize', resizeCanvas);
 
     // Particle system
     const particles: Particle[] = [];
@@ -56,8 +60,12 @@ export function AnimatedBackground() {
         particle.y += particle.vy;
 
         // Bounce off walls
-        if (particle.x < 0 || particle.x > canvas.width) { particle.vx *= -1; }
-        if (particle.y < 0 || particle.y > canvas.height) { particle.vy *= -1; }
+        if (particle.x < 0 || particle.x > canvas.width) {
+          particle.vx *= -1;
+        }
+        if (particle.y < 0 || particle.y > canvas.height) {
+          particle.vy *= -1;
+        }
 
         // Draw particle
         ctx.beginPath();
@@ -75,9 +83,7 @@ export function AnimatedBackground() {
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(otherParticle.x, otherParticle.y);
-            ctx.strokeStyle = `rgba(0, 217, 255, ${
-              0.1 * (1 - distance / 150)
-            })`;
+            ctx.strokeStyle = `rgba(0, 217, 255, ${0.1 * (1 - distance / 150)})`;
             ctx.stroke();
           }
         });
@@ -88,15 +94,10 @@ export function AnimatedBackground() {
     animate();
 
     return () => {
-      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 z-0"
-    />
-  );
+  return <canvas ref={canvasRef} className="absolute inset-0 z-0" />;
 }

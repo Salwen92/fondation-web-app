@@ -1,17 +1,13 @@
-import { auth } from "@/server/auth";
-import { redirect } from "next/navigation";
-import { UserMenu } from "@/components/auth/user-menu";
-import { UserSync } from "@/components/auth/user-sync";
+import { redirect } from 'next/navigation';
+import { UserMenu } from '@/components/auth/user-menu';
+import { UserSync } from '@/components/auth/user-sync';
+import { auth } from '@/server/auth';
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
 
   if (!session) {
-    redirect("/login");
+    redirect('/login');
   }
 
   return (

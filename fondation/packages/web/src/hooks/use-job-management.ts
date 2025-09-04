@@ -1,11 +1,11 @@
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@convex/generated/api";
-import { toast } from "sonner";
-import type { Id } from "@convex/generated/dataModel";
+import { api } from '@convex/generated/api';
+import type { Id } from '@convex/generated/dataModel';
+import { useMutation, useQuery } from 'convex/react';
+import { toast } from 'sonner';
 
 interface UseJobManagementOptions {
-  repositoryId: Id<"repositories">;
-  userId: Id<"users">;
+  repositoryId: Id<'repositories'>;
+  userId: Id<'users'>;
   repositoryFullName: string;
   repositoryName: string;
   defaultBranch: string;
@@ -32,7 +32,7 @@ export function useJobManagement({
         repositoryId,
         prompt: `Générer le cours pour ${repositoryFullName}`,
       });
-      
+
       // Job is now in the queue, workers will pick it up automatically
       if (result.jobId) {
         // Update local metadata to show job is in progress
@@ -40,49 +40,53 @@ export function useJobManagement({
           repositoryId,
           lastAnalyzedAt: Date.now(),
         });
-        
-        toast.success(
-          "Génération démarrée",
-          {
-            description: "Le processus de génération a commencé.",
-            duration: 8000,
-          }
-        );
+
+        toast.success('Génération démarrée', {
+          description: 'Le processus de génération a commencé.',
+          duration: 8000,
+        });
       }
     } catch (error) {
-      toast.error("Erreur", {
-        description: error instanceof Error ? error.message : "Impossible de démarrer la génération",
+      toast.error('Erreur', {
+        description:
+          error instanceof Error ? error.message : 'Impossible de démarrer la génération',
       });
     }
   };
 
   const handleCancel = async () => {
-    if (!latestJob) { return; }
-    
+    if (!latestJob) {
+      return;
+    }
+
     try {
       const response = await fetch(`/api/jobs/${latestJob._id}/cancel`, {
-        method: "POST",
+        method: 'POST',
       });
-      
+
       if (!response.ok) {
-        const error = await response.json() as { error?: string };
-        throw new Error(error.error ?? "Failed to cancel job");
+        const error = (await response.json()) as { error?: string };
+        throw new Error(error.error ?? 'Failed to cancel job');
       }
-      
-      toast.success("Generation cancelled", {
-        description: "The documentation generation has been cancelled.",
+
+      toast.success('Generation cancelled', {
+        description: 'The documentation generation has been cancelled.',
       });
     } catch (error) {
-      toast.error("Failed to cancel", {
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+      toast.error('Failed to cancel', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
       });
     }
   };
 
-  const isProcessing = latestJob && ["pending", "claimed", "cloning", "analyzing", "gathering", "running"].includes(latestJob.status);
-  const isCompleted = latestJob?.status === "completed";
-  const isFailed = latestJob?.status === "failed" || latestJob?.status === "dead";
-  const isCanceled = latestJob?.status === "canceled";
+  const isProcessing =
+    latestJob &&
+    ['pending', 'claimed', 'cloning', 'analyzing', 'gathering', 'running'].includes(
+      latestJob.status,
+    );
+  const isCompleted = latestJob?.status === 'completed';
+  const isFailed = latestJob?.status === 'failed' || latestJob?.status === 'dead';
+  const isCanceled = latestJob?.status === 'canceled';
 
   return {
     latestJob,

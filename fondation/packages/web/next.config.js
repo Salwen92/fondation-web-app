@@ -13,8 +13,8 @@ const config = {
         '@convex': path.resolve(process.cwd(), '../../convex'),
         '@convex/generated': path.resolve(process.cwd(), '../../convex/_generated'),
         '@fondation/shared': path.resolve(process.cwd(), '../shared/src'),
-      }
-    }
+      },
+    },
   },
   transpilePackages: ['@fondation/shared'],
   webpack: (config) => {
@@ -25,7 +25,7 @@ const config = {
       '@fondation/shared': path.resolve(process.cwd(), '../shared/src'),
     };
     return config;
-  }
+  },
 };
 
 export default config;

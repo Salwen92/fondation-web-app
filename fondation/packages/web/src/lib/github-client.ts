@@ -1,9 +1,9 @@
 /**
  * GitHub API Client with Rate Limiting
- * 
+ *
  * Provides a rate-limited GitHub API client that respects GitHub's rate limits
  * and implements exponential backoff for resilient API usage.
- * 
+ *
  * @module github-client
  */
 
@@ -40,16 +40,16 @@ export class GitHubClient {
   private userAgent: string;
   private maxRetries: number;
   private retryDelay: number;
-  
+
   // Rate limit tracking
   private rateLimitRemaining = 5000;
   private rateLimitReset = 0;
   private rateLimitLimit = 5000;
-  
+
   // Request queue for rate limiting
   private requestQueue: Array<() => Promise<void>> = [];
   private isProcessingQueue = false;
-  
+
   constructor(options: GitHubApiOptions) {
     this.token = options.token;
     this.baseUrl = options.baseUrl || 'https://api.github.com';
@@ -57,91 +57,86 @@ export class GitHubClient {
     this.maxRetries = options.maxRetries || 3;
     this.retryDelay = options.retryDelay || 1000;
   }
-  
+
   /**
    * Make a rate-limited request to GitHub API
    */
-  async request<T = any>(
-    path: string,
-    options: RequestInit = {}
-  ): Promise<GitHubApiResponse<T>> {
+  async request<T = any>(path: string, options: RequestInit = {}): Promise<GitHubApiResponse<T>> {
     // Check rate limits before making request
     await this.checkRateLimit();
-    
+
     const url = `${this.baseUrl}${path}`;
     const headers = {
-      'Authorization': `Bearer ${this.token}`,
-      'Accept': 'application/vnd.github.v3+json',
+      Authorization: `Bearer ${this.token}`,
+      Accept: 'application/vnd.github.v3+json',
       'User-Agent': this.userAgent,
       ...options.headers,
     };
-    
+
     let lastError: Error | undefined;
-    
+
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const response = await fetch(url, {
           ...options,
           headers,
         });
-        
+
         // Update rate limit information
         this.updateRateLimit(response.headers);
-        
+
         // Handle rate limit exceeded
         if (response.status === 429) {
           const resetTime = this.rateLimitReset * 1000;
           const waitTime = Math.max(resetTime - Date.now(), 1000);
-          
+
           console.warn(`Rate limit exceeded. Waiting ${waitTime}ms until reset.`);
           await this.sleep(waitTime);
           continue; // Retry the request
         }
-        
+
         // Handle other error status codes
         if (!response.ok) {
           const errorBody = await response.text();
-          
+
           // Retry on server errors
           if (response.status >= 500 && attempt < this.maxRetries - 1) {
-            await this.sleep(this.retryDelay * Math.pow(2, attempt)); // Exponential backoff
+            await this.sleep(this.retryDelay * 2 ** attempt); // Exponential backoff
             continue;
           }
-          
+
           return {
             error: `GitHub API error ${response.status}: ${maskSensitiveData(errorBody)}`,
             status: response.status,
             rateLimit: this.getCurrentRateLimit(),
           };
         }
-        
+
         // Success
-        const data = await response.json() as T;
-        
+        const data = (await response.json()) as T;
+
         return {
           data,
           status: response.status,
           rateLimit: this.getCurrentRateLimit(),
         };
-        
       } catch (error) {
         lastError = error as Error;
-        
+
         // Retry on network errors
         if (attempt < this.maxRetries - 1) {
-          await this.sleep(this.retryDelay * Math.pow(2, attempt));
-          continue;
+          await this.sleep(this.retryDelay * 2 ** attempt);
         }
       }
     }
-    
+
     // All retries exhausted
     return {
       error: `Request failed after ${this.maxRetries} attempts: ${maskSensitiveData(lastError?.message || 'Unknown error')}`,
       rateLimit: this.getCurrentRateLimit(),
     };
   }
-  
+
   /**
    * Update rate limit information from response headers
    */
@@ -149,12 +144,12 @@ export class GitHubClient {
     const limit = headers.get('X-RateLimit-Limit');
     const remaining = headers.get('X-RateLimit-Remaining');
     const reset = headers.get('X-RateLimit-Reset');
-    
-    if (limit) this.rateLimitLimit = parseInt(limit, 10);
-    if (remaining) this.rateLimitRemaining = parseInt(remaining, 10);
-    if (reset) this.rateLimitReset = parseInt(reset, 10);
+
+    if (limit) this.rateLimitLimit = Number.parseInt(limit, 10);
+    if (remaining) this.rateLimitRemaining = Number.parseInt(remaining, 10);
+    if (reset) this.rateLimitReset = Number.parseInt(reset, 10);
   }
-  
+
   /**
    * Check rate limits and wait if necessary
    */
@@ -163,11 +158,13 @@ export class GitHubClient {
     if (this.rateLimitRemaining < 100) {
       const now = Date.now() / 1000;
       const timeUntilReset = this.rateLimitReset - now;
-      
+
       if (timeUntilReset > 0 && this.rateLimitRemaining < 10) {
         // Very low on requests, wait until reset
         const waitTime = timeUntilReset * 1000;
-        console.warn(`Low on API requests (${this.rateLimitRemaining} remaining). Waiting ${waitTime}ms for reset.`);
+        console.warn(
+          `Low on API requests (${this.rateLimitRemaining} remaining). Waiting ${waitTime}ms for reset.`,
+        );
         await this.sleep(waitTime);
       } else if (this.rateLimitRemaining < 50) {
         // Moderate throttling
@@ -175,7 +172,7 @@ export class GitHubClient {
       }
     }
   }
-  
+
   /**
    * Get current rate limit status
    */
@@ -187,13 +184,13 @@ export class GitHubClient {
       used: this.rateLimitLimit - this.rateLimitRemaining,
     };
   }
-  
+
   /**
    * Check rate limit status without making a request
    */
   async checkRateLimitStatus(): Promise<GitHubRateLimit> {
     const response = await this.request('/rate_limit');
-    
+
     if (response.data) {
       const core = response.data.resources?.core;
       if (core) {
@@ -202,33 +199,33 @@ export class GitHubClient {
         this.rateLimitReset = core.reset;
       }
     }
-    
+
     return this.getCurrentRateLimit();
   }
-  
+
   /**
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
-  
+
   // Convenient API methods
-  
+
   /**
    * Get repository information
    */
   async getRepository(owner: string, repo: string): Promise<GitHubApiResponse> {
     return this.request(`/repos/${owner}/${repo}`);
   }
-  
+
   /**
    * Get repository languages
    */
   async getRepositoryLanguages(owner: string, repo: string): Promise<GitHubApiResponse> {
     return this.request(`/repos/${owner}/${repo}/languages`);
   }
-  
+
   /**
    * List user repositories
    */
@@ -239,23 +236,23 @@ export class GitHubClient {
     page?: number;
   }): Promise<GitHubApiResponse> {
     const params = new URLSearchParams();
-    
+
     if (options?.type) params.append('type', options.type);
     if (options?.sort) params.append('sort', options.sort);
     if (options?.per_page) params.append('per_page', String(options.per_page));
     if (options?.page) params.append('page', String(options.page));
-    
+
     const query = params.toString();
     return this.request(`/user/repos${query ? `?${query}` : ''}`);
   }
-  
+
   /**
    * Get authenticated user information
    */
   async getCurrentUser(): Promise<GitHubApiResponse> {
     return this.request('/user');
   }
-  
+
   /**
    * Validate token and get scopes
    */
@@ -265,7 +262,7 @@ export class GitHubClient {
     rateLimit: GitHubRateLimit;
   }> {
     const response = await this.request('/user');
-    
+
     if (response.error) {
       return {
         valid: false,
@@ -273,7 +270,7 @@ export class GitHubClient {
         rateLimit: this.getCurrentRateLimit(),
       };
     }
-    
+
     // Parse scopes from the last request
     // Note: This would need to be extracted from response headers
     return {

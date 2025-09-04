@@ -13,7 +13,7 @@ class RateLimiter {
 
   constructor() {
     // Clean up expired entries every minute
-    if (typeof setInterval !== "undefined") {
+    if (typeof setInterval !== 'undefined') {
       this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
     }
   }
@@ -26,7 +26,7 @@ class RateLimiter {
     options: {
       windowMs?: number;
       maxRequests?: number;
-    } = {}
+    } = {},
   ): { allowed: boolean; retryAfter?: number } {
     const windowMs = options.windowMs ?? 60000; // 1 minute default
     const maxRequests = options.maxRequests ?? 10; // 10 requests default
@@ -102,9 +102,7 @@ export function rateLimitMiddleware(options?: {
 }) {
   return async (req: Request): Promise<Response | null> => {
     // Generate key from IP or custom generator
-    const key = options?.keyGenerator
-      ? options.keyGenerator(req)
-      : getClientIp(req);
+    const key = options?.keyGenerator ? options.keyGenerator(req) : getClientIp(req);
 
     const result = apiLimiter.check(key, {
       windowMs: options?.windowMs,
@@ -114,19 +112,21 @@ export function rateLimitMiddleware(options?: {
     if (!result.allowed) {
       return new Response(
         JSON.stringify({
-          error: options?.message ?? "Trop de requêtes. Veuillez réessayer plus tard.",
+          error: options?.message ?? 'Trop de requêtes. Veuillez réessayer plus tard.',
           retryAfter: result.retryAfter,
         }),
         {
           status: 429,
           headers: {
-            "Content-Type": "application/json",
-            "Retry-After": String(result.retryAfter ?? 60),
-            "X-RateLimit-Limit": String(options?.maxRequests ?? 10),
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": new Date(Date.now() + (result.retryAfter ?? 60) * 1000).toISOString(),
+            'Content-Type': 'application/json',
+            'Retry-After': String(result.retryAfter ?? 60),
+            'X-RateLimit-Limit': String(options?.maxRequests ?? 10),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': new Date(
+              Date.now() + (result.retryAfter ?? 60) * 1000,
+            ).toISOString(),
           },
-        }
+        },
       );
     }
 
@@ -139,26 +139,26 @@ export function rateLimitMiddleware(options?: {
  */
 function getClientIp(req: Request): string {
   const url = new URL(req.url);
-  const forwarded = req.headers.get("x-forwarded-for");
-  const realIp = req.headers.get("x-real-ip");
-  
+  const forwarded = req.headers.get('x-forwarded-for');
+  const realIp = req.headers.get('x-real-ip');
+
   if (forwarded) {
-    const firstIp = forwarded.split(",")[0];
-    return firstIp ? firstIp.trim() : "unknown";
+    const firstIp = forwarded.split(',')[0];
+    return firstIp ? firstIp.trim() : 'unknown';
   }
-  
+
   if (realIp) {
     return realIp;
   }
-  
+
   // Fallback to a hash of headers for identification
   const identifier = [
-    req.headers.get("user-agent"),
-    req.headers.get("accept-language"),
+    req.headers.get('user-agent'),
+    req.headers.get('accept-language'),
     url.hostname,
-  ].join("-");
-  
-  return Buffer.from(identifier).toString("base64").substring(0, 16);
+  ].join('-');
+
+  return Buffer.from(identifier).toString('base64').substring(0, 16);
 }
 
 /**
@@ -169,7 +169,7 @@ export function useRateLimit(
   options?: {
     windowMs?: number;
     maxRequests?: number;
-  }
+  },
 ): {
   canProceed: () => boolean;
   getRemainingTime: () => number;
@@ -194,9 +194,9 @@ export function useRateLimit(
       },
       reset: () => limiter.reset(key),
     }),
-    [limiter, key, options]
+    [limiter, key, options],
   );
 }
 
 // Helper for React import
-import React from "react";
+import React from 'react';

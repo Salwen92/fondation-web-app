@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import mermaid from 'mermaid';
+import { useEffect, useRef } from 'react';
 
 interface MermaidRendererProps {
   chart: string;
@@ -39,10 +39,7 @@ export function MermaidRenderer({ chart }: MermaidRendererProps) {
 
   return (
     <div className="my-6 flex justify-center">
-      <div 
-        ref={ref}
-        className="mermaid bg-slate-900/50 p-4 rounded-lg border border-border/20"
-      >
+      <div ref={ref} className="mermaid bg-slate-900/50 p-4 rounded-lg border border-border/20">
         {chart}
       </div>
     </div>

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
@@ -26,13 +26,13 @@ async function buildCLI() {
     // Read package.json content to embed in bundle
     const packageJsonContent = readFileSync(join(__dirname, '..', 'package.json'), 'utf-8');
     const packageData = JSON.parse(packageJsonContent);
-    
+
     // Bundle strategy: include most core dependencies, exclude heavy/optional ones
     const result = await build({
       entryPoints: ['dist/cli.js'],
       bundle: true,
       platform: 'node',
-      target: 'node20',  // Upgrade to Node 20 for better compatibility
+      target: 'node20', // Upgrade to Node 20 for better compatibility
       format: 'cjs',
       outfile: 'dist/cli.bundled.cjs',
       define: {
@@ -84,11 +84,11 @@ async function buildCLI() {
         const sizeKB = (mainOutput.bytes / 1024).toFixed(2);
         const sizeMB = (mainOutput.bytes / 1024 / 1024).toFixed(2);
         console.log(`\n📦 Bundle created: ${sizeKB}KB (${sizeMB}MB)`);
-        
+
         // Count bundled vs external modules
         const inputs = Object.keys(result.metafile.inputs);
-        const nodeModules = inputs.filter(path => path.includes('node_modules')).length;
-        const srcFiles = inputs.filter(path => !path.includes('node_modules')).length;
+        const nodeModules = inputs.filter((path) => path.includes('node_modules')).length;
+        const srcFiles = inputs.filter((path) => !path.includes('node_modules')).length;
         console.log(`   - Source files: ${srcFiles}`);
         console.log(`   - Dependencies bundled: ${nodeModules}`);
       }
@@ -102,7 +102,7 @@ async function buildCLI() {
     }
 
     // Copy all .md files from prompts directory
-    const promptFiles = readdirSync(promptsSrc).filter(f => f.endsWith('.md'));
+    const promptFiles = readdirSync(promptsSrc).filter((f) => f.endsWith('.md'));
     for (const file of promptFiles) {
       copyFileSync(join(promptsSrc, file), join(promptsDest, file));
     }

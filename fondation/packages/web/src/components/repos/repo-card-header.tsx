@@ -1,9 +1,9 @@
-import { Book, ExternalLink } from "lucide-react";
-import type { Id } from "@convex/generated/dataModel";
+import type { Id } from '@convex/generated/dataModel';
+import { Book, ExternalLink } from 'lucide-react';
 
 interface RepoCardHeaderProps {
   repo: {
-    _id: Id<"repositories">;
+    _id: Id<'repositories'>;
     name: string;
     fullName: string;
     description?: string;
@@ -23,7 +23,7 @@ export function RepoCardHeader({ repo }: RepoCardHeaderProps) {
             <p className="text-xs text-muted-foreground">{repo.fullName}</p>
           </div>
         </div>
-        <a 
+        <a
           href={`https://github.com/${repo.fullName}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -32,11 +32,9 @@ export function RepoCardHeader({ repo }: RepoCardHeaderProps) {
           <ExternalLink className="h-4 w-4 text-muted-foreground" />
         </a>
       </div>
-      
+
       {repo.description && (
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-          {repo.description}
-        </p>
+        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{repo.description}</p>
       )}
     </>
   );

@@ -8,19 +8,19 @@ interface EnvironmentVariables {
   AUTH_SECRET: string;
   NEXTAUTH_SECRET: string;
   NEXTAUTH_URL: string;
-  
+
   // GitHub OAuth
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
-  
+
   // Convex
   NEXT_PUBLIC_CONVEX_URL: string;
   CONVEX_URL?: string;
   CONVEX_DEPLOYMENT?: string;
-  
+
   // Worker Gateway
   WORKER_GATEWAY_URL?: string;
-  
+
   // Environment
   NODE_ENV?: 'development' | 'production' | 'test';
 }
@@ -70,8 +70,8 @@ class EnvironmentConfig {
       'GITHUB_CLIENT_SECRET',
     ];
 
-    const missing = required.filter(key => !this.vars[key]);
-    
+    const missing = required.filter((key) => !this.vars[key]);
+
     if (missing.length > 0) {
       console.warn(`Missing environment variables: ${missing.join(', ')}`);
       console.warn('Authentication may not work properly without these variables.');
@@ -82,9 +82,11 @@ class EnvironmentConfig {
       if (!this.vars.AUTH_SECRET || !this.vars.NEXTAUTH_SECRET) {
         console.error('CRITICAL: AUTH_SECRET/NEXTAUTH_SECRET is required in production!');
       }
-      
-      if (this.vars.NEXTAUTH_URL?.startsWith('http://') && 
-          !this.vars.NEXTAUTH_URL.includes('localhost')) {
+
+      if (
+        this.vars.NEXTAUTH_URL?.startsWith('http://') &&
+        !this.vars.NEXTAUTH_URL.includes('localhost')
+      ) {
         console.warn('WARNING: Using HTTP in production is insecure. Use HTTPS.');
       }
     }
@@ -102,33 +104,33 @@ class EnvironmentConfig {
 // Export singleton instance
 export const env = (() => {
   const config = EnvironmentConfig.getInstance();
-  
+
   // Validate on initialization
   if (typeof window === 'undefined') {
     config.validate();
   }
-  
+
   return {
     // Auth
     AUTH_SECRET: config.get('AUTH_SECRET') ?? '',
     NEXTAUTH_SECRET: config.get('NEXTAUTH_SECRET') ?? config.get('AUTH_SECRET') ?? '',
     NEXTAUTH_URL: config.get('NEXTAUTH_URL') ?? 'http://localhost:3000',
-    
+
     // GitHub OAuth
     GITHUB_CLIENT_ID: config.get('GITHUB_CLIENT_ID') ?? '',
     GITHUB_CLIENT_SECRET: config.get('GITHUB_CLIENT_SECRET') ?? '',
-    
+
     // Convex
     NEXT_PUBLIC_CONVEX_URL: config.get('NEXT_PUBLIC_CONVEX_URL') ?? '',
     CONVEX_URL: config.get('CONVEX_URL') ?? config.get('NEXT_PUBLIC_CONVEX_URL') ?? '',
     CONVEX_DEPLOYMENT: config.get('CONVEX_DEPLOYMENT') ?? '',
-    
+
     // Worker
     WORKER_GATEWAY_URL: config.get('WORKER_GATEWAY_URL') ?? '',
-    
+
     // Environment
     NODE_ENV: config.get('NODE_ENV') ?? 'development',
-    
+
     // Helper methods
     isProduction: () => config.isProduction(),
     isDevelopment: () => config.isDevelopment(),

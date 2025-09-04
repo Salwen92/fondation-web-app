@@ -40,17 +40,17 @@ class Logger {
   private minLevel: LogLevel;
 
   constructor() {
-    this.minLevel = process.env.NODE_ENV === "production" ? LogLevel.INFO : LogLevel.DEBUG;
-    
+    this.minLevel = process.env.NODE_ENV === 'production' ? LogLevel.INFO : LogLevel.DEBUG;
+
     // Flush logs every 5 seconds in production
-    if (process.env.NODE_ENV === "production" && typeof setInterval !== "undefined") {
+    if (process.env.NODE_ENV === 'production' && typeof setInterval !== 'undefined') {
       this.flushInterval = setInterval(() => void this.flush(), 5000);
     }
 
     // Catch unhandled errors
-    if (typeof window !== "undefined") {
-      window.addEventListener("error", this.handleWindowError);
-      window.addEventListener("unhandledrejection", this.handleUnhandledRejection);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('error', this.handleWindowError);
+      window.addEventListener('unhandledrejection', this.handleUnhandledRejection);
     }
   }
 
@@ -94,13 +94,10 @@ class Logger {
   /**
    * Main logging method
    */
-  private log(
-    level: LogLevel,
-    message: string,
-    context?: LogContext,
-    error?: Error
-  ): void {
-    if (level < this.minLevel) { return; }
+  private log(level: LogLevel, message: string, context?: LogContext, error?: Error): void {
+    if (level < this.minLevel) {
+      return;
+    }
 
     const entry: LogEntry = {
       level,
@@ -118,14 +115,14 @@ class Logger {
     }
 
     // In development, log to console
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === 'development') {
       this.logToConsole(entry);
     }
 
     // Queue for batch sending in production
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === 'production') {
       this.queue.push(entry);
-      
+
       // Flush if queue is getting large
       if (this.queue.length >= 10) {
         void this.flush();
@@ -157,7 +154,9 @@ class Logger {
    * Flush queued logs to monitoring service
    */
   private async flush(): Promise<void> {
-    if (this.queue.length === 0) { return; }
+    if (this.queue.length === 0) {
+      return;
+    }
 
     const logs = [...this.queue];
     this.queue = [];
@@ -166,9 +165,9 @@ class Logger {
       // In production, send to monitoring service
       if (process.env.NEXT_PUBLIC_LOG_ENDPOINT) {
         await fetch(process.env.NEXT_PUBLIC_LOG_ENDPOINT, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({ logs }),
         });
@@ -182,7 +181,7 @@ class Logger {
    * Handle window errors
    */
   private handleWindowError = (event: ErrorEvent): void => {
-    this.error("Unhandled error", new Error(event.message), {
+    this.error('Unhandled error', new Error(event.message), {
       url: event.filename,
       extra: {
         line: event.lineno,
@@ -195,11 +194,9 @@ class Logger {
    * Handle unhandled promise rejections
    */
   private handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
-    const error = event.reason instanceof Error 
-      ? event.reason 
-      : new Error(String(event.reason));
-    
-    this.error("Unhandled promise rejection", error);
+    const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+
+    this.error('Unhandled promise rejection', error);
   };
 
   /**
@@ -214,15 +211,12 @@ class Logger {
    */
   child(context: LogContext): LoggerInstance {
     return {
-      debug: (message: string, extra?: LogContext) => 
-        this.debug(message, { ...context, ...extra }),
-      info: (message: string, extra?: LogContext) => 
-        this.info(message, { ...context, ...extra }),
-      warn: (message: string, extra?: LogContext) => 
-        this.warn(message, { ...context, ...extra }),
-      error: (message: string, error?: Error, extra?: LogContext) => 
+      debug: (message: string, extra?: LogContext) => this.debug(message, { ...context, ...extra }),
+      info: (message: string, extra?: LogContext) => this.info(message, { ...context, ...extra }),
+      warn: (message: string, extra?: LogContext) => this.warn(message, { ...context, ...extra }),
+      error: (message: string, error?: Error, extra?: LogContext) =>
         this.error(message, error, { ...context, ...extra }),
-      fatal: (message: string, error?: Error, extra?: LogContext) => 
+      fatal: (message: string, error?: Error, extra?: LogContext) =>
         this.fatal(message, error, { ...context, ...extra }),
     };
   }
@@ -235,10 +229,10 @@ class Logger {
       clearInterval(this.flushInterval);
     }
     void this.flush();
-    
-    if (typeof window !== "undefined") {
-      window.removeEventListener("error", this.handleWindowError);
-      window.removeEventListener("unhandledrejection", this.handleUnhandledRejection);
+
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('error', this.handleWindowError);
+      window.removeEventListener('unhandledrejection', this.handleUnhandledRejection);
     }
   }
 }
@@ -259,11 +253,11 @@ export const logger = new Logger();
  */
 export function createApiLogger(req: Request): LoggerInstance {
   const url = new URL(req.url);
-  
+
   return logger.child({
     url: url.pathname,
     method: req.method,
-    userAgent: req.headers.get("user-agent") ?? undefined,
+    userAgent: req.headers.get('user-agent') ?? undefined,
     requestId: crypto.randomUUID(),
   });
 }
@@ -274,7 +268,7 @@ export function createApiLogger(req: Request): LoggerInstance {
 export function logPerformance(name: string, duration: number, context?: LogContext): void {
   const level = duration > 1000 ? LogLevel.WARN : LogLevel.INFO;
   const message = `Performance: ${name} took ${duration}ms`;
-  
+
   if (level === LogLevel.WARN) {
     logger.warn(message, { ...context, extra: { duration } });
   } else {

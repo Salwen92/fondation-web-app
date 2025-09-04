@@ -1,5 +1,5 @@
-import { FileText, GitBranch } from "lucide-react";
-import { translateStatus } from "@/lib/i18n";
+import { FileText, GitBranch } from 'lucide-react';
+import { translateStatus } from '@/lib/i18n';
 
 interface RepoCardStatsProps {
   docsCount: number;
@@ -16,12 +16,12 @@ interface RepoCardStatsProps {
   defaultBranch: string;
 }
 
-export function RepoCardStats({ 
-  docsCount, 
-  languages, 
-  stats, 
-  jobStatus, 
-  defaultBranch 
+export function RepoCardStats({
+  docsCount,
+  languages,
+  stats,
+  jobStatus,
+  defaultBranch,
 }: RepoCardStatsProps) {
   return (
     <>
@@ -29,7 +29,7 @@ export function RepoCardStats({
       {languages.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-4">
           {languages.map((lang) => (
-            <span 
+            <span
               key={lang}
               className="px-2 py-1 text-xs rounded-full bg-muted/50 text-muted-foreground"
             >

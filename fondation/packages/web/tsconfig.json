@@ -13,11 +13,7 @@
     "noUncheckedIndexedAccess": true,
     "checkJs": true,
     /* Bundled projects */
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "ES2022"
-    ],
+    "lib": ["dom", "dom.iterable", "ES2022"],
     "noEmit": true,
     "module": "ESNext",
     "jsx": "preserve",
@@ -31,27 +27,13 @@
     /* Path Aliases - inherit from root + local */
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@fondation/shared/*": [
-        "../shared/src/*"
-      ],
-      "@fondation/web/*": [
-        "./src/*"
-      ],
-      "@fondation/worker/*": [
-        "../worker/src/*"
-      ],
-      "@fondation/cli/*": [
-        "../cli/src/*"
-      ],
-      "@convex/*": [
-        "../../convex/*"
-      ],
-      "@convex/generated/*": [
-        "../../convex/_generated/*"
-      ]
+      "@/*": ["./src/*"],
+      "@fondation/shared/*": ["../shared/src/*"],
+      "@fondation/web/*": ["./src/*"],
+      "@fondation/worker/*": ["../worker/src/*"],
+      "@fondation/cli/*": ["../cli/src/*"],
+      "@convex/*": ["../../convex/*"],
+      "@convex/generated/*": ["../../convex/_generated/*"]
     }
   },
   "include": [
@@ -63,7 +45,5 @@
     ".next/types/**/*.ts",
     "../shared/src/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

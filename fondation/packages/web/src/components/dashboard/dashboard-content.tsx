@@ -1,46 +1,42 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@convex/generated/api";
-import { RepositoryList } from "@/components/repos/repository-list";
-import { Card } from "@/components/ui/card";
-import { 
-  GitBranch, 
-  FileText, 
-  Activity, 
-  TrendingUp,
-  Sparkles,
-  Clock,
+import { api } from '@convex/generated/api';
+import { useMutation, useQuery } from 'convex/react';
+import { motion } from 'framer-motion';
+import {
+  Activity,
   BarChart3,
-  Users
-} from "lucide-react";
-import { motion } from "framer-motion";
+  Clock,
+  FileText,
+  GitBranch,
+  Sparkles,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
+import React from 'react';
+import { RepositoryList } from '@/components/repos/repository-list';
+import { Card } from '@/components/ui/card';
 
 interface DashboardContentProps {
   githubId: string;
   userName?: string | null;
 }
 
-
-export function DashboardContent({
-  githubId,
-  userName,
-}: DashboardContentProps) {
+export function DashboardContent({ githubId, userName }: DashboardContentProps) {
   const user = useQuery(api.users.getUserByGithubId, { githubId });
   const createUser = useMutation(api.users.createOrUpdateUser);
   const dashboardStats = useQuery(
-    api.users.getDashboardStats, 
-    user ? { userId: user._id } : "skip"
+    api.users.getDashboardStats,
+    user ? { userId: user._id } : 'skip',
   );
-  
+
   // Create user if it doesn't exist
   React.useEffect(() => {
     if (!user && githubId && userName) {
       void createUser({
         githubId,
-        username: userName ?? "user",
-        email: "", // We don't have email in session
+        username: userName ?? 'user',
+        email: '', // We don't have email in session
         avatarUrl: `https://github.com/${userName}.png`,
       });
     }
@@ -54,7 +50,7 @@ export function DashboardContent({
             Bon retour, {userName}!
           </h2>
           <p className="text-muted-foreground">
-            {!user ? "Configuration de votre tableau de bord..." : "Chargement des statistiques..."}
+            {!user ? 'Configuration de votre tableau de bord...' : 'Chargement des statistiques...'}
           </p>
         </div>
         <Card className="glass p-8 backdrop-blur-xl">
@@ -62,7 +58,7 @@ export function DashboardContent({
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500" />
             <div>
               <h3 className="text-lg font-semibold">
-                {!user ? "Initialisation de votre espace de travail" : "Chargement des données"}
+                {!user ? 'Initialisation de votre espace de travail' : 'Chargement des données'}
               </h3>
               <p className="text-muted-foreground">Cela ne prendra qu&apos;un instant...</p>
             </div>
@@ -74,56 +70,64 @@ export function DashboardContent({
 
   const stats = [
     {
-      title: "Total des Dépôts",
+      title: 'Total des Dépôts',
       value: dashboardStats.totalRepositories.toString(),
-      change: dashboardStats.recentRepositories > 0 
-        ? `+${dashboardStats.recentRepositories} cette semaine` 
-        : "Aucun nouveau dépôt",
+      change:
+        dashboardStats.recentRepositories > 0
+          ? `+${dashboardStats.recentRepositories} cette semaine`
+          : 'Aucun nouveau dépôt',
       icon: <GitBranch className="h-5 w-5" />,
-      gradient: "from-purple-500 to-pink-500",
-      hasIncrease: dashboardStats.recentRepositories > 0
+      gradient: 'from-purple-500 to-pink-500',
+      hasIncrease: dashboardStats.recentRepositories > 0,
     },
     {
-      title: "Docs Générés",
+      title: 'Docs Générés',
       value: dashboardStats.totalDocsGenerated.toString(),
-      change: dashboardStats.recentDocs > 0 
-        ? `+${dashboardStats.recentDocs} ce mois` 
-        : "Aucun nouveau doc",
+      change:
+        dashboardStats.recentDocs > 0
+          ? `+${dashboardStats.recentDocs} ce mois`
+          : 'Aucun nouveau doc',
       icon: <FileText className="h-5 w-5" />,
-      gradient: "from-blue-500 to-cyan-500",
-      hasIncrease: dashboardStats.recentDocs > 0
+      gradient: 'from-blue-500 to-cyan-500',
+      hasIncrease: dashboardStats.recentDocs > 0,
     },
     {
-      title: "Tâches Actives",
+      title: 'Tâches Actives',
       value: dashboardStats.activeJobs.toString(),
-      change: dashboardStats.activeJobs > 0 ? "En cours" : "Aucune tâche",
+      change: dashboardStats.activeJobs > 0 ? 'En cours' : 'Aucune tâche',
       icon: <Activity className="h-5 w-5" />,
-      gradient: "from-green-500 to-emerald-500",
+      gradient: 'from-green-500 to-emerald-500',
       hasIncrease: false,
-      isActive: dashboardStats.activeJobs > 0
+      isActive: dashboardStats.activeJobs > 0,
     },
     {
-      title: "Taux de Réussite",
+      title: 'Taux de Réussite',
       value: `${dashboardStats.successRate}%`,
-      change: dashboardStats.successRate >= 95 ? "Excellent" : dashboardStats.successRate >= 80 ? "Bon" : "À améliorer",
+      change:
+        dashboardStats.successRate >= 95
+          ? 'Excellent'
+          : dashboardStats.successRate >= 80
+            ? 'Bon'
+            : 'À améliorer',
       icon: <TrendingUp className="h-5 w-5" />,
-      gradient: "from-orange-500 to-red-500",
-      hasIncrease: dashboardStats.successRate >= 95
-    }
+      gradient: 'from-orange-500 to-red-500',
+      hasIncrease: dashboardStats.successRate >= 95,
+    },
   ];
 
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         <h2 className="mb-2 text-4xl font-bold">
-          Bon retour, 
+          Bon retour,
           <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-            {" "}{userName}!
+            {' '}
+            {userName}!
           </span>
         </h2>
         <p className="text-muted-foreground">
@@ -150,7 +154,7 @@ export function DashboardContent({
                       <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                     ) : stat.isActive ? (
                       <Clock className="h-3 w-3 mr-1 animate-pulse text-yellow-500" />
-                    ) : stat.change === "En cours" ? (
+                    ) : stat.change === 'En cours' ? (
                       <Clock className="h-3 w-3 mr-1 animate-pulse text-yellow-500" />
                     ) : null}
                     {stat.change}
@@ -181,17 +185,17 @@ export function DashboardContent({
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left">
+            <button className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer">
               <BarChart3 className="h-6 w-6 mb-2 text-blue-500" />
               <h4 className="font-semibold mb-1">Analytique</h4>
               <p className="text-sm text-muted-foreground">Voir les métriques détaillées</p>
             </button>
-            <button className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left">
+            <button className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer">
               <Users className="h-6 w-6 mb-2 text-green-500" />
               <h4 className="font-semibold mb-1">Équipe</h4>
               <p className="text-sm text-muted-foreground">Gérer les collaborateurs</p>
             </button>
-            <button className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left">
+            <button className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer">
               <FileText className="h-6 w-6 mb-2 text-purple-500" />
               <h4 className="font-semibold mb-1">Modèles</h4>
               <p className="text-sm text-muted-foreground">Parcourir les modèles de docs</p>

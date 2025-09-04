@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-mono: 'Geist Mono', 'SF Mono', Consolas, 'Courier New', monospace;
+  --font-sans:
+    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: "Geist Mono", "SF Mono", Consolas, "Courier New", monospace;
 }
 
 @layer base {
@@ -13,38 +14,38 @@
     --background-secondary: 210 20% 98%;
     --foreground: 222 47% 11%;
     --foreground-muted: 215 16% 47%;
-    
+
     --card: 0 0% 100%;
     --card-hover: 210 20% 98%;
     --card-foreground: 222 47% 11%;
-    
+
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    
+
     --primary: 193 95% 35%;
     --primary-foreground: 0 0% 100%;
-    
+
     --secondary: 267 85% 45%;
     --secondary-foreground: 0 0% 100%;
-    
+
     --accent: 142 76% 36%;
     --accent-foreground: 0 0% 100%;
-    
+
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    
+
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    
+
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
     --error: 0 72% 51%;
     --info: 199 89% 48%;
-    
+
     --border: 214 32% 91%;
     --input: 210 20% 98%;
     --ring: 193 95% 35%;
-    
+
     --radius: 0.5rem;
   }
 
@@ -54,43 +55,43 @@
     --background-secondary: 224 71% 4%;
     --foreground: 210 40% 98%;
     --foreground-muted: 215 20% 65%;
-    
+
     --card: 222 47% 13%;
     --card-hover: 222 47% 15%;
     --card-foreground: 210 40% 98%;
-    
+
     --popover: 222 47% 13%;
     --popover-foreground: 210 40% 98%;
-    
+
     --primary: 193 100% 50%;
     --primary-foreground: 222 47% 11%;
-    
+
     --secondary: 267 100% 64%;
     --secondary-foreground: 210 40% 98%;
-    
+
     --accent: 142 100% 50%;
     --accent-foreground: 222 47% 11%;
-    
+
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20% 65%;
-    
+
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    
+
     --success: 142 100% 50%;
     --warning: 38 92% 50%;
     --error: 0 84% 60%;
     --info: 199 89% 48%;
-    
+
     --border: 222 47% 20%;
     --input: 222 47% 18%;
     --ring: 193 100% 50%;
   }
-  
+
   * {
     border-color: hsl(var(--border));
   }
-  
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
@@ -101,28 +102,20 @@
 /* Gradient Backgrounds */
 @layer utilities {
   .bg-gradient-radial {
-    background: radial-gradient(
-      ellipse at top,
-      hsl(var(--primary) / 0.15),
-      transparent 50%
-    );
+    background: radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), transparent 50%);
   }
-  
+
   .bg-gradient-mesh {
-    background-image: 
+    background-image:
       radial-gradient(at 40% 20%, hsl(var(--primary) / 0.1) 0px, transparent 50%),
       radial-gradient(at 80% 0%, hsl(var(--secondary) / 0.1) 0px, transparent 50%),
       radial-gradient(at 40% 50%, hsl(var(--accent) / 0.05) 0px, transparent 50%);
   }
-  
+
   .bg-gradient-dark {
-    background: linear-gradient(
-      to bottom,
-      hsl(var(--background)),
-      hsl(var(--background-secondary))
-    );
+    background: linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background-secondary)));
   }
-  
+
   /* Glass Morphism */
   .glass {
     background: hsl(var(--card) / 0.7);
@@ -130,33 +123,29 @@
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid hsl(var(--border) / 0.2);
   }
-  
+
   .glass-hover:hover {
     background: hsl(var(--card) / 0.8);
     border-color: hsl(var(--border) / 0.3);
   }
-  
+
   /* Glow Effects */
   .glow-primary {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
-  
+
   .glow-primary-hover:hover {
     box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
   }
-  
+
   /* Text Gradients */
   .text-gradient {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--primary)),
-      hsl(var(--secondary))
-    );
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   /* Animations */
   @keyframes shimmer {
     0% {
@@ -166,7 +155,7 @@
       background-position: 1000px 0;
     }
   }
-  
+
   .animate-shimmer {
     animation: shimmer 2s infinite linear;
     background: linear-gradient(
@@ -177,20 +166,21 @@
     );
     background-size: 1000px 100%;
   }
-  
+
   @keyframes pulse-glow {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 1;
     }
     50% {
       opacity: 0.5;
     }
   }
-  
+
   .animate-pulse-glow {
     animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
-  
+
   @keyframes gradient-shift {
     0% {
       background-position: 0% 50%;
@@ -202,12 +192,12 @@
       background-position: 0% 50%;
     }
   }
-  
+
   .animate-gradient {
     background-size: 200% 200%;
     animation: gradient-shift 3s ease infinite;
   }
-  
+
   /* Terminal Style */
   .terminal {
     font-family: var(--font-mono);
@@ -216,9 +206,9 @@
     border-radius: var(--radius);
     position: relative;
   }
-  
+
   .terminal::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
@@ -228,18 +218,20 @@
     border-bottom: 1px solid hsl(var(--border));
     border-radius: var(--radius) var(--radius) 0 0;
   }
-  
+
   /* Smooth Transitions */
   .transition-smooth {
     transition-property: all;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 250ms;
   }
-  
+
   /* Focus Styles */
   .focus-ring:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
-    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+    box-shadow:
+      0 0 0 2px hsl(var(--background)),
+      0 0 0 4px hsl(var(--ring));
   }
 }

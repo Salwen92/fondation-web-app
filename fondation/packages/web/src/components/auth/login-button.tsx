@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Github } from "lucide-react";
-import { signIn } from "next-auth/react";
-import { toast } from "sonner";
-import { logger } from "@/lib/logger";
+import { Github } from 'lucide-react';
+import { signIn } from 'next-auth/react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
 
 export function LoginButton() {
   const handleSignIn = async () => {
     try {
-      await signIn("github", { callbackUrl: "/" });
+      await signIn('github', { callbackUrl: '/' });
     } catch (error) {
-      toast.error("Échec de la connexion. Veuillez réessayer.");
-      logger.error("Sign in error", error instanceof Error ? error : new Error(String(error)));
+      toast.error('Échec de la connexion. Veuillez réessayer.');
+      logger.error('Sign in error', error instanceof Error ? error : new Error(String(error)));
     }
   };
 

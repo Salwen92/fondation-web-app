@@ -3,17 +3,17 @@
  * Enforces valid state transitions for job processing
  */
 
-import { logger } from "./logger";
+import { logger } from './logger';
 
-export type JobState = 
-  | "pending"
-  | "cloning"
-  | "analyzing"
-  | "gathering"
-  | "running"
-  | "completed"
-  | "failed"
-  | "canceled";
+export type JobState =
+  | 'pending'
+  | 'cloning'
+  | 'analyzing'
+  | 'gathering'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'canceled';
 
 interface StateTransition {
   from: JobState[];
@@ -26,20 +26,20 @@ interface StateTransition {
  */
 const VALID_TRANSITIONS: StateTransition[] = [
   // Normal flow
-  { from: ["pending"], to: "cloning" },
-  { from: ["cloning"], to: "analyzing" },
-  { from: ["analyzing"], to: "gathering" },
-  { from: ["gathering"], to: "running" },
-  { from: ["running"], to: "completed" },
-  
+  { from: ['pending'], to: 'cloning' },
+  { from: ['cloning'], to: 'analyzing' },
+  { from: ['analyzing'], to: 'gathering' },
+  { from: ['gathering'], to: 'running' },
+  { from: ['running'], to: 'completed' },
+
   // Error transitions (can fail from any active state)
-  { from: ["pending", "cloning", "analyzing", "gathering", "running"], to: "failed" },
-  
+  { from: ['pending', 'cloning', 'analyzing', 'gathering', 'running'], to: 'failed' },
+
   // Cancellation (can cancel from any active state)
-  { from: ["pending", "cloning", "analyzing", "gathering", "running"], to: "canceled" },
-  
+  { from: ['pending', 'cloning', 'analyzing', 'gathering', 'running'], to: 'canceled' },
+
   // Allow retry from failed/canceled
-  { from: ["failed", "canceled"], to: "pending" },
+  { from: ['failed', 'canceled'], to: 'pending' },
 ];
 
 export class JobStateMachine {
@@ -47,7 +47,7 @@ export class JobStateMachine {
   private jobId: string;
   private transitionHistory: Array<{ from: JobState; to: JobState; timestamp: number }> = [];
 
-  constructor(jobId: string, initialState: JobState = "pending") {
+  constructor(jobId: string, initialState: JobState = 'pending') {
     this.jobId = jobId;
     this.currentState = initialState;
     this.logTransition(initialState, initialState);
@@ -65,7 +65,7 @@ export class JobStateMachine {
    */
   canTransition(to: JobState, context?: unknown): boolean {
     const transition = VALID_TRANSITIONS.find(
-      t => t.to === to && t.from.includes(this.currentState)
+      (t) => t.to === to && t.from.includes(this.currentState),
     );
 
     if (!transition) {
@@ -131,23 +131,21 @@ export class JobStateMachine {
    * Check if job is in a terminal state
    */
   isTerminal(): boolean {
-    return ["completed", "failed", "canceled"].includes(this.currentState);
+    return ['completed', 'failed', 'canceled'].includes(this.currentState);
   }
 
   /**
    * Check if job is active
    */
   isActive(): boolean {
-    return ["pending", "cloning", "analyzing", "gathering", "running"].includes(this.currentState);
+    return ['pending', 'cloning', 'analyzing', 'gathering', 'running'].includes(this.currentState);
   }
 
   /**
    * Get next expected states
    */
   getNextStates(): JobState[] {
-    return VALID_TRANSITIONS
-      .filter(t => t.from.includes(this.currentState))
-      .map(t => t.to);
+    return VALID_TRANSITIONS.filter((t) => t.from.includes(this.currentState)).map((t) => t.to);
   }
 
   /**
@@ -164,7 +162,7 @@ export class JobStateMachine {
       return false;
     }
 
-    return this.transition("pending");
+    return this.transition('pending');
   }
 }
 
@@ -172,18 +170,14 @@ export class JobStateMachine {
  * Validate a state transition without a state machine instance
  */
 export function isValidTransition(from: JobState, to: JobState): boolean {
-  return VALID_TRANSITIONS.some(
-    t => t.to === to && t.from.includes(from)
-  );
+  return VALID_TRANSITIONS.some((t) => t.to === to && t.from.includes(from));
 }
 
 /**
  * Get all valid next states from a given state
  */
 export function getValidNextStates(from: JobState): JobState[] {
-  return VALID_TRANSITIONS
-    .filter(t => t.from.includes(from))
-    .map(t => t.to);
+  return VALID_TRANSITIONS.filter((t) => t.from.includes(from)).map((t) => t.to);
 }
 
 /**

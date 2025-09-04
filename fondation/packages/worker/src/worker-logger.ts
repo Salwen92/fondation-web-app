@@ -1,6 +1,6 @@
 /**
  * Worker Logger Utility
- * 
+ *
  * Replaces silent error swallowing with structured logging.
  * Provides safe error handling that preserves debugging information
  * while protecting sensitive data.
@@ -40,7 +40,7 @@ export class WorkerLogger {
   async safeExecute<T>(
     operation: string,
     fn: () => Promise<T>,
-    context: LogContext = {}
+    context: LogContext = {},
   ): Promise<T | null> {
     try {
       return await fn();
@@ -53,11 +53,7 @@ export class WorkerLogger {
   /**
    * Safely execute an operation with structured error logging (synchronous)
    */
-  safeExecuteSync<T>(
-    operation: string,
-    fn: () => T,
-    context: LogContext = {}
-  ): T | null {
+  safeExecuteSync<T>(operation: string, fn: () => T, context: LogContext = {}): T | null {
     try {
       return fn();
     } catch (error) {
@@ -72,11 +68,9 @@ export class WorkerLogger {
   logError(operation: string, error: any, context: LogContext = {}): void {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const safeError = maskSensitiveData(errorMessage);
-    
+
     // Also log stack trace in development for better debugging
-    const stack = error instanceof Error && this.debugMode
-      ? error.stack 
-      : undefined;
+    const stack = error instanceof Error && this.debugMode ? error.stack : undefined;
 
     const logEntry: ErrorLogEntry = {
       operation,
@@ -84,9 +78,9 @@ export class WorkerLogger {
       timestamp: new Date().toISOString(),
       context: {
         ...context,
-        workerId: this.workerId
+        workerId: this.workerId,
       },
-      ...(stack && { stack })
+      ...(stack && { stack }),
     };
 
     console.error(`Worker ${operation} failed`, logEntry);
@@ -101,7 +95,7 @@ export class WorkerLogger {
       console.info(message, {
         timestamp: new Date().toISOString(),
         workerId: this.workerId,
-        ...context
+        ...context,
       });
     }
   }
@@ -113,7 +107,7 @@ export class WorkerLogger {
     console.warn(message, {
       timestamp: new Date().toISOString(),
       workerId: this.workerId,
-      ...context
+      ...context,
     });
   }
 
@@ -133,20 +127,14 @@ export class JobLogger {
     private parentLogger: WorkerLogger,
     private jobId: string,
     private repositoryId?: string,
-    private userId?: string
+    private userId?: string,
   ) {}
 
-  async safeExecute<T>(
-    operation: string,
-    fn: () => Promise<T>
-  ): Promise<T | null> {
+  async safeExecute<T>(operation: string, fn: () => Promise<T>): Promise<T | null> {
     return this.parentLogger.safeExecute(operation, fn, this.getContext());
   }
 
-  safeExecuteSync<T>(
-    operation: string,
-    fn: () => T
-  ): T | null {
+  safeExecuteSync<T>(operation: string, fn: () => T): T | null {
     return this.parentLogger.safeExecuteSync(operation, fn, this.getContext());
   }
 
@@ -166,7 +154,7 @@ export class JobLogger {
     return {
       jobId: this.jobId,
       repositoryId: this.repositoryId,
-      userId: this.userId
+      userId: this.userId,
     };
   }
 }

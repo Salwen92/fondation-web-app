@@ -1,13 +1,13 @@
 /**
  * CLI Execution Strategy Factory
- * 
+ *
  * Creates appropriate CLI execution strategy based on environment
  */
 
-import type { CLIExecutionStrategy } from "./base-strategy";
-import { DevelopmentCLIStrategy } from "./development-strategy";
-import { ProductionCLIStrategy } from "./production-strategy";
-import { isDevelopment } from "../utils/environment.js";
+import { isDevelopment } from '../utils/environment.js';
+import type { CLIExecutionStrategy } from './base-strategy';
+import { DevelopmentCLIStrategy } from './development-strategy';
+import { ProductionCLIStrategy } from './production-strategy';
 
 export class CLIStrategyFactory {
   /**
@@ -17,9 +17,9 @@ export class CLIStrategyFactory {
     if (isDevelopment()) {
       return new DevelopmentCLIStrategy(cliPath);
     }
-      return new ProductionCLIStrategy(cliPath);
+    return new ProductionCLIStrategy(cliPath);
   }
-  
+
   /**
    * Get strategy name for the current environment
    */

@@ -1,9 +1,9 @@
 /**
  * Secure Token Encryption Module for Worker
- * 
+ *
  * Implements AES-256-GCM encryption for GitHub access tokens and other sensitive data.
  * This is the worker package's version of the encryption module.
- * 
+ *
  * @module encryption
  */
 
@@ -19,28 +19,28 @@ const ENCRYPTED_PREFIX = 'enc_v1_';
  */
 function getEncryptionKey(): Buffer {
   const keyHex = process.env.ENCRYPTION_KEY;
-  
+
   if (!keyHex) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error(
         'ENCRYPTION_KEY environment variable is required in production. ' +
-        'Generate one with: openssl rand -hex 32'
+          'Generate one with: openssl rand -hex 32',
       );
     }
-    
+
     // Development fallback - DO NOT USE IN PRODUCTION
     console.warn('⚠️  Using development encryption key. Set ENCRYPTION_KEY for production.');
     return crypto.scryptSync('dev-key-do-not-use-in-production', 'salt', 32);
   }
-  
+
   // Validate key format
   if (!/^[a-f0-9]{64}$/i.test(keyHex)) {
     throw new Error(
       'ENCRYPTION_KEY must be a 64-character hex string (32 bytes). ' +
-      'Generate with: openssl rand -hex 32'
+        'Generate with: openssl rand -hex 32',
     );
   }
-  
+
   return Buffer.from(keyHex, 'hex');
 }
 
@@ -51,23 +51,21 @@ export function encryptToken(plaintext: string): string {
   if (!plaintext) {
     throw new Error('Cannot encrypt empty string');
   }
-  
+
   try {
     const key = getEncryptionKey();
     const iv = crypto.randomBytes(IV_LENGTH);
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-    
+
     let encrypted = cipher.update(plaintext, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     const authTag = cipher.getAuthTag();
-    
+
     // Format: prefix_iv:tag:encrypted
-    const result = ENCRYPTED_PREFIX + 
-      iv.toString('hex') + ':' + 
-      authTag.toString('hex') + ':' + 
-      encrypted;
-    
+    const result =
+      ENCRYPTED_PREFIX + iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
+
     return result;
   } catch (error) {
     // Don't leak sensitive information in error messages
@@ -82,7 +80,7 @@ export function decryptToken(encryptedData: string): string {
   if (!encryptedData) {
     throw new Error('Cannot decrypt empty string');
   }
-  
+
   // Handle legacy base64 "obfuscation" for migration period
   if (encryptedData.startsWith('obf_')) {
     console.warn('⚠️  Detected legacy obfuscated token. Please re-encrypt.');
@@ -93,30 +91,30 @@ export function decryptToken(encryptedData: string): string {
       throw new Error('Failed to decode legacy token');
     }
   }
-  
+
   // Check for encrypted format
   if (!encryptedData.startsWith(ENCRYPTED_PREFIX)) {
     throw new Error('Invalid encrypted data format');
   }
-  
+
   try {
     const key = getEncryptionKey();
     const parts = encryptedData.slice(ENCRYPTED_PREFIX.length).split(':');
-    
+
     if (parts.length !== 3) {
       throw new Error('Malformed encrypted data');
     }
-    
+
     const iv = Buffer.from(parts[0], 'hex');
     const authTag = Buffer.from(parts[1], 'hex');
     const encrypted = parts[2];
-    
+
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(authTag);
-    
+
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   } catch (error) {
     // Don't leak information about why decryption failed
@@ -143,15 +141,15 @@ export function isLegacyObfuscated(data: string): boolean {
  */
 export function safeDecrypt(token: string): string {
   if (!token) return token;
-  
+
   if (isEncrypted(token)) {
     return decryptToken(token);
   }
-  
+
   if (isLegacyObfuscated(token)) {
     return Buffer.from(token.slice(4), 'base64').toString('utf-8');
   }
-  
+
   // Assume it's already plaintext
   return token;
 }
@@ -161,20 +159,22 @@ export function safeDecrypt(token: string): string {
  */
 export function maskSensitiveData(text: string): string {
   if (!text) return text;
-  
-  return text
-    // GitHub personal access tokens (classic)
-    .replace(/ghp_[a-zA-Z0-9]{36}/g, 'ghp_***')
-    // GitHub personal access tokens (fine-grained) - flexible length
-    .replace(/github_pat_[a-zA-Z0-9_]{22,}/g, 'github_pat_***')
-    // GitHub OAuth tokens
-    .replace(/gho_[a-zA-Z0-9]{36}/g, 'gho_***')
-    // GitHub server-to-server tokens
-    .replace(/ghs_[a-zA-Z0-9]{36}/g, 'ghs_***')
-    // GitHub refresh tokens
-    .replace(/ghr_[a-zA-Z0-9]{36}/g, 'ghr_***')
-    // Generic bearer tokens
-    .replace(/Bearer [a-zA-Z0-9\-._~+\/]+=*/g, 'Bearer ***')
-    // Tokens in URLs
-    .replace(/https:\/\/[a-zA-Z0-9_-]+@github\.com/g, 'https://***@github.com');
+
+  return (
+    text
+      // GitHub personal access tokens (classic)
+      .replace(/ghp_[a-zA-Z0-9]{36}/g, 'ghp_***')
+      // GitHub personal access tokens (fine-grained) - flexible length
+      .replace(/github_pat_[a-zA-Z0-9_]{22,}/g, 'github_pat_***')
+      // GitHub OAuth tokens
+      .replace(/gho_[a-zA-Z0-9]{36}/g, 'gho_***')
+      // GitHub server-to-server tokens
+      .replace(/ghs_[a-zA-Z0-9]{36}/g, 'ghs_***')
+      // GitHub refresh tokens
+      .replace(/ghr_[a-zA-Z0-9]{36}/g, 'ghr_***')
+      // Generic bearer tokens
+      .replace(/Bearer [a-zA-Z0-9\-._~+/]+=*/g, 'Bearer ***')
+      // Tokens in URLs
+      .replace(/https:\/\/[a-zA-Z0-9_-]+@github\.com/g, 'https://***@github.com')
+  );
 }

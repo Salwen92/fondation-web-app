@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
-import { signOut } from "next-auth/react";
-import type { Session } from "next-auth";
+import { LogOut, User } from 'lucide-react';
+import type { Session } from 'next-auth';
+import { signOut } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
 
 interface UserMenuProps {
   session: Session | null;
@@ -23,10 +23,12 @@ export function UserMenu({ session }: UserMenuProps) {
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => signOut({ 
-          callbackUrl: "/login",
-          redirect: true 
-        })}
+        onClick={() =>
+          signOut({
+            callbackUrl: '/login',
+            redirect: true,
+          })
+        }
       >
         <LogOut className="mr-2 h-4 w-4" />
         Déconnexion

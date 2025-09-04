@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Github, Sparkles, Terminal, Zap } from "lucide-react";
-import { signIn } from "next-auth/react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { logger } from "@/lib/logger";
+import { Github, Sparkles, Terminal, Zap } from 'lucide-react';
+import { signIn } from 'next-auth/react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
+import { cn } from '@/lib/utils';
 
 export function LoginCard() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -14,10 +14,10 @@ export function LoginCard() {
   const handleSignIn = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      await signIn("github", { callbackUrl: "/dashboard" });
+      await signIn('github', { callbackUrl: '/dashboard' });
     } catch (error) {
-      toast.error("Échec de la connexion. Veuillez réessayer.");
-      logger.error("Sign in error", error instanceof Error ? error : new Error(String(error)));
+      toast.error('Échec de la connexion. Veuillez réessayer.');
+      logger.error('Sign in error', error instanceof Error ? error : new Error(String(error)));
       setIsLoading(false);
     }
   };
@@ -34,9 +34,7 @@ export function LoginCard() {
           <h1 className="mb-2 text-3xl font-bold tracking-tight">
             <span className="text-gradient">Fondation</span>
           </h1>
-          <p className="text-muted-foreground">
-            Génération de Documentation par IA
-          </p>
+          <p className="text-muted-foreground">Génération de Documentation par IA</p>
         </div>
 
         {/* Features */}
@@ -61,13 +59,13 @@ export function LoginCard() {
           disabled={isLoading}
           size="lg"
           className={cn(
-            "from-primary to-secondary w-full bg-gradient-to-r",
-            "hover:from-primary/90 hover:to-secondary/90",
-            "text-primary-foreground font-medium",
-            "transition-all duration-300",
-            "hover:scale-[1.02] hover:shadow-lg",
-            "glow-primary-hover",
-            "disabled:cursor-not-allowed disabled:opacity-50",
+            'from-primary to-secondary w-full bg-gradient-to-r',
+            'hover:from-primary/90 hover:to-secondary/90',
+            'text-primary-foreground font-medium',
+            'transition-all duration-300',
+            'hover:scale-[1.02] hover:shadow-lg',
+            'glow-primary-hover',
+            'disabled:cursor-not-allowed disabled:opacity-50',
           )}
         >
           {isLoading ? (
@@ -85,12 +83,12 @@ export function LoginCard() {
 
         {/* Footer */}
         <p className="text-muted-foreground mt-6 text-center text-xs">
-          En vous connectant, vous acceptez nos{" "}
-          <button className="hover:text-foreground underline transition-colors">
+          En vous connectant, vous acceptez nos{' '}
+          <button className="hover:text-foreground underline transition-colors cursor-pointer">
             Conditions d&apos;utilisation
-          </button>{" "}
-          et notre{" "}
-          <button className="hover:text-foreground underline transition-colors">
+          </button>{' '}
+          et notre{' '}
+          <button className="hover:text-foreground underline transition-colors cursor-pointer">
             Politique de confidentialité
           </button>
         </p>

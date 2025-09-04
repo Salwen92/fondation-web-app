@@ -10,6 +10,6 @@ interface CoursePageProps {
 
 export default async function CoursePage({ params }: CoursePageProps) {
   const { owner, repo, jobId } = await params;
-  
+
   return <CourseContent owner={owner} repo={repo} jobId={jobId} />;
 }

@@ -8,19 +8,19 @@
  */
 export function getAppBaseUrl(): string {
   // In browser environment, use window.location.origin
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     return window.location.origin;
   }
 
   // Server-side fallback based on environment
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === 'production') {
     return process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : "https://fondation.ai"; // Fallback production URL
+      : 'https://fondation.ai'; // Fallback production URL
   }
 
   // Development environment
-  return "http://localhost:3000";
+  return 'http://localhost:3000';
 }
 
 /**
@@ -34,7 +34,7 @@ export function getJobCallbackUrl(): string {
  * Get the Convex URL for backend operations
  */
 export function getConvexUrl(): string {
-  return process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "";
+  return process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? '';
 }
 
 /**
@@ -46,6 +46,6 @@ export const appConfig = {
     jobCallback: getJobCallbackUrl(),
     convex: getConvexUrl(),
   },
-  isProduction: process.env.NODE_ENV === "production",
-  isDevelopment: process.env.NODE_ENV === "development",
+  isProduction: process.env.NODE_ENV === 'production',
+  isDevelopment: process.env.NODE_ENV === 'development',
 } as const;

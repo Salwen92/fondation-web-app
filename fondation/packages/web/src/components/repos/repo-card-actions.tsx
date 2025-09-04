@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Book, Sparkles, Loader2, X, Code2 } from "lucide-react";
-import { uiTranslations } from "@/lib/i18n";
+import { Book, Code2, Loader2, Sparkles, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { uiTranslations } from '@/lib/i18n';
 
 interface RepoCardActionsProps {
   repoId: string;
@@ -46,9 +46,9 @@ export function RepoCardActions({
           className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
           size="sm"
           aria-label={
-            isProcessing 
+            isProcessing
               ? uiTranslations.generationInProgress(repoName)
-              : (isFailed || isCanceled) 
+              : isFailed || isCanceled
                 ? uiTranslations.retryGeneration(repoName)
                 : uiTranslations.generateCourseFor(repoName)
           }
@@ -59,7 +59,7 @@ export function RepoCardActions({
               <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
               {uiTranslations.generation}
             </>
-          ) : (isFailed || isCanceled) ? (
+          ) : isFailed || isCanceled ? (
             <>
               <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
               {uiTranslations.retry}
@@ -72,7 +72,7 @@ export function RepoCardActions({
           )}
         </Button>
       )}
-      
+
       {/* Cancel button for processing jobs */}
       {isProcessing ? (
         <Button

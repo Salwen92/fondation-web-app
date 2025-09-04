@@ -7,14 +7,14 @@
  * Job status translations
  */
 export const jobStatusTranslations = {
-  completed: "Terminé",
-  failed: "Échoué", 
-  canceled: "Annulé",
-  pending: "En attente",
-  running: "En cours",
-  cloning: "Clonage",
-  analyzing: "Analyse",
-  gathering: "Collecte",
+  completed: 'Terminé',
+  failed: 'Échoué',
+  canceled: 'Annulé',
+  pending: 'En attente',
+  running: 'En cours',
+  cloning: 'Clonage',
+  analyzing: 'Analyse',
+  gathering: 'Collecte',
 } as const;
 
 /**
@@ -22,13 +22,13 @@ export const jobStatusTranslations = {
  * Maps English progress keywords to French translations
  */
 export const progressTranslations = {
-  initializing: "Initialisation...",
-  cloning: "Clonage du dépôt...",
-  analyzing: "Analyse en cours...",
-  analysis: "Analyse en cours...",
-  gathering: "Collecte des informations...",
-  generating: "Génération du cours...",
-  processing: "Traitement...",
+  initializing: 'Initialisation...',
+  cloning: 'Clonage du dépôt...',
+  analyzing: 'Analyse en cours...',
+  analysis: 'Analyse en cours...',
+  gathering: 'Collecte des informations...',
+  generating: 'Génération du cours...',
+  processing: 'Traitement...',
   running: "En cours d'exécution...",
 } as const;
 
@@ -37,37 +37,38 @@ export const progressTranslations = {
  */
 export const uiTranslations = {
   // Common actions
-  generate: "Générer",
-  regenerate: "Régénérer", 
-  cancel: "Annuler",
-  retry: "Réessayer",
-  view: "Voir",
-  loading: "Chargement...",
-  
+  generate: 'Générer',
+  regenerate: 'Régénérer',
+  cancel: 'Annuler',
+  retry: 'Réessayer',
+  view: 'Voir',
+  loading: 'Chargement...',
+
   // Course generation
-  generateCourse: "Générer le Cours",
-  regenerateCourse: "Régénérer le cours", 
-  viewCourse: "Voir le Cours",
-  generation: "Génération...",
-  
+  generateCourse: 'Générer le Cours',
+  regenerateCourse: 'Régénérer le cours',
+  viewCourse: 'Voir le Cours',
+  generation: 'Génération...',
+
   // Status messages
-  unknown: "Inconnu",
-  processing: "Traitement",
-  
+  unknown: 'Inconnu',
+  processing: 'Traitement',
+
   // Time estimates
-  estimatedMinutes: "minutes estimées",
-  
+  estimatedMinutes: 'minutes estimées',
+
   // Accessibility labels
   generateCourseFor: (repoName: string) => `Générer le cours de documentation pour ${repoName}`,
   regenerateCourseFor: (repoName: string) => `Régénérer le cours pour ${repoName}`,
   viewCourseFor: (repoName: string) => `Voir le cours généré pour le dépôt ${repoName}`,
   cancelGenerationFor: (repoName: string) => `Annuler la génération en cours pour ${repoName}`,
   viewSourceFor: (repoName: string) => `Voir le code source du dépôt ${repoName} sur GitHub`,
-  
+
   // Progress descriptions
-  generationInProgress: (repoName: string) => `Génération en cours pour ${repoName}. Veuillez patienter.`,
+  generationInProgress: (repoName: string) =>
+    `Génération en cours pour ${repoName}. Veuillez patienter.`,
   retryGeneration: (repoName: string) => `Réessayer la génération du cours pour ${repoName}`,
-  progressDescription: (current: number, total: number) => 
+  progressDescription: (current: number, total: number) =>
     `Progression de génération: étape ${current} sur ${total}`,
 } as const;
 
@@ -75,8 +76,10 @@ export const uiTranslations = {
  * Translate job status to French
  */
 export function translateStatus(status: string | undefined): string {
-  if (!status) { return uiTranslations.unknown; }
-  
+  if (!status) {
+    return uiTranslations.unknown;
+  }
+
   const normalizedStatus = status.toLowerCase() as keyof typeof jobStatusTranslations;
   return jobStatusTranslations[normalizedStatus] ?? status;
 }
@@ -86,17 +89,19 @@ export function translateStatus(status: string | undefined): string {
  * Handles partial matches and keyword detection
  */
 export function translateProgress(progress: string | undefined): string {
-  if (!progress) { return uiTranslations.processing; }
-  
+  if (!progress) {
+    return uiTranslations.processing;
+  }
+
   const lowerProgress = progress.toLowerCase();
-  
+
   // Find matching keyword in the progress message
   for (const [keyword, translation] of Object.entries(progressTranslations)) {
     if (lowerProgress.includes(keyword)) {
       return translation;
     }
   }
-  
+
   // If no match found, return original or fallback
   return progress || uiTranslations.processing;
 }

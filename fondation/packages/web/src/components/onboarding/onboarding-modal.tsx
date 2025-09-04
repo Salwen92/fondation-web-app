@@ -1,10 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { CheckCircle, ArrowRight, Book, Sparkles, GitBranch, FileText } from "lucide-react";
+import { ArrowRight, Book, CheckCircle, FileText, GitBranch, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -15,23 +21,23 @@ interface OnboardingModalProps {
 const ONBOARDING_STEPS = [
   {
     icon: GitBranch,
-    title: "Connectez votre dépôt GitHub",
-    description: "Importez automatiquement vos dépôts depuis GitHub",
+    title: 'Connectez votre dépôt GitHub',
+    description: 'Importez automatiquement vos dépôts depuis GitHub',
   },
   {
     icon: Sparkles,
-    title: "Générez la documentation",
+    title: 'Générez la documentation',
     description: "L'IA analyse votre code et crée une documentation complète",
   },
   {
     icon: Book,
-    title: "Explorez votre cours",
-    description: "Naviguez dans votre documentation interactive avec tutoriels",
+    title: 'Explorez votre cours',
+    description: 'Naviguez dans votre documentation interactive avec tutoriels',
   },
   {
     icon: FileText,
-    title: "Partagez et collaborez",
-    description: "Exportez ou partagez votre documentation avec votre équipe",
+    title: 'Partagez et collaborez',
+    description: 'Exportez ou partagez votre documentation avec votre équipe',
   },
 ];
 
@@ -41,14 +47,14 @@ export function OnboardingModal({ isOpen, onClose, userName }: OnboardingModalPr
 
   useEffect(() => {
     // Check if user has seen onboarding
-    const seen = localStorage.getItem("hasSeenOnboarding");
+    const seen = localStorage.getItem('hasSeenOnboarding');
     if (seen) {
       setHasSeenOnboarding(true);
     }
   }, []);
 
   const handleComplete = () => {
-    localStorage.setItem("hasSeenOnboarding", "true");
+    localStorage.setItem('hasSeenOnboarding', 'true');
     setHasSeenOnboarding(true);
     onClose();
   };
@@ -75,7 +81,7 @@ export function OnboardingModal({ isOpen, onClose, userName }: OnboardingModalPr
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            {userName ? `Bienvenue, ${userName}!` : "Bienvenue sur Fondation!"} 🎉
+            {userName ? `Bienvenue, ${userName}!` : 'Bienvenue sur Fondation!'} 🎉
           </DialogTitle>
           <DialogDescription>
             Découvrez comment générer une documentation IA pour vos projets
@@ -89,7 +95,7 @@ export function OnboardingModal({ isOpen, onClose, userName }: OnboardingModalPr
               <div
                 key={index}
                 className={`flex-1 h-2 mx-1 rounded-full transition-colors ${
-                  index <= currentStep ? "bg-primary" : "bg-muted"
+                  index <= currentStep ? 'bg-primary' : 'bg-muted'
                 }`}
               />
             ))}
@@ -101,7 +107,9 @@ export function OnboardingModal({ isOpen, onClose, userName }: OnboardingModalPr
               <div className="p-3 rounded-lg bg-primary/10">
                 {(() => {
                   const step = ONBOARDING_STEPS[currentStep];
-                  if (!step) { return null; }
+                  if (!step) {
+                    return null;
+                  }
                   const Icon = step.icon;
                   return <Icon className="h-6 w-6 text-primary" />;
                 })()}

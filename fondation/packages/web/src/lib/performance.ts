@@ -2,7 +2,7 @@
  * Performance monitoring and optimization utilities
  */
 
-import { logger, logPerformance } from "./logger";
+import { logger, logPerformance } from './logger';
 
 interface PerformanceMetric {
   name: string;
@@ -17,7 +17,7 @@ class PerformanceMonitor {
   private observers: PerformanceObserver[] = [];
 
   constructor() {
-    if (typeof window !== "undefined" && "PerformanceObserver" in window) {
+    if (typeof window !== 'undefined' && 'PerformanceObserver' in window) {
       this.initializeObservers();
     }
   }
@@ -45,7 +45,7 @@ class PerformanceMonitor {
 
     metric.endTime = performance.now();
     metric.duration = metric.endTime - metric.startTime;
-    
+
     logPerformance(name, metric.duration, {
       extra: metric.metadata,
     });
@@ -60,7 +60,7 @@ class PerformanceMonitor {
   async measure<T>(
     name: string,
     fn: () => Promise<T>,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): Promise<T> {
     this.start(name, metadata);
     try {
@@ -76,11 +76,7 @@ class PerformanceMonitor {
   /**
    * Measure sync function performance
    */
-  measureSync<T>(
-    name: string,
-    fn: () => T,
-    metadata?: Record<string, unknown>
-  ): T {
+  measureSync<T>(name: string, fn: () => T, metadata?: Record<string, unknown>): T {
     this.start(name, metadata);
     try {
       const result = fn();
@@ -97,7 +93,7 @@ class PerformanceMonitor {
    */
   private initializeObservers(): void {
     // Monitor long tasks
-    if ("PerformanceObserver" in window) {
+    if ('PerformanceObserver' in window) {
       try {
         const longTaskObserver = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
@@ -112,8 +108,8 @@ class PerformanceMonitor {
             }
           }
         });
-        
-        longTaskObserver.observe({ entryTypes: ["longtask"] });
+
+        longTaskObserver.observe({ entryTypes: ['longtask'] });
         this.observers.push(longTaskObserver);
       } catch {
         // Long task observer not supported
@@ -135,8 +131,8 @@ class PerformanceMonitor {
             }
           }
         });
-        
-        resourceObserver.observe({ entryTypes: ["resource"] });
+
+        resourceObserver.observe({ entryTypes: ['resource'] });
         this.observers.push(resourceObserver);
       } catch {
         // Resource observer not supported
@@ -154,22 +150,22 @@ class PerformanceMonitor {
     fcp?: number;
     ttfb?: number;
   } {
-    if (typeof window === "undefined" || !("performance" in window)) {
+    if (typeof window === 'undefined' || !('performance' in window)) {
       return {};
     }
 
     const metrics: ReturnType<typeof this.getCoreWebVitals> = {};
-    
+
     // Get paint timings
-    const paintEntries = performance.getEntriesByType("paint");
+    const paintEntries = performance.getEntriesByType('paint');
     for (const entry of paintEntries) {
-      if (entry.name === "first-contentful-paint") {
+      if (entry.name === 'first-contentful-paint') {
         metrics.fcp = entry.startTime;
       }
     }
 
     // Get navigation timing
-    const navEntries = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+    const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
     if (navEntries.length > 0) {
       const nav = navEntries[0];
       if (nav) {
@@ -185,17 +181,21 @@ class PerformanceMonitor {
    */
   report(): void {
     const vitals = this.getCoreWebVitals();
-    
+
     if (Object.keys(vitals).length > 0) {
-      logger.info("Core Web Vitals", {
+      logger.info('Core Web Vitals', {
         extra: vitals,
       });
     }
 
     // Report memory usage if available
-    if ("memory" in performance) {
-      const memoryInfo = (performance as unknown as { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
-      logger.info("Memory usage", {
+    if ('memory' in performance) {
+      const memoryInfo = (
+        performance as unknown as {
+          memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number };
+        }
+      ).memory;
+      logger.info('Memory usage', {
         extra: {
           usedJSHeapSize: memoryInfo.usedJSHeapSize,
           totalJSHeapSize: memoryInfo.totalJSHeapSize,
@@ -243,25 +243,21 @@ export function useRenderMetrics(componentName: string) {
 export function debounceWithMetrics<T extends (...args: never[]) => unknown>(
   fn: T,
   delay: number,
-  name?: string
+  name?: string,
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout | null = null;
   let callCount = 0;
 
   return (...args: Parameters<T>) => {
     callCount++;
-    
+
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
 
     timeoutId = setTimeout(() => {
       if (name) {
-        perfMonitor.measureSync(
-          `${name}:debounced`,
-          () => fn(...args),
-          { callCount }
-        );
+        perfMonitor.measureSync(`${name}:debounced`, () => fn(...args), { callCount });
       } else {
         fn(...args);
       }
@@ -276,7 +272,7 @@ export function debounceWithMetrics<T extends (...args: never[]) => unknown>(
 export function throttleWithMetrics<T extends (...args: never[]) => unknown>(
   fn: T,
   limit: number,
-  name?: string
+  name?: string,
 ): (...args: Parameters<T>) => void {
   let inThrottle = false;
   let lastArgs: Parameters<T> | null = null;
@@ -284,14 +280,11 @@ export function throttleWithMetrics<T extends (...args: never[]) => unknown>(
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
       if (name) {
-        perfMonitor.measureSync(
-          `${name}:throttled`,
-          () => fn(...args)
-        );
+        perfMonitor.measureSync(`${name}:throttled`, () => fn(...args));
       } else {
         fn(...args);
       }
-      
+
       inThrottle = true;
       setTimeout(() => {
         inThrottle = false;
@@ -307,4 +300,4 @@ export function throttleWithMetrics<T extends (...args: never[]) => unknown>(
 }
 
 // Helper for React import
-import React from "react";
+import React from 'react';

@@ -1,17 +1,17 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Job status enum
 export const JobStatus = z.enum([
-  "pending",
-  "claimed",
-  "running",
-  "cloning",
-  "analyzing",
-  "gathering",
-  "completed",
-  "failed",
-  "canceled",
-  "dead",
+  'pending',
+  'claimed',
+  'running',
+  'cloning',
+  'analyzing',
+  'gathering',
+  'completed',
+  'failed',
+  'canceled',
+  'dead',
 ]);
 
 export type JobStatus = z.infer<typeof JobStatus>;
@@ -22,7 +22,7 @@ export const JobSchema = z.object({
   userId: z.string(),
   repositoryId: z.string(),
   repositoryUrl: z.string().optional(), // Optional since we get it from repo
-  branch: z.string().default("main").optional(),
+  branch: z.string().default('main').optional(),
   prompt: z.string(),
   callbackToken: z.string().optional(), // Added for auth
   status: JobStatus,
@@ -53,7 +53,7 @@ export const WorkerConfigSchema = z.object({
   leaseTime: z.number().default(300000), // 5 minutes
   heartbeatInterval: z.number().default(60000), // 1 minute
   maxConcurrentJobs: z.number().default(1),
-  tempDir: z.string().default("/tmp/fondation"),
+  tempDir: z.string().default('/tmp/fondation'),
   cliPath: z.string().optional(),
 });
 
@@ -74,15 +74,17 @@ export type ProgressUpdate = z.infer<typeof ProgressUpdateSchema>;
 // CLI result schema
 export const CLIResultSchema = z.object({
   success: z.boolean(),
-  documents: z.array(
-    z.object({
-      slug: z.string(),
-      title: z.string(),
-      content: z.string(),
-      kind: z.enum(["chapter", "tutorial", "toc", "yaml"]),
-      chapterIndex: z.number(),
-    })
-  ).optional(),
+  documents: z
+    .array(
+      z.object({
+        slug: z.string(),
+        title: z.string(),
+        content: z.string(),
+        kind: z.enum(['chapter', 'tutorial', 'toc', 'yaml']),
+        chapterIndex: z.number(),
+      }),
+    )
+    .optional(),
   error: z.string().optional(),
   metadata: z.record(z.any()).optional(),
 });
@@ -91,7 +93,7 @@ export type CLIResult = z.infer<typeof CLIResultSchema>;
 
 // Health check schema
 export const HealthCheckSchema = z.object({
-  status: z.enum(["healthy", "degraded", "unhealthy"]),
+  status: z.enum(['healthy', 'degraded', 'unhealthy']),
   workerId: z.string(),
   uptime: z.number(),
   lastJobTime: z.number(),

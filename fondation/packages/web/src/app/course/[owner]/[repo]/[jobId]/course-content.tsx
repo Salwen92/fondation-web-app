@@ -1,26 +1,26 @@
 'use client';
 
-import { useQuery, } from 'convex/react';
 import { api } from '@convex/generated/api';
 import type { Id } from '@convex/generated/dataModel';
+import { useQuery } from 'convex/react';
 import { notFound, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeHighlight from 'rehype-highlight';
+import rehypeSlug from 'rehype-slug';
+import remarkGfm from 'remark-gfm';
 import 'highlight.js/styles/github-dark.css';
-import { RefreshCw, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { AlertCircle, CheckCircle, Clock, RefreshCw, XCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { logger } from '@/lib/logger';
 import { RegenerateModal } from '@/components/repos/regenerate-modal';
+import { useToast } from '@/components/ui/use-toast';
 import { useRegenerate } from '@/hooks/use-regenerate';
+import { logger } from '@/lib/logger';
 
 const MermaidRenderer = dynamic(
-  () => import('@/components/markdown/mermaid-renderer').then(mod => mod.MermaidRenderer),
-  { ssr: false }
+  () => import('@/components/markdown/mermaid-renderer').then((mod) => mod.MermaidRenderer),
+  { ssr: false },
 );
 
 interface CourseContentProps {
@@ -35,43 +35,37 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
   const { toast } = useToast();
 
   // Fetch job details
-  const job = useQuery(api.jobs.getById, { 
-    id: jobId as Id<'jobs'> 
+  const job = useQuery(api.jobs.getById, {
+    id: jobId as Id<'jobs'>,
   });
 
   // Fetch repository info
   const fullName = `${owner}/${repo}`;
-  const repositories = useQuery(
-    api.repositories.getByFullName,
-    { fullName }
-  );
+  const repositories = useQuery(api.repositories.getByFullName, { fullName });
   const repository = repositories?.[0];
 
   // Use custom hook for regeneration logic
-  const {
-    isModalOpen,
-    handleRegenerateClick,
-    handleComplete,
-    handleClose,
-    canRegenerate
-  } = useRegenerate(repository, {
-    onComplete: (newJobId) => {
-      router.push(`/course/${owner}/${repo}/${newJobId}`);
-    }
-  });
+  const { isModalOpen, handleRegenerateClick, handleComplete, handleClose, canRegenerate } =
+    useRegenerate(repository, {
+      onComplete: (newJobId) => {
+        router.push(`/course/${owner}/${repo}/${newJobId}`);
+      },
+    });
 
   // Fetch docs for this job
-  const docs = useQuery(api.docs.listByJobId, { 
-    jobId: jobId as Id<'jobs'> 
+  const docs = useQuery(api.docs.listByJobId, {
+    jobId: jobId as Id<'jobs'>,
   });
 
   // Fetch specific doc content if a slug is selected
   const selectedDoc = useQuery(
     api.docs.getBySlug,
-    selectedSlug ? { 
-      jobId: jobId as Id<'jobs'>,
-      slug: selectedSlug 
-    } : 'skip'
+    selectedSlug
+      ? {
+          jobId: jobId as Id<'jobs'>,
+          slug: selectedSlug,
+        }
+      : 'skip',
   );
 
   // Content fetch guard - handle empty content scenarios
@@ -81,23 +75,25 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
         logger.warn('[Empty Content] Document has no content', {
           id: selectedDoc._id,
           slug: selectedDoc.slug,
-          title: selectedDoc.title
+          title: selectedDoc.title,
         });
-        
+
         // Try to find a canonical counterpart with content
         if (docs && docs.length > 0) {
           const normalizedTitle = selectedDoc.title.toLowerCase().trim();
-          const canonical = docs.find(doc => 
-            doc.title.toLowerCase().trim() === normalizedTitle &&
-            doc.content && doc.content.length > 0 &&
-            doc._id !== selectedDoc._id
+          const canonical = docs.find(
+            (doc) =>
+              doc.title.toLowerCase().trim() === normalizedTitle &&
+              doc.content &&
+              doc.content.length > 0 &&
+              doc._id !== selectedDoc._id,
           );
-          
+
           if (canonical) {
             logger.info('[Fallback] Switching to canonical document with content', {
               from: selectedDoc._id,
               to: canonical._id,
-              slug: canonical.slug
+              slug: canonical.slug,
             });
             setSelectedSlug(canonical.slug);
           }
@@ -149,31 +145,34 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
     if (job?.status && activeStatuses.includes(job.status)) {
       const statusDisplay = getStatusDisplay(job?.status);
       const StatusIcon = statusDisplay.icon;
-      
+
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="glass backdrop-blur-xl rounded-xl shadow-lg p-8 max-w-md w-full border border-border/40">
             <div className="flex flex-col items-center text-center">
               <StatusIcon className={`w-12 h-12 ${statusDisplay.color} mb-4`} />
-              <h2 className="text-2xl font-bold text-foreground mb-2">Génération du cours en cours</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                Génération du cours en cours
+              </h2>
               <p className="text-muted-foreground mb-4">
-                Votre cours pour {owner}/{repo} est en cours de génération. Ce processus prend généralement 30 à 60 minutes.
+                Votre cours pour {owner}/{repo} est en cours de génération. Ce processus peut
+                prendre quelques minutes selon la taille du projet.
               </p>
-              
+
               {job?.currentStep && (
                 <div className="w-full mb-6">
                   <div className="text-sm text-muted-foreground mb-2">
                     Étape {job.currentStep} sur {job.totalSteps ?? 6}: {job.progress ?? 'En cours'}
                   </div>
                   <div className="w-full h-3 bg-muted rounded-full">
-                    <div 
+                    <div
                       className="h-full bg-purple-600 rounded-full transition-all duration-500"
                       style={{ width: `${(job.currentStep / (job.totalSteps ?? 6)) * 100}%` }}
                     />
                   </div>
                 </div>
               )}
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={() => router.push('/dashboard')}
@@ -193,27 +192,27 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
         </div>
       );
     }
-    
+
     // If job failed or completed but no docs, show error
     return notFound();
   }
 
   // De-duplication logic for docs with same title
   const deduplicateDocs = (docList: typeof docs) => {
-    const seen = new Map<string, typeof docs[0]>();
-    const duplicates: Array<{id: string, slug: string, title: string}> = [];
-    
+    const seen = new Map<string, (typeof docs)[0]>();
+    const duplicates: Array<{ id: string; slug: string; title: string }> = [];
+
     for (const doc of docList) {
       const normalizedTitle = doc.title.toLowerCase().trim();
       const existing = seen.get(normalizedTitle);
-      
+
       if (existing) {
         // Duplicate found - apply canonical selection rules
         const existingHasContent = existing.content && existing.content.length > 0;
         const docHasContent = doc.content && doc.content.length > 0;
-        
+
         let keepExisting = true;
-        
+
         // Rule 1: Prefer non-empty content
         if (!existingHasContent && docHasContent) {
           keepExisting = false;
@@ -223,7 +222,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
           // Rule 2: Prefer reviewed-* prefix
           const existingIsReviewed = existing.slug.includes('reviewed-');
           const docIsReviewed = doc.slug.includes('reviewed-');
-          
+
           if (!existingIsReviewed && docIsReviewed) {
             keepExisting = false;
           } else if (existingIsReviewed && !docIsReviewed) {
@@ -233,50 +232,52 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
             keepExisting = (existing.createdAt || 0) >= (doc.createdAt || 0);
           }
         }
-        
+
         if (!keepExisting) {
           // Log the duplicate being suppressed
           duplicates.push({
             id: existing._id,
             slug: existing.slug,
-            title: existing.title
+            title: existing.title,
           });
           seen.set(normalizedTitle, doc);
         } else {
           duplicates.push({
             id: doc._id,
             slug: doc.slug,
-            title: doc.title
+            title: doc.title,
           });
         }
-        
+
         logger.info('[De-duplication] Duplicate detected', {
           kept: keepExisting ? existing._id : doc._id,
           suppressed: keepExisting ? doc._id : existing._id,
           title: doc.title,
-          slugs: [existing.slug, doc.slug]
+          slugs: [existing.slug, doc.slug],
         });
       } else {
         seen.set(normalizedTitle, doc);
       }
     }
-    
+
     if (duplicates.length > 0) {
       logger.warn('[Data Issue] Duplicates found and suppressed', { duplicates });
     }
-    
+
     return Array.from(seen.values());
   };
 
   // Organize docs by type with de-duplication
-  const chapters = deduplicateDocs(docs.filter(doc => doc.kind === 'chapter'))
-    .sort((a, b) => a.chapterIndex - b.chapterIndex);
-  const tutorials = deduplicateDocs(docs.filter(doc => doc.kind === 'tutorial'));
-  const yamls = deduplicateDocs(docs.filter(doc => doc.kind === 'yaml'));
-  const tocs = deduplicateDocs(docs.filter(doc => doc.kind === 'toc'));
-  
+  const chapters = deduplicateDocs(docs.filter((doc) => doc.kind === 'chapter')).sort(
+    (a, b) => a.chapterIndex - b.chapterIndex,
+  );
+  const tutorials = deduplicateDocs(docs.filter((doc) => doc.kind === 'tutorial'));
+  const yamls = deduplicateDocs(docs.filter((doc) => doc.kind === 'yaml'));
+  const tocs = deduplicateDocs(docs.filter((doc) => doc.kind === 'toc'));
+
   // Track if there were duplicates for UI indication
-  const hasDuplicates = docs.length > (chapters.length + tutorials.length + yamls.length + tocs.length);
+  const hasDuplicates =
+    docs.length > chapters.length + tutorials.length + yamls.length + tocs.length;
 
   const statusDisplay = getStatusDisplay(job?.status);
   const StatusIcon = statusDisplay.icon;
@@ -314,7 +315,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                     Étape {job.currentStep} sur {job.totalSteps ?? 6}: {job.progress ?? 'En cours'}
                   </div>
                   <div className="w-64 h-2 bg-muted rounded-full mt-1">
-                    <div 
+                    <div
                       className="h-full bg-blue-500 rounded-full transition-all duration-300"
                       style={{ width: `${(job.currentStep / (job.totalSteps ?? 6)) * 100}%` }}
                     />
@@ -322,7 +323,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                 </div>
               )}
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex items-center gap-3">
               <button
@@ -333,7 +334,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                 <RefreshCw className="w-4 h-4" />
                 Régénérer le cours
               </button>
-              
+
               <button
                 onClick={() => router.push('/dashboard')}
                 className="px-4 py-2 bg-muted/50 backdrop-blur-sm text-foreground rounded-lg hover:bg-muted/70 transition-all duration-300 border border-border/40"
@@ -342,7 +343,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               </button>
             </div>
           </div>
-          
+
           {job?.status === 'failed' && job.error && (
             <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg backdrop-blur-sm">
               <div className="flex items-start gap-3">
@@ -361,7 +362,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
           <div className="w-80 flex-shrink-0">
             <div className="glass glass-hover backdrop-blur-xl rounded-xl shadow-lg border border-border/40 p-6 sticky top-8 transition-all duration-300 hover:scale-[1.01]">
               <h2 className="text-lg font-semibold text-foreground mb-4">Contenu du cours</h2>
-              
+
               {/* Chapters */}
               {chapters.length > 0 && (
                 <div className="mb-6">
@@ -371,13 +372,15 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                       <button
                         key={doc._id}
                         onClick={() => setSelectedSlug(doc.slug)}
-                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${
+                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 cursor-pointer ${
                           selectedSlug === doc.slug
                             ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-foreground border-l-2 border-purple-500 pl-5'
                             : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground hover:translate-x-1'
                         }`}
                       >
-                        <div className="font-medium">{doc.chapterIndex}. {doc.title}</div>
+                        <div className="font-medium">
+                          {doc.chapterIndex}. {doc.title}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -393,7 +396,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                       <button
                         key={doc._id}
                         onClick={() => setSelectedSlug(doc.slug)}
-                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${
+                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 cursor-pointer ${
                           selectedSlug === doc.slug
                             ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-foreground border-l-2 border-blue-500 pl-5'
                             : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground hover:translate-x-1'
@@ -415,7 +418,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                       <button
                         key={doc._id}
                         onClick={() => setSelectedSlug(doc.slug)}
-                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${
+                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 cursor-pointer ${
                           selectedSlug === doc.slug
                             ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-foreground border-l-2 border-green-500 pl-5'
                             : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground hover:translate-x-1'
@@ -441,14 +444,22 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                 <div className="p-6 border-b border-border/40 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-xl">
                   <h1 className="text-3xl font-bold text-foreground mb-3">{selectedDoc.title}</h1>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm ${
-                      selectedDoc.kind === 'chapter' ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 border border-purple-500/30' :
-                      selectedDoc.kind === 'tutorial' ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-400 border border-blue-500/30' :
-                      'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border border-green-500/30'
-                    }`}>
-                      {selectedDoc.kind === 'chapter' ? '📚 Chapitre' :
-                       selectedDoc.kind === 'tutorial' ? '🎯 Tutoriel' :
-                       selectedDoc.kind === 'yaml' ? '⚙️ Configuration' : '📄 Document'}
+                    <span
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm ${
+                        selectedDoc.kind === 'chapter'
+                          ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 border border-purple-500/30'
+                          : selectedDoc.kind === 'tutorial'
+                            ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-400 border border-blue-500/30'
+                            : 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border border-green-500/30'
+                      }`}
+                    >
+                      {selectedDoc.kind === 'chapter'
+                        ? '📚 Chapitre'
+                        : selectedDoc.kind === 'tutorial'
+                          ? '🎯 Tutoriel'
+                          : selectedDoc.kind === 'yaml'
+                            ? '⚙️ Configuration'
+                            : '📄 Document'}
                     </span>
                     {selectedDoc.kind === 'chapter' && (
                       <span className="font-medium">#{selectedDoc.chapterIndex}</span>
@@ -456,7 +467,8 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                   </div>
                 </div>
                 <div className="p-8 bg-background/50">
-                  <article className="prose prose-gray dark:prose-invert max-w-none
+                  <article
+                    className="prose prose-gray dark:prose-invert max-w-none
                     prose-headings:font-bold prose-headings:tracking-tight
                     prose-h1:text-3xl prose-h1:mb-8 prose-h1:mt-8 prose-h1:border-b prose-h1:pb-4
                     prose-h2:text-2xl prose-h2:mb-6 prose-h2:mt-8
@@ -476,38 +488,49 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                     [&_[data-line]]:px-4 [&_[data-line]]:py-0.5
                     [&_[data-highlighted-line]]:bg-gray-800/50 [&_[data-highlighted-line]]:border-l-2 [&_[data-highlighted-line]]:border-purple-500
                     [&_[data-line-numbers]_[data-line]]:before:content-[attr(data-line-number)] [&_[data-line-numbers]_[data-line]]:before:text-gray-500 [&_[data-line-numbers]_[data-line]]:before:mr-4
-                    [&_[data-highlighted-chars]]:bg-yellow-500/20 [&_[data-highlighted-chars]]:rounded [&_[data-highlighted-chars]]:px-1">
+                    [&_[data-highlighted-chars]]:bg-yellow-500/20 [&_[data-highlighted-chars]]:rounded [&_[data-highlighted-chars]]:px-1"
+                  >
                     {selectedDoc.content && selectedDoc.content.length > 0 ? (
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[
                           rehypeSlug,
                           [rehypeAutolinkHeadings, { behavior: 'wrap' }],
-                          rehypeHighlight
+                          rehypeHighlight,
                         ]}
                         components={{
                           // Handle code blocks with mermaid
                           code: (props) => {
-                            const { children, className, ...rest } = props as { children?: React.ReactNode; className?: string; node?: unknown };
-                            const inline = !(rest as { node?: { position?: { start?: { line?: number } } } }).node?.position;
-                            
+                            const { children, className, ...rest } = props as {
+                              children?: React.ReactNode;
+                              className?: string;
+                              node?: unknown;
+                            };
+                            const inline = !(
+                              rest as { node?: { position?: { start?: { line?: number } } } }
+                            ).node?.position;
+
                             const match = /language-(\w+)/.exec(className ?? '');
-                            const codeString = typeof children === 'string' 
-                              ? children.replace(/\n$/, '') 
-                              : Array.isArray(children) 
-                              ? children.join('').replace(/\n$/, '')
-                              : '';
-                            
+                            const codeString =
+                              typeof children === 'string'
+                                ? children.replace(/\n$/, '')
+                                : Array.isArray(children)
+                                  ? children.join('').replace(/\n$/, '')
+                                  : '';
+
                             // Check if it's a mermaid diagram
                             if (!inline && match && match[1] === 'mermaid') {
                               return <MermaidRenderer chart={codeString} />;
                             }
-                            
+
                             // Check if it looks like a graph/flowchart
-                            if (!inline && (codeString.includes('graph TD') || codeString.includes('graph LR'))) {
+                            if (
+                              !inline &&
+                              (codeString.includes('graph TD') || codeString.includes('graph LR'))
+                            ) {
                               return <MermaidRenderer chart={codeString} />;
                             }
-                            
+
                             // Regular code block
                             return (
                               <code className={className} {...rest}>
@@ -542,16 +565,10 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                               {children}
                             </ol>
                           ),
-                          li: ({ children }) => (
-                            <li className="ml-4">
-                              {children}
-                            </li>
-                          ),
+                          li: ({ children }) => <li className="ml-4">{children}</li>,
                           // Better paragraph spacing
                           p: ({ children }) => (
-                            <p className="mb-4 leading-relaxed text-foreground/90">
-                              {children}
-                            </p>
+                            <p className="mb-4 leading-relaxed text-foreground/90">{children}</p>
                           ),
                           // Better blockquote styling
                           blockquote: ({ children }) => (
@@ -587,7 +604,8 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                     Bienvenue dans votre cours
                   </h2>
                   <p className="text-muted-foreground mb-6 text-lg">
-                    Sélectionnez un chapitre ou tutoriel dans la barre latérale pour commencer l&apos;apprentissage.
+                    Sélectionnez un chapitre ou tutoriel dans la barre latérale pour commencer
+                    l&apos;apprentissage.
                   </p>
                   <div className="text-sm text-muted-foreground/80">
                     Ce cours a été généré à partir du dépôt {owner}/{repo}.
@@ -598,10 +616,10 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
           </div>
         </div>
       </div>
-      
+
       {/* Regenerate Modal */}
       {repository && (
-        <RegenerateModal 
+        <RegenerateModal
           repository={repository}
           isOpen={isModalOpen}
           onClose={handleClose}

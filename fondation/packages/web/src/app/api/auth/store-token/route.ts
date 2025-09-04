@@ -1,16 +1,17 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/server/auth";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "@convex/generated/api";
-import { safeObfuscate, safeDeobfuscate } from "@/lib/simple-crypto";
-import { logger } from "@/lib/logger";
-import { z } from "zod";
+import { api } from '@convex/generated/api';
+import { ConvexHttpClient } from 'convex/browser';
+import { type NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { logger } from '@/lib/logger';
+import { safeDeobfuscate, safeObfuscate } from '@/lib/simple-crypto';
+import { auth } from '@/server/auth';
 
 const storeTokenSchema = z.object({
-  accessToken: z.string().min(1, "Access token is required"),
+  accessToken: z.string().min(1, 'Access token is required'),
 });
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "http://localhost:3210";
+const convexUrl =
+  process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? 'http://localhost:3210';
 const client = new ConvexHttpClient(convexUrl);
 
 /**
@@ -22,26 +23,23 @@ export async function POST(req: NextRequest) {
     // Verify the user is authenticated
     const session = await auth();
     if (!session?.user?.githubId) {
-      return NextResponse.json(
-        { error: "Unauthorized - no valid session" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized - no valid session' }, { status: 401 });
     }
 
-    const body = await req.json() as unknown;
-    
+    const body = (await req.json()) as unknown;
+
     // Validate request body
     const parseResult = storeTokenSchema.safeParse(body);
     if (!parseResult.success) {
       return NextResponse.json(
-        { 
-          error: "Invalid request data",
-          details: parseResult.error.errors 
+        {
+          error: 'Invalid request data',
+          details: parseResult.error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     const { accessToken } = parseResult.data;
 
     // Obfuscate the token before storing (TODO: Use proper encryption in production)
@@ -53,20 +51,22 @@ export async function POST(req: NextRequest) {
       accessToken: obfuscatedToken,
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: "Token stored securely",
+      message: 'Token stored securely',
       // NOTE: Using basic obfuscation in development. Production requires proper encryption.
     });
-
   } catch (error) {
-    logger.error("Error storing GitHub token", error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error storing GitHub token',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return NextResponse.json(
-      { 
-        error: "Failed to store token securely",
-        details: error instanceof Error ? error.message : "Unknown error"
+      {
+        error: 'Failed to store token securely',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -80,10 +80,7 @@ export async function GET(_req: NextRequest) {
     // Verify the user is authenticated
     const session = await auth();
     if (!session?.user?.githubId) {
-      return NextResponse.json(
-        { error: "Unauthorized - no valid session" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized - no valid session' }, { status: 401 });
     }
 
     // Get the obfuscated token from Convex
@@ -92,28 +89,27 @@ export async function GET(_req: NextRequest) {
     });
 
     if (!storedToken) {
-      return NextResponse.json(
-        { error: "No token found for user" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'No token found for user' }, { status: 404 });
     }
 
     // Deobfuscate the token before returning
     const deobfuscatedToken = safeDeobfuscate(storedToken);
-    
-    return NextResponse.json({ 
-      accessToken: deobfuscatedToken,
-      wasObfuscated: storedToken !== deobfuscatedToken
-    });
 
+    return NextResponse.json({
+      accessToken: deobfuscatedToken,
+      wasObfuscated: storedToken !== deobfuscatedToken,
+    });
   } catch (error) {
-    logger.error("Error retrieving GitHub token", error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error retrieving GitHub token',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return NextResponse.json(
-      { 
-        error: "Failed to retrieve token",
-        details: error instanceof Error ? error.message : "Unknown error"
+      {
+        error: 'Failed to retrieve token',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

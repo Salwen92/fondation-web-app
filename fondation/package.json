@@ -9,7 +9,7 @@
   "scripts": {
     "// Development": "",
     "dev": "doppler run --project fondation --config dev_local -- concurrently \"bun run dev:convex\" \"bun run dev:web\" \"bun run dev:worker\"",
-    "dev:convex": "doppler run --project fondation --config dev_local -- bunx convex dev",
+    "dev:convex": "rm -f convex/*.js convex/*.js.map convex/*.d.ts convex/*.d.ts.map 2>/dev/null; doppler run --project fondation --config dev_local -- bunx convex dev",
     "dev:web": "doppler run --project fondation --config dev_local -- sh -c 'cd packages/web && bun run dev'",
     "dev:worker": "doppler run --project fondation --config dev_local -- sh -c 'cd packages/worker && NODE_ENV=development bun run dev'",
     "dev:worker:local": "doppler run --project fondation --config dev_local -- sh -c 'cd packages/worker && NODE_ENV=development FONDATION_EXECUTION_MODE=local FONDATION_DEV_DOCKER_BYPASS=true bun run dev'",

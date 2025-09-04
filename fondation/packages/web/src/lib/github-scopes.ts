@@ -1,9 +1,9 @@
 /**
  * GitHub OAuth Scope Management
- * 
+ *
  * Manages GitHub OAuth scopes based on application needs.
  * Follows principle of least privilege - request only necessary permissions.
- * 
+ *
  * @see https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps
  */
 
@@ -31,7 +31,7 @@ export const GITHUB_SCOPES = {
     permissions: ['View email addresses', 'View primary email'],
     required: true,
   },
-  
+
   // Repository scopes
   PUBLIC_REPO: {
     name: 'public_repo',
@@ -55,7 +55,7 @@ export const GITHUB_SCOPES = {
     ],
     required: false,
   },
-  
+
   // Additional scopes (not currently used)
   REPO_STATUS: {
     name: 'repo:status',
@@ -81,14 +81,14 @@ export const SCOPE_CONFIGS = {
     description: 'Access to public repositories only',
     scopes: ['read:user', 'user:email', 'public_repo'],
   },
-  
+
   // Standard - includes private repository access
   STANDARD: {
     name: 'Standard Access',
     description: 'Access to all repositories including private',
     scopes: ['read:user', 'user:email', 'repo'],
   },
-  
+
   // Extended - includes additional metadata
   EXTENDED: {
     name: 'Extended Access',
@@ -104,15 +104,15 @@ export function getScopeConfiguration(): string {
   // Check environment variable
   const privateRepoAccess = process.env.GITHUB_PRIVATE_REPO_ACCESS === 'true';
   const extendedAccess = process.env.GITHUB_EXTENDED_ACCESS === 'true';
-  
+
   if (extendedAccess) {
     return SCOPE_CONFIGS.EXTENDED.scopes.join(' ');
   }
-  
+
   if (privateRepoAccess) {
     return SCOPE_CONFIGS.STANDARD.scopes.join(' ');
   }
-  
+
   return SCOPE_CONFIGS.MINIMAL.scopes.join(' ');
 }
 
@@ -133,7 +133,7 @@ export async function validateTokenScopes(token: string): Promise<{
         Accept: 'application/vnd.github.v3+json',
       },
     });
-    
+
     if (!response.ok) {
       return {
         valid: false,
@@ -141,15 +141,18 @@ export async function validateTokenScopes(token: string): Promise<{
         missing: ['Token validation failed'],
       };
     }
-    
+
     // GitHub returns scopes in the X-OAuth-Scopes header
     const scopeHeader = response.headers.get('X-OAuth-Scopes') || '';
-    const tokenScopes = scopeHeader.split(',').map(s => s.trim()).filter(Boolean);
-    
+    const tokenScopes = scopeHeader
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
     // Check for required scopes
     const requiredScopes = ['read:user', 'user:email'];
-    const missing = requiredScopes.filter(scope => !tokenScopes.includes(scope));
-    
+    const missing = requiredScopes.filter((scope) => !tokenScopes.includes(scope));
+
     return {
       valid: missing.length === 0,
       scopes: tokenScopes,
@@ -183,29 +186,29 @@ export function hasPublicRepoAccess(scopes: string[]): boolean {
  */
 export function describeScopes(scopes: string[]): string[] {
   const descriptions: string[] = [];
-  
+
   if (scopes.includes('read:user')) {
     descriptions.push('✓ Read your profile information');
   }
-  
+
   if (scopes.includes('user:email')) {
     descriptions.push('✓ Access your email addresses');
   }
-  
+
   if (scopes.includes('repo')) {
     descriptions.push('✓ Full access to all your repositories (public and private)');
   } else if (scopes.includes('public_repo')) {
     descriptions.push('✓ Access your public repositories only');
   }
-  
+
   if (scopes.includes('repo:status')) {
     descriptions.push('✓ Read and write commit statuses');
   }
-  
+
   if (scopes.includes('read:org')) {
     descriptions.push('✓ Read your organization membership');
   }
-  
+
   return descriptions;
 }
 
@@ -221,7 +224,7 @@ export function logScopeUsage(userId: string, scopes: string[], action: string):
     hasPrivateAccess: hasPrivateRepoAccess(scopes),
     type: 'GITHUB_SCOPE_USAGE',
   };
-  
+
   // In production, this would go to a security log
   if (process.env.NODE_ENV === 'production') {
     console.log(JSON.stringify(scopeInfo));

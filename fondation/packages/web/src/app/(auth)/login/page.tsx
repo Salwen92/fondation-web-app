@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import { LoginCard } from "@/components/auth/login-card";
-import { AnimatedBackground } from "@/components/ui/animated-background";
-import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import type { Metadata } from 'next';
+import { LoginCard } from '@/components/auth/login-card';
+import { AnimatedBackground } from '@/components/ui/animated-background';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export const metadata: Metadata = {
-  title: "Connexion | Fondation",
-  description: "Connectez-vous à Fondation avec votre compte GitHub",
+  title: 'Connexion | Fondation',
+  description: 'Connectez-vous à Fondation avec votre compte GitHub',
 };
 
 export default function LoginPage() {

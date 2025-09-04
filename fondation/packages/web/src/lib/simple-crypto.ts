@@ -4,15 +4,23 @@
  * Kept for backward compatibility during migration
  */
 
-import { logger } from "./logger";
-import { encryptToken, decryptToken, isEncrypted, isLegacyObfuscated, maskSensitiveData } from "./encryption";
+import {
+  decryptToken,
+  encryptToken,
+  isEncrypted,
+  isLegacyObfuscated,
+  maskSensitiveData,
+} from './encryption';
+import { logger } from './logger';
 
 /**
  * @deprecated Use encryptToken from lib/encryption.ts instead
  */
 export function obfuscateToken(token: string): string {
-  if (!token) { return token; }
-  
+  if (!token) {
+    return token;
+  }
+
   // Migrate to real encryption
   return encryptToken(token);
 }
@@ -21,12 +29,17 @@ export function obfuscateToken(token: string): string {
  * @deprecated Use decryptToken from lib/encryption.ts instead
  */
 export function deobfuscateToken(obfuscatedToken: string): string {
-  if (!obfuscatedToken) { return obfuscatedToken; }
-  
+  if (!obfuscatedToken) {
+    return obfuscatedToken;
+  }
+
   try {
     return decryptToken(obfuscatedToken);
   } catch (error) {
-    logger.error('Failed to decrypt token', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to decrypt token',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return obfuscatedToken; // Return as-is if decryption fails
   }
 }
@@ -42,12 +55,14 @@ export function isObfuscated(token: string): boolean {
  * @deprecated Use safeEncrypt from lib/encryption.ts instead
  */
 export function safeObfuscate(token: string): string {
-  if (!token) { return token; }
-  
+  if (!token) {
+    return token;
+  }
+
   if (isEncrypted(token) || isLegacyObfuscated(token)) {
     return token; // Already encrypted/obfuscated
   }
-  
+
   return encryptToken(token);
 }
 
@@ -55,8 +70,10 @@ export function safeObfuscate(token: string): string {
  * @deprecated Use safeDecrypt from lib/encryption.ts instead
  */
 export function safeDeobfuscate(token: string): string {
-  if (!token) { return token; }
-  
+  if (!token) {
+    return token;
+  }
+
   try {
     return decryptToken(token);
   } catch {

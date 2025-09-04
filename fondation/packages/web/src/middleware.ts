@@ -1,21 +1,21 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { rateLimitMiddleware } from "./lib/rate-limit";
-import { createApiLogger } from "./lib/logger";
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { createApiLogger } from './lib/logger';
+import { rateLimitMiddleware } from './lib/rate-limit';
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
   const logger = createApiLogger(request as unknown as Request);
 
   // Apply rate limiting to API routes
-  if (request.nextUrl.pathname.startsWith("/api/")) {
+  if (request.nextUrl.pathname.startsWith('/api/')) {
     const rateLimitResponse = await rateLimitMiddleware({
       windowMs: 60000, // 1 minute
       maxRequests: 30, // 30 requests per minute
     })(request as unknown as Request);
 
     if (rateLimitResponse) {
-      logger.warn("Rate limit exceeded", {
+      logger.warn('Rate limit exceeded', {
         url: request.nextUrl.pathname,
       });
       return rateLimitResponse;
@@ -37,32 +37,29 @@ export async function middleware(request: NextRequest) {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
+    'upgrade-insecure-requests',
   ];
 
-  headers.set("Content-Security-Policy", cspDirectives.join("; "));
+  headers.set('Content-Security-Policy', cspDirectives.join('; '));
 
   // Security headers
-  headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("X-Frame-Options", "DENY");
-  headers.set("X-XSS-Protection", "1; mode=block");
-  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('X-Frame-Options', 'DENY');
+  headers.set('X-XSS-Protection', '1; mode=block');
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
   // HSTS (only in production)
-  if (process.env.NODE_ENV === "production") {
-    headers.set(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains; preload"
-    );
+  if (process.env.NODE_ENV === 'production') {
+    headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   }
 
   // Custom security headers
-  headers.set("X-DNS-Prefetch-Control", "on");
-  headers.set("X-Permitted-Cross-Domain-Policies", "none");
+  headers.set('X-DNS-Prefetch-Control', 'on');
+  headers.set('X-Permitted-Cross-Domain-Policies', 'none');
 
   // Remove potentially sensitive headers
-  headers.delete("X-Powered-By");
+  headers.delete('X-Powered-By');
 
   // Apply the headers to the response
   Object.entries(Object.fromEntries(headers.entries())).forEach(([key, value]) => {
@@ -70,7 +67,7 @@ export async function middleware(request: NextRequest) {
   });
 
   // Log request for monitoring
-  logger.info("Request processed", {
+  logger.info('Request processed', {
     url: request.nextUrl.pathname,
     method: request.method,
   });
@@ -87,6 +84,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

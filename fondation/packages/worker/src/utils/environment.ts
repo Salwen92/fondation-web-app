@@ -7,8 +7,7 @@
  * Check if running in development environment
  */
 export function isDevelopment(): boolean {
-  return process.env.NODE_ENV === 'development' || 
-         process.env.FONDATION_MODE === 'development';
+  return process.env.NODE_ENV === 'development' || process.env.FONDATION_MODE === 'development';
 }
 
 /**
@@ -62,11 +61,11 @@ export function getCliPath(): string {
   if (isProduction()) {
     // Production paths in Docker container
     const dockerPaths = [
-      '/app/cli/dist/cli.bundled.mjs',    // Primary production path
+      '/app/cli/dist/cli.bundled.mjs', // Primary production path
       '/app/cli/node_modules/@fondation/cli/dist/cli.bundled.mjs', // NPM package path
-      '/app/node_modules/@fondation/cli/dist/cli.bundled.mjs',     // Alternative package path
+      '/app/node_modules/@fondation/cli/dist/cli.bundled.mjs', // Alternative package path
     ];
-    
+
     // Return first existing path or default
     const fs = require('fs');
     for (const path of dockerPaths) {

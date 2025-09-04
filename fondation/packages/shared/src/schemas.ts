@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Retry policy configuration
 export const RetryPolicySchema = z.object({
@@ -12,17 +12,14 @@ export const RetryPolicySchema = z.object({
 export type RetryPolicy = z.infer<typeof RetryPolicySchema>;
 
 // Calculate next retry delay with exponential backoff and jitter
-export function calculateRetryDelay(
-  attempt: number,
-  policy: RetryPolicy
-): number {
+export function calculateRetryDelay(attempt: number, policy: RetryPolicy): number {
   const exponentialDelay = Math.min(
     policy.baseDelayMs * policy.backoffMultiplier ** (attempt - 1),
-    policy.maxDelayMs
+    policy.maxDelayMs,
   );
-  
+
   const jitter = Math.random() * policy.jitterMs;
-  
+
   return exponentialDelay + jitter;
 }
 

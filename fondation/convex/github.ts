@@ -1,16 +1,16 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 
 // Fetch and update repository metadata from GitHub
 export const updateRepositoryMetadata = mutation({
   args: {
-    repositoryId: v.id("repositories"),
+    repositoryId: v.id('repositories'),
     lastAnalyzedAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const repository = await ctx.db.get(args.repositoryId);
     if (!repository) {
-      throw new Error("Repository not found");
+      throw new Error('Repository not found');
     }
 
     // If only updating lastAnalyzedAt (no metadata fetch), do that quickly
@@ -23,7 +23,7 @@ export const updateRepositoryMetadata = mutation({
 
     const user = await ctx.db.get(repository.userId);
     if (!user?.githubAccessToken) {
-      console.error("No GitHub access token available");
+      console.error('No GitHub access token available');
       return null;
     }
 
@@ -35,10 +35,10 @@ export const updateRepositoryMetadata = mutation({
         {
           headers: {
             Authorization: `Bearer ${user.githubAccessToken}`,
-            Accept: "application/vnd.github.v3+json",
-            "User-Agent": "Fondation-App/1.0",
+            Accept: 'application/vnd.github.v3+json',
+            'User-Agent': 'Fondation-App/1.0',
           },
-        }
+        },
       );
 
       // Check for rate limiting
@@ -52,8 +52,8 @@ export const updateRepositoryMetadata = mutation({
         throw new Error(`GitHub API error: ${languagesResponse.status}`);
       }
 
-      const languagesData = await languagesResponse.json() as Record<string, number>;
-      
+      const languagesData = (await languagesResponse.json()) as Record<string, number>;
+
       // Calculate total bytes and percentages
       const totalBytes = Object.values(languagesData).reduce((sum, bytes) => sum + bytes, 0);
       const languages = Object.entries(languagesData)
@@ -65,16 +65,13 @@ export const updateRepositoryMetadata = mutation({
         .sort((a, b) => b.percentage - a.percentage);
 
       // Fetch repository stats
-      const repoResponse = await fetch(
-        `https://api.github.com/repos/${repository.fullName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.githubAccessToken}`,
-            Accept: "application/vnd.github.v3+json",
-            "User-Agent": "Fondation-App/1.0",
-          },
-        }
-      );
+      const repoResponse = await fetch(`https://api.github.com/repos/${repository.fullName}`, {
+        headers: {
+          Authorization: `Bearer ${user.githubAccessToken}`,
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'Fondation-App/1.0',
+        },
+      });
 
       // Check for rate limiting
       if (repoResponse.status === 429) {
@@ -87,7 +84,7 @@ export const updateRepositoryMetadata = mutation({
         throw new Error(`GitHub API error: ${repoResponse.status}`);
       }
 
-      const repoData = await repoResponse.json() as {
+      const repoData = (await repoResponse.json()) as {
         stargazers_count: number;
         forks_count: number;
         open_issues_count: number;
@@ -96,7 +93,7 @@ export const updateRepositoryMetadata = mutation({
       // Update repository with fetched data
       const updateData: any = {
         languages: {
-          primary: languages[0]?.name ?? "Unknown",
+          primary: languages[0]?.name ?? 'Unknown',
           all: languages,
         },
         stats: {
@@ -106,17 +103,17 @@ export const updateRepositoryMetadata = mutation({
         },
         lastFetched: Date.now(),
       };
-      
+
       // Add lastAnalyzedAt if provided
       if (args.lastAnalyzedAt !== undefined) {
         updateData.lastAnalyzedAt = args.lastAnalyzedAt;
       }
-      
+
       await ctx.db.patch(args.repositoryId, updateData);
 
       return { success: true };
     } catch (error) {
-      console.error("Failed to fetch GitHub metadata:", error);
+      console.error('Failed to fetch GitHub metadata:', error);
       // Don't throw - gracefully degrade
       return null;
     }
@@ -126,7 +123,7 @@ export const updateRepositoryMetadata = mutation({
 // Get repository with fresh metadata (fetches if stale)
 export const getRepositoryWithMetadata = query({
   args: {
-    repositoryId: v.id("repositories"),
+    repositoryId: v.id('repositories'),
   },
   handler: async (ctx, args) => {
     const repository = await ctx.db.get(args.repositoryId);

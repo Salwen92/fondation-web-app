@@ -21,15 +21,13 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
       return (
-        message.includes("network") ||
-        message.includes("fetch") ||
-        message.includes("timeout")
+        message.includes('network') || message.includes('fetch') || message.includes('timeout')
       );
     }
     return false;
   },
   onRetry: (_attempt, _error) => {
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === 'development') {
     }
   },
 };
@@ -37,10 +35,7 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
 /**
  * Execute a function with automatic retry logic
  */
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  options?: RetryOptions
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   let lastError: unknown;
   let delay = opts.delayMs;
@@ -61,7 +56,7 @@ export async function withRetry<T>(
 
       // Wait before retrying with exponential backoff
       await new Promise((resolve) => setTimeout(resolve, delay));
-      
+
       // Increase delay for next attempt
       delay = Math.min(delay * opts.backoffMultiplier, opts.maxDelayMs);
     }
@@ -76,17 +71,17 @@ export async function withRetry<T>(
 export async function fetchWithRetry(
   url: string,
   init?: RequestInit,
-  options?: RetryOptions
+  options?: RetryOptions,
 ): Promise<Response> {
   return withRetry(
     async () => {
       const response = await fetch(url, init);
-      
+
       // Throw on 5xx errors to trigger retry
       if (response.status >= 500) {
         throw new Error(`Server error: ${response.status}`);
       }
-      
+
       return response;
     },
     {
@@ -96,14 +91,14 @@ export async function fetchWithRetry(
         if (DEFAULT_OPTIONS.shouldRetry(error)) {
           return true;
         }
-        
+
         if (error instanceof Error) {
-          return error.message.includes("Server error");
+          return error.message.includes('Server error');
         }
-        
+
         return false;
       },
-    }
+    },
   );
 }
 
@@ -112,27 +107,24 @@ export async function fetchWithRetry(
  */
 export function createRetryMutation<T extends (...args: never[]) => Promise<unknown>>(
   mutation: T,
-  options?: RetryOptions
+  options?: RetryOptions,
 ): T {
   return (async (...args: Parameters<T>) => {
-    return withRetry(
-      () => mutation(...args),
-      {
-        ...options,
-        shouldRetry: (error) => {
-          // Retry on Convex-specific errors
-          if (error instanceof Error) {
-            const message = error.message.toLowerCase();
-            return (
-              message.includes("network") ||
-              message.includes("timeout") ||
-              message.includes("rate limit") ||
-              message.includes("temporarily unavailable")
-            );
-          }
-          return false;
-        },
-      }
-    );
+    return withRetry(() => mutation(...args), {
+      ...options,
+      shouldRetry: (error) => {
+        // Retry on Convex-specific errors
+        if (error instanceof Error) {
+          const message = error.message.toLowerCase();
+          return (
+            message.includes('network') ||
+            message.includes('timeout') ||
+            message.includes('rate limit') ||
+            message.includes('temporarily unavailable')
+          );
+        }
+        return false;
+      },
+    });
   }) as T;
 }

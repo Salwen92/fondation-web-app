@@ -17,7 +17,7 @@ class MemoryCache {
    */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key) as CacheEntry<T> | undefined;
-    
+
     if (!entry) {
       return null;
     }
@@ -58,11 +58,7 @@ class MemoryCache {
   /**
    * Get or fetch with deduplication
    */
-  async getOrFetch<T>(
-    key: string,
-    fetcher: () => Promise<T>,
-    ttlMs = 60000
-  ): Promise<T> {
+  async getOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs = 60000): Promise<T> {
     // Check cache first
     const cached = this.get<T>(key);
     if (cached !== null) {
@@ -95,8 +91,8 @@ class MemoryCache {
    * Invalidate cache entries matching pattern
    */
   invalidatePattern(pattern: string | RegExp): void {
-    const regex = typeof pattern === "string" ? new RegExp(pattern) : pattern;
-    
+    const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+
     for (const key of this.cache.keys()) {
       if (regex.test(key)) {
         this.cache.delete(key);
@@ -116,7 +112,7 @@ export function memoize<T extends (...args: never[]) => Promise<unknown>>(
   options?: {
     keyGenerator?: (...args: Parameters<T>) => string;
     ttlMs?: number;
-  }
+  },
 ): T {
   const keyGen = options?.keyGenerator ?? ((...args) => JSON.stringify(args));
   const ttl = options?.ttlMs ?? 60000;
@@ -137,7 +133,7 @@ export function useCachedQuery<T>(
     ttlMs?: number;
     enabled?: boolean;
     onError?: (error: Error) => void;
-  }
+  },
 ): {
   data: T | null;
   isLoading: boolean;
@@ -155,7 +151,9 @@ export function useCachedQuery<T>(
   });
 
   const refetch = React.useCallback(async () => {
-    if (options?.enabled === false) { return; }
+    if (options?.enabled === false) {
+      return;
+    }
 
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
@@ -163,7 +161,7 @@ export function useCachedQuery<T>(
       const data = await cache.getOrFetch(key, fetcher, options?.ttlMs);
       setState({ data, isLoading: false, error: null });
     } catch (error) {
-      const err = error instanceof Error ? error : new Error("Unknown error");
+      const err = error instanceof Error ? error : new Error('Unknown error');
       setState((prev) => ({ ...prev, isLoading: false, error: err }));
       options?.onError?.(err);
     }
@@ -179,4 +177,4 @@ export function useCachedQuery<T>(
 }
 
 // Helper for React import
-import React from "react";
+import React from 'react';

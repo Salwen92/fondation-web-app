@@ -1,39 +1,41 @@
 'use client';
 
-import { useQuery } from 'convex/react';
 import { api } from '@convex/generated/api';
 import type { Id } from '@convex/generated/dataModel';
-import { useSession } from 'next-auth/react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Book, 
-  FileText,
+import { useQuery } from 'convex/react';
+import { motion } from 'framer-motion';
+import {
+  Book,
   Calendar,
   ExternalLink,
-  Loader2,
+  FileText,
   FolderOpen,
-  Sparkles
+  Loader2,
+  Sparkles,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 export default function DocsPage() {
   const { data: session } = useSession();
-  
+
   // Get all completed jobs for the user
-  const jobs = useQuery(api.jobs.listUserJobs, 
-    session?.user?.id ? { userId: session.user.id as Id<"users"> } : 'skip'
+  const jobs = useQuery(
+    api.jobs.listUserJobs,
+    session?.user?.id ? { userId: session.user.id as Id<'users'> } : 'skip',
   );
-  
+
   // Get repository details for each job - moved to top level to fix hook rules
-  const repositories = useQuery(api.repositories.listUserRepositories,
-    session?.user?.id ? { userId: session.user.id as Id<"users"> } : 'skip'
+  const repositories = useQuery(
+    api.repositories.listUserRepositories,
+    session?.user?.id ? { userId: session.user.id as Id<'users'> } : 'skip',
   );
-  
-  const completedJobs = jobs?.filter(job => job.status === 'completed') ?? [];
-  
+
+  const completedJobs = jobs?.filter((job) => job.status === 'completed') ?? [];
+
   if (!session?.user?.id) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -44,7 +46,7 @@ export default function DocsPage() {
       </div>
     );
   }
-  
+
   if (completedJobs.length === 0) {
     return (
       <div className="space-y-6">
@@ -56,7 +58,7 @@ export default function DocsPage() {
             Tous vos cours générés à partir de vos dépôts GitHub
           </p>
         </div>
-        
+
         <div className="flex items-center justify-center min-h-[50vh]">
           <Card className="glass p-12 text-center max-w-md">
             <FolderOpen className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
@@ -75,9 +77,9 @@ export default function DocsPage() {
       </div>
     );
   }
-  
-  const repoMap = new Map(repositories?.map(r => [r._id, r]) ?? []);
-  
+
+  const repoMap = new Map(repositories?.map((r) => [r._id, r]) ?? []);
+
   return (
     <div className="space-y-6">
       <div>
@@ -88,12 +90,14 @@ export default function DocsPage() {
           {completedJobs.length} cours générés à partir de vos dépôts
         </p>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {completedJobs.map((job, index) => {
           const repo = repoMap.get(job.repositoryId);
-          if (!repo) { return null; }
-          
+          if (!repo) {
+            return null;
+          }
+
           return (
             <motion.div
               key={job._id}
@@ -115,7 +119,7 @@ export default function DocsPage() {
                           <p className="text-xs text-muted-foreground">{repo.fullName}</p>
                         </div>
                       </div>
-                      <a 
+                      <a
                         href={`https://github.com/${repo.fullName}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -124,36 +128,36 @@ export default function DocsPage() {
                         <ExternalLink className="h-4 w-4 text-muted-foreground" />
                       </a>
                     </div>
-                    
+
                     <Badge variant="secondary" className="bg-green-500/10 text-green-500">
                       <FileText className="mr-1 h-3 w-3" />
                       {job.docsCount ?? 0} documents
                     </Badge>
                   </div>
-                  
+
                   {/* Description */}
                   {repo.description && (
                     <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                       {repo.description}
                     </p>
                   )}
-                  
+
                   {/* Spacer */}
                   <div className="flex-grow" />
-                  
+
                   {/* Footer */}
                   <div className="space-y-3">
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Calendar className="mr-1 h-3 w-3" />
                       Généré le {new Date(job.createdAt).toLocaleDateString('fr-FR')}
                     </div>
-                    
+
                     <div className="flex gap-2">
-                      <Link 
+                      <Link
                         href={`/course/${repo.fullName.split('/')[0]}/${repo.fullName.split('/')[1]}/latest`}
                         className="flex-1"
                       >
-                        <Button 
+                        <Button
                           size="sm"
                           className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
                         >

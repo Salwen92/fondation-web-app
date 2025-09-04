@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 interface ProgressBarProps {
   currentStep: number;
@@ -11,19 +11,21 @@ interface ProgressBarProps {
  * Shows current step, total steps, and percentage completion
  * Note: Displays 1-based step numbers to users (Step 1, 2, 3...) regardless of internal 0-based indexing
  */
-export function ProgressBar({ currentStep, totalSteps, className = "" }: ProgressBarProps) {
+export function ProgressBar({ currentStep, totalSteps, className = '' }: ProgressBarProps) {
   // Ensure we show at least Step 1 for active jobs, handle 0-based internal values
   const displayStep = Math.max(1, currentStep);
   const percentage = Math.round((displayStep / totalSteps) * 100);
-  
+
   return (
     <div className={`w-full ${className}`}>
       <div className="flex justify-between text-xs text-muted-foreground mb-1">
-        <span>Étape {displayStep} sur {totalSteps}</span>
+        <span>
+          Étape {displayStep} sur {totalSteps}
+        </span>
         <span>{percentage}%</span>
       </div>
       <div className="w-full bg-muted rounded-full h-2">
-        <div 
+        <div
           className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
           style={{ width: `${percentage}%` }}
         />
