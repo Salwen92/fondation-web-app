@@ -5,9 +5,12 @@ import { auth } from '@/server/auth';
 export default async function DashboardPage() {
   const session = await auth();
 
-  if (!session?.user?.githubId) {
+  if (!session) {
     redirect('/login');
   }
 
-  return <DashboardContent githubId={session.user.githubId} userName={session.user.name} />;
+  // Ensure githubId exists, fallback gracefully if needed
+  const githubId = session.user?.githubId || session.user?.id;
+  
+  return <DashboardContent githubId={githubId} userName={session.user.name} />;
 }
