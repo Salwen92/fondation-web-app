@@ -6,6 +6,7 @@ import { useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { Book, ExternalLink, FileText, GitBranch } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { useJobManagement } from '@/hooks/use-job-management';
 import { useRegenerate } from '@/hooks/use-regenerate';
@@ -29,15 +30,19 @@ interface RepoCardProps {
  * Repository card component
  * Displays repository information and job management controls
  */
-export function RepoCard({ repo, userId }: RepoCardProps) {
+function RepoCardComponent({ repo, userId }: RepoCardProps) {
   const router = useRouter();
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId: repo._id });
 
-  // Get actual docs count from latest completed job
-  const docsCount = latestJob?.status === 'completed' ? (latestJob.docsCount ?? 0) : 0;
+  // Memoize computed values to prevent unnecessary re-renders
+  const docsCount = React.useMemo(() => {
+    return latestJob?.status === 'completed' ? (latestJob.docsCount ?? 0) : 0;
+  }, [latestJob?.status, latestJob?.docsCount]);
 
-  // Get languages from repository metadata
-  const languages = (repo as any).languages?.all?.slice(0, 3).map((lang: any) => lang.name) ?? [];
+  // Memoize languages to prevent re-calculation
+  const languages = React.useMemo(() => {
+    return (repo as any).languages?.all?.slice(0, 3).map((lang: any) => lang.name) ?? [];
+  }, [repo]);
 
   // Use the job management hook
   const { handleGenerate, handleCancel } = useJobManagement({
@@ -78,33 +83,47 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
     }
   };
 
-  // Job status calculations - prioritize any active job
-  // If there's a regeneration job in progress, use it; otherwise use the latest job
-  const currentJob = isRegenerating && regenerationJob ? regenerationJob : latestJob;
+  // Memoize job status calculations to prevent re-computation
+  const jobStatusMemo = React.useMemo(() => {
+    // Job status calculations - prioritize any active job
+    // If there's a regeneration job in progress, use it; otherwise use the latest job
+    const currentJob = isRegenerating && regenerationJob ? regenerationJob : latestJob;
 
-  // Check if the latest job is actually running (real-time tracking)
-  const isLatestJobRunning =
-    latestJob &&
-    ['pending', 'claimed', 'cloning', 'analyzing', 'gathering', 'running'].includes(
-      latestJob.status,
-    );
-  const isProcessing =
-    isLatestJobRunning ||
-    (isRegenerating &&
-      regenerationJob &&
+    // Check if the latest job is actually running (real-time tracking)
+    const isLatestJobRunning =
+      latestJob &&
       ['pending', 'claimed', 'cloning', 'analyzing', 'gathering', 'running'].includes(
-        regenerationJob.status,
-      ));
+        latestJob.status,
+      );
+    const isProcessing =
+      isLatestJobRunning ||
+      (isRegenerating &&
+        regenerationJob &&
+        ['pending', 'claimed', 'cloning', 'analyzing', 'gathering', 'running'].includes(
+          regenerationJob.status,
+        ));
 
-  const isCompleted = currentJob?.status === 'completed';
-  const isFailed = currentJob?.status === 'failed' || currentJob?.status === 'dead';
-  const isCanceled = currentJob?.status === 'canceled';
+    const isCompleted = currentJob?.status === 'completed';
+    const isFailed = currentJob?.status === 'failed' || currentJob?.status === 'dead';
+    const isCanceled = currentJob?.status === 'canceled';
+
+    return {
+      currentJob,
+      isLatestJobRunning,
+      isProcessing,
+      isCompleted,
+      isFailed,
+      isCanceled,
+    };
+  }, [latestJob, regenerationJob, isRegenerating]);
+
+  const { currentJob, isLatestJobRunning, isProcessing, isCompleted, isFailed, isCanceled } = jobStatusMemo;
 
   return (
-    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
-      <Card className="glass glass-hover h-full backdrop-blur-xl transition-all duration-300 overflow-hidden group">
+    <div>
+      <Card className="glass glass-hover h-full backdrop-blur-xl transition-transform duration-200 overflow-hidden group hover:-translate-y-1">
         {/* Gradient border effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         <div className="relative p-6 h-full flex flex-col">
           {/* Header */}
@@ -205,6 +224,10 @@ export function RepoCard({ repo, userId }: RepoCardProps) {
         onClose={handleClose}
         onComplete={handleComplete}
       />
-    </motion.div>
+    </div>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+// Note: React.memo comparison function returns true when props are equal (skip re-render)
+export const RepoCard = React.memo(RepoCardComponent);

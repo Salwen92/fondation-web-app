@@ -1,6 +1,7 @@
 'use client';
 
 import { CheckCircle, Loader2, X } from 'lucide-react';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { translateProgress } from '@/lib/translations';
 
@@ -25,7 +26,7 @@ interface JobStatusBadgeProps {
  * Component to display job status as a badge
  * Shows appropriate icon and translated text based on status
  */
-export function JobStatusBadge({ status, progress }: JobStatusBadgeProps) {
+function JobStatusBadgeComponent({ status, progress }: JobStatusBadgeProps) {
   if (!status) {
     return null;
   }
@@ -81,3 +82,8 @@ export function JobStatusBadge({ status, progress }: JobStatusBadgeProps) {
 
   return null;
 }
+
+// Memoize the component to prevent frequent re-renders from progress updates
+export const JobStatusBadge = React.memo(JobStatusBadgeComponent, (prevProps, nextProps) => {
+  return prevProps.status === nextProps.status && prevProps.progress === nextProps.progress;
+});

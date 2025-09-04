@@ -179,17 +179,16 @@ export const upsertFromJob = mutation({
     console.log('[V7] Regeneration complete:', stats);
 
     // Clean up old generation documents after successful regeneration
-    if (stats.inserted > 0 || stats.updated > 0) {
-      try {
-        const cleanupResult = await ctx.runMutation(internal.docs.cleanupOldGenerations, {
-          repositoryId: args.repositoryId,
-          keepLatestJobId: args.jobId,
-        });
-        console.log('[V7] Cleanup result:', cleanupResult);
-      } catch (error) {
-        console.error('[V7] Cleanup failed:', error);
-        // Don't fail the regeneration if cleanup fails
-      }
+    // Always run cleanup to ensure only one version of docs per repository
+    try {
+      const cleanupResult = await ctx.runMutation(internal.docs.cleanupOldGenerations, {
+        repositoryId: args.repositoryId,
+        keepLatestJobId: args.jobId,
+      });
+      console.log('[V7] Cleanup result:', cleanupResult);
+    } catch (error) {
+      console.error('[V7] Cleanup failed:', error);
+      // Don't fail the regeneration if cleanup fails
     }
 
     return { docsCount: docIds.length, docIds, stats };

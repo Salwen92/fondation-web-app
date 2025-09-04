@@ -2,7 +2,7 @@
 
 import { api } from '@convex/generated/api';
 import { useMutation, useQuery } from 'convex/react';
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion'; // Removed to fix blinking during scroll
 import {
   Activity,
   BarChart3,
@@ -118,11 +118,7 @@ export function DashboardContent({ githubId, userName }: DashboardContentProps) 
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div>
         <h2 className="mb-2 text-4xl font-bold">
           Bon retour,
           <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
@@ -133,18 +129,13 @@ export function DashboardContent({ githubId, userName }: DashboardContentProps) 
         <p className="text-muted-foreground">
           Voici un aperçu de votre activité de génération de documentation
         </p>
-      </motion.div>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <motion.div
-            key={stat.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-          >
-            <Card className="glass glass-hover p-6 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]">
+          <div key={stat.title}>
+            <Card className="glass glass-hover p-6 backdrop-blur-xl transition-transform duration-200 hover:scale-[1.02]">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">{stat.title}</p>
@@ -167,16 +158,12 @@ export function DashboardContent({ githubId, userName }: DashboardContentProps) 
                 </div>
               </div>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* Quick Actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
+      <div>
         <Card className="glass p-6 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold flex items-center">
@@ -202,16 +189,12 @@ export function DashboardContent({ githubId, userName }: DashboardContentProps) 
             </button>
           </div>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Repository List */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-      >
+      <div>
         <RepositoryList userId={user._id} />
-      </motion.div>
+      </div>
     </div>
   );
 }

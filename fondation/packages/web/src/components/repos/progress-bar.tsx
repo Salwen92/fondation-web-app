@@ -1,5 +1,7 @@
 'use client';
 
+import React;
+
 interface ProgressBarProps {
   currentStep: number;
   totalSteps: number;
@@ -11,7 +13,7 @@ interface ProgressBarProps {
  * Shows current step, total steps, and percentage completion
  * Note: Displays 1-based step numbers to users (Step 1, 2, 3...) regardless of internal 0-based indexing
  */
-export function ProgressBar({ currentStep, totalSteps, className = '' }: ProgressBarProps) {
+function ProgressBarComponent({ currentStep, totalSteps, className = '' }: ProgressBarProps) {
   // Ensure we show at least Step 1 for active jobs, handle 0-based internal values
   const displayStep = Math.max(1, currentStep);
   const percentage = Math.round((displayStep / totalSteps) * 100);
@@ -33,3 +35,12 @@ export function ProgressBar({ currentStep, totalSteps, className = '' }: Progres
     </div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders during progress updates
+export const ProgressBar = React.memo(ProgressBarComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.currentStep === nextProps.currentStep &&
+    prevProps.totalSteps === nextProps.totalSteps &&
+    prevProps.className === nextProps.className
+  );
+});

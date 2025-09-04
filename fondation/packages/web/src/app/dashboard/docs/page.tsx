@@ -3,7 +3,7 @@
 import { api } from '@convex/generated/api';
 import type { Id } from '@convex/generated/dataModel';
 import { useQuery } from 'convex/react';
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion'; // Removed to fix blinking during scroll
 import React from 'react';
 import {
   AlertCircle,
@@ -94,14 +94,16 @@ export default function DocsPage() {
 
   const allJobs = jobs ?? [];
 
-  // Group jobs by repository and get the latest job for each repository
-  const latestJobsPerRepo = React.useMemo(() => {
+  // Show ONLY completed jobs, get the latest completed job per repository
+  const completedJobsPerRepo = React.useMemo(() => {
     if (!allJobs.length) return [];
     
+    // First filter to only completed jobs
+    const completedJobs = allJobs.filter(job => job.status === 'completed');
     const jobsByRepo = new Map();
     
-    // Group jobs by repositoryId and keep only the latest one
-    for (const job of allJobs) {
+    // Group completed jobs by repositoryId and keep only the latest one
+    for (const job of completedJobs) {
       const existingJob = jobsByRepo.get(job.repositoryId);
       if (!existingJob || job.createdAt > existingJob.createdAt) {
         jobsByRepo.set(job.repositoryId, job);
@@ -122,7 +124,7 @@ export default function DocsPage() {
     );
   }
 
-  if (latestJobsPerRepo.length === 0) {
+  if (completedJobsPerRepo.length === 0) {
     return (
       <div className="space-y-6">
         <div>
@@ -162,24 +164,19 @@ export default function DocsPage() {
           Mes Cours
         </h1>
         <p className="text-muted-foreground">
-          {latestJobsPerRepo.length} cours générés à partir de vos dépôts
+          {completedJobsPerRepo.length} cours générés à partir de vos dépôts
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {latestJobsPerRepo.map((job, index) => {
+        {completedJobsPerRepo.map((job, index) => {
           const repo = repoMap.get(job.repositoryId);
           if (!repo) {
             return null;
           }
 
           return (
-            <motion.div
-              key={job._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
+            <div key={job._id}>
               <Card className="glass glass-hover h-full overflow-hidden group">
                 <div className="p-6 flex flex-col h-full">
                   {/* Header */}
@@ -285,7 +282,7 @@ export default function DocsPage() {
                   </div>
                 </div>
               </Card>
-            </motion.div>
+            </div>
           );
         })}
       </div>
