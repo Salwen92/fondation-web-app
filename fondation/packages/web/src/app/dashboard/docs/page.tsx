@@ -114,11 +114,8 @@ export default function DocsPage() {
   const filteredAndSortedJobs = React.useMemo(() => {
     if (!allJobs.length) return [];
     
-    // Apply status filter first
-    const statusFilteredJobs = filterCoursesByStatus(allJobs, statusFilter);
-    
-    // Get latest job per repository
-    const latestJobs = getLatestJobPerRepo(statusFilteredJobs);
+    // Get latest job per repository FIRST (before status filtering)
+    const latestJobs = getLatestJobPerRepo(allJobs);
     
     // Convert to CourseWithRepo format
     const coursesWithRepo: CourseWithRepo[] = latestJobs.map((job) => ({
@@ -126,8 +123,11 @@ export default function DocsPage() {
       repository: repoMap.get(job.repositoryId),
     })).filter((course) => course.repository); // Only include courses with valid repos
     
+    // Apply status filter to the latest jobs per repo
+    const statusFiltered = filterCoursesByStatus(coursesWithRepo, statusFilter);
+    
     // Apply search filter
-    const searchFiltered = searchCourses(coursesWithRepo, searchQuery);
+    const searchFiltered = searchCourses(statusFiltered, searchQuery);
     
     // Apply sorting
     return sortCourses(searchFiltered, sortBy);
