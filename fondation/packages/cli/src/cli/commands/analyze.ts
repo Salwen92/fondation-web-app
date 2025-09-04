@@ -259,12 +259,7 @@ Use "fondation --help" for more information about global options.`,
         fullError: JSON.stringify(error, null, 2),
       });
 
-      // Always log to console for debugging visibility
-      console.error('ANALYZE COMMAND ERROR:', error);
-      if (errorStack) {
-        console.error('STACK TRACE:', errorStack);
-      }
-
+      // Stack trace is already included in logger.error above
       logger.debug('Full error details', { error });
       process.exit(1);
     }
@@ -435,7 +430,7 @@ async function runPromptStep(
     if (isDevelopment) {
       logger.debug('[DEBUG] Claude Code SDK Message', {
         messageType: message.type,
-        hasContent: !!(message as any).content,
+        hasContent: 'message' in message && !!message.message,
       });
     }
   }

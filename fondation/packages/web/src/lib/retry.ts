@@ -28,6 +28,7 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
   },
   onRetry: (_attempt, _error) => {
     if (process.env.NODE_ENV === 'development') {
+      // Development retry logging would be implemented here
     }
   },
 };

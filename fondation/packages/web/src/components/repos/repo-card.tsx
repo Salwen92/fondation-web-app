@@ -3,7 +3,6 @@
 import { api } from '@convex/generated/api';
 import type { Id } from '@convex/generated/dataModel';
 import { useQuery } from 'convex/react';
-import { motion } from 'framer-motion';
 import { Book, ExternalLink, FileText, GitBranch } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -22,6 +21,9 @@ interface RepoCardProps {
     fullName: string;
     description?: string;
     defaultBranch: string;
+    languages?: {
+      all?: Array<{ name: string }>;
+    };
   };
   userId: Id<'users'>;
 }
@@ -31,7 +33,7 @@ interface RepoCardProps {
  * Displays repository information and job management controls
  */
 function RepoCardComponent({ repo, userId }: RepoCardProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const latestJob = useQuery(api.jobs.getJobByRepository, { repositoryId: repo._id });
 
   // Memoize computed values to prevent unnecessary re-renders
@@ -41,7 +43,7 @@ function RepoCardComponent({ repo, userId }: RepoCardProps) {
 
   // Memoize languages to prevent re-calculation
   const languages = React.useMemo(() => {
-    return (repo as any).languages?.all?.slice(0, 3).map((lang: any) => lang.name) ?? [];
+    return repo.languages?.all?.slice(0, 3).map((lang) => lang.name) ?? [];
   }, [repo]);
 
   // Use the job management hook
@@ -65,7 +67,6 @@ function RepoCardComponent({ repo, userId }: RepoCardProps) {
     handleRegenerateClick,
     handleComplete,
     handleClose,
-    canRegenerate,
     activeJob: regenerationJob,
     isRegenerating,
   } = useRegenerate(repository, {
@@ -117,7 +118,14 @@ function RepoCardComponent({ repo, userId }: RepoCardProps) {
     };
   }, [latestJob, regenerationJob, isRegenerating]);
 
-  const { currentJob, isLatestJobRunning, isProcessing, isCompleted, isFailed, isCanceled } = jobStatusMemo;
+  const {
+    currentJob,
+    isLatestJobRunning: _isLatestJobRunning,
+    isProcessing,
+    isCompleted,
+    isFailed,
+    isCanceled,
+  } = jobStatusMemo;
 
   return (
     <div>
@@ -203,7 +211,7 @@ function RepoCardComponent({ repo, userId }: RepoCardProps) {
 
           {/* Actions */}
           <JobActions
-            status={currentJob?.status as any}
+            status={currentJob?.status}
             isProcessing={!!isProcessing}
             isCompleted={!!isCompleted}
             isFailed={!!isFailed}

@@ -5,7 +5,9 @@ import { internalMutation, mutation, query } from './_generated/server';
 
 // Helper function to normalize markdown content
 function normalizeMarkdown(content: string): string {
-  if (!content) return content;
+  if (!content) {
+    return content;
+  }
 
   // Normalize line endings to \n
   let normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -97,11 +99,7 @@ export const upsertFromJob = mutation({
         (file.kind === 'chapter' || file.kind === 'tutorial') &&
         (!file.content || file.content.trim().length === 0)
       ) {
-        console.warn('[V7] Rejecting empty content:', {
-          slug: file.slug,
-          title: file.title,
-          kind: file.kind,
-        });
+        // Empty content rejection - slug: file.slug, title: file.title, kind: file.kind
         stats.rejected++;
         continue;
       }
@@ -111,7 +109,7 @@ export const upsertFromJob = mutation({
 
       // Skip if we've already processed this key in this batch
       if (processedKeys.has(sourceKey)) {
-        console.warn('[V7] Duplicate in batch:', sourceKey);
+        // Duplicate document in batch with key: sourceKey
         stats.skipped++;
         continue;
       }
@@ -176,19 +174,19 @@ export const upsertFromJob = mutation({
       regenerationStats: stats,
     });
 
-    console.log('[V7] Regeneration complete:', stats);
+    // Regeneration complete - stats included in return value
 
     // Clean up old generation documents after successful regeneration
     // Always run cleanup to ensure only one version of docs per repository
     try {
-      const cleanupResult = await ctx.runMutation(internal.docs.cleanupOldGenerations, {
+      await ctx.runMutation(internal.docs.cleanupOldGenerations, {
         repositoryId: args.repositoryId,
         keepLatestJobId: args.jobId,
       });
-      console.log('[V7] Cleanup result:', cleanupResult);
-    } catch (error) {
-      console.error('[V7] Cleanup failed:', error);
-      // Don't fail the regeneration if cleanup fails
+      // Cleanup completed successfully
+    } catch (_error) {
+      // Cleanup failed but don't fail the whole regeneration
+      // Error details available in Convex logs
     }
 
     return { docsCount: docIds.length, docIds, stats };
@@ -306,7 +304,7 @@ export const cleanupDuplicates = mutation({
 
     const toDelete: string[] = [];
 
-    for (const [title, duplicates] of docsByTitle) {
+    for (const [_title, duplicates] of docsByTitle) {
       if (duplicates.length > 1) {
         stats.duplicateGroups++;
 
@@ -315,12 +313,16 @@ export const cleanupDuplicates = mutation({
           // Prefer non-empty content
           const aEmpty = !a.content || a.content.trim().length === 0;
           const bEmpty = !b.content || b.content.trim().length === 0;
-          if (aEmpty !== bEmpty) return aEmpty ? 1 : -1;
+          if (aEmpty !== bEmpty) {
+            return aEmpty ? 1 : -1;
+          }
 
           // Prefer reviewed- prefix
           const aReviewed = a.slug.includes('reviewed-');
           const bReviewed = b.slug.includes('reviewed-');
-          if (aReviewed !== bReviewed) return bReviewed ? 1 : -1;
+          if (aReviewed !== bReviewed) {
+            return bReviewed ? 1 : -1;
+          }
 
           // Prefer more recent
           return (b.createdAt || 0) - (a.createdAt || 0);
@@ -328,28 +330,27 @@ export const cleanupDuplicates = mutation({
 
         // Keep the first (best) one
         const keep = duplicates[0];
-        if (!keep) continue; // Skip if no documents found
+        if (!keep) {
+          continue; // Skip if no documents found
+        }
         stats.kept++;
 
         // Mark others for deletion
         for (let i = 1; i < duplicates.length; i++) {
           const doc = duplicates[i];
-          if (!doc) continue; // Skip if document is undefined
+          if (!doc) {
+            continue;
+          } // Skip if document is undefined
           toDelete.push(doc._id);
           if (!doc.content || doc.content.trim().length === 0) {
             stats.emptyDeleted++;
           }
         }
 
-        console.log('[V7 Cleanup] Duplicate group:', {
-          title,
-          kept: { id: keep._id, slug: keep.slug, size: keep.content?.length || 0 },
-          deleted: duplicates.slice(1).map((d) => ({
-            id: d._id,
-            slug: d.slug,
-            size: d.content?.length || 0,
-          })),
-        });
+        // Duplicate group cleaned:
+        // Title: {title}
+        // Kept: {keep._id} (slug: {keep.slug}, size: {keep.content?.length || 0})
+        // Deleted: {duplicates.length - 1} documents
       } else {
         stats.kept++;
       }
@@ -406,9 +407,7 @@ export const cleanupOldGenerations = internalMutation({
       deletedJobIds.push(oldJob._id);
     }
 
-    console.log(
-      `[Cleanup] Deleted ${deletedDocsCount} documents from ${oldJobs.length} old jobs for repository ${args.repositoryId}`,
-    );
+    // Cleanup complete: Deleted {deletedDocsCount} documents from {oldJobs.length} old jobs
 
     return {
       deletedDocsCount,

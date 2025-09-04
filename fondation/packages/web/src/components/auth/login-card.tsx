@@ -84,11 +84,17 @@ export function LoginCard() {
         {/* Footer */}
         <p className="text-muted-foreground mt-6 text-center text-xs">
           En vous connectant, vous acceptez nos{' '}
-          <button className="hover:text-foreground underline transition-colors cursor-pointer">
+          <button
+            type="button"
+            className="hover:text-foreground underline transition-colors cursor-pointer"
+          >
             Conditions d&apos;utilisation
           </button>{' '}
           et notre{' '}
-          <button className="hover:text-foreground underline transition-colors cursor-pointer">
+          <button
+            type="button"
+            className="hover:text-foreground underline transition-colors cursor-pointer"
+          >
             Politique de confidentialité
           </button>
         </p>

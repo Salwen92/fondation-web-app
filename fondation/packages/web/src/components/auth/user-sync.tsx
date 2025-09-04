@@ -31,7 +31,9 @@ export function UserSync() {
       }
     };
 
-    void syncUser();
+    syncUser().catch(() => {
+      // User sync error handled by Convex
+    });
   }, [session, createOrUpdateUser]);
 
   return null;

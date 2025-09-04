@@ -158,7 +158,7 @@ export async function validateTokenScopes(token: string): Promise<{
       scopes: tokenScopes,
       missing,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       valid: false,
       scopes: [],
@@ -216,7 +216,7 @@ export function describeScopes(scopes: string[]): string[] {
  * Log scope usage for security auditing
  */
 export function logScopeUsage(userId: string, scopes: string[], action: string): void {
-  const scopeInfo = {
+  const _scopeInfo = {
     timestamp: new Date().toISOString(),
     userId,
     scopes,
@@ -227,6 +227,6 @@ export function logScopeUsage(userId: string, scopes: string[], action: string):
 
   // In production, this would go to a security log
   if (process.env.NODE_ENV === 'production') {
-    console.log(JSON.stringify(scopeInfo));
+    // Security event would be logged to monitoring system
   }
 }

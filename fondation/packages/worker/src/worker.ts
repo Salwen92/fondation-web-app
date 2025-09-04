@@ -1,15 +1,17 @@
 import { api } from '@convex/generated/api';
+import type { Id } from '@convex/generated/dataModel';
 import type { ConvexClient } from 'convex/browser';
 // validateConfig is now passed from main
 import { CLIExecutor } from './cli-executor.js';
+import type { CLIResult } from './cli-strategies/base-strategy-interface';
 import { maskSensitiveData, safeDecrypt } from './encryption';
 import { HealthServer } from './health.js';
 import { RepoManager } from './repo-manager.js';
 import { WorkerLogger } from './worker-logger.js';
 
-// Type aliases for IDs to avoid import issues
-type JobId = string;
-type RepositoryId = string;
+// Import proper Convex ID types (used directly in type definitions below)
+
+// Removed unused ClaimedJobData type - job mapping handled directly
 
 // Use local types until workspace resolution is fixed
 type WorkerConfig = {
@@ -25,16 +27,86 @@ type WorkerConfig = {
   developmentMode: boolean;
 };
 
+// Define proper types based on Convex schema
+type Repository = {
+  _id: Id<'repositories'>;
+  userId: Id<'users'>;
+  githubRepoId: string;
+  name: string;
+  fullName: string;
+  description?: string;
+  defaultBranch: string;
+  lastFetched?: number;
+  lastAnalyzedAt?: number;
+  languages?: {
+    primary: string;
+    all: Array<{
+      name: string;
+      percentage: number;
+      bytes: number;
+    }>;
+  };
+  stats?: {
+    stars: number;
+    forks: number;
+    issues: number;
+  };
+};
+
+type User = {
+  _id: Id<'users'>;
+  githubId: string;
+  username: string;
+  email?: string;
+  avatarUrl?: string;
+  githubAccessToken?: string;
+  createdAt: number;
+};
+
 type Job = {
-  id: string;
-  userId: string;
-  repositoryId: string;
+  id: Id<'jobs'>;
+  userId: Id<'users'>;
+  repositoryId: Id<'repositories'>;
   repositoryUrl?: string;
   branch?: string;
   prompt: string;
-  status: string;
-  [key: string]: any;
+  status: JobStatus;
+  callbackToken: string;
+  runAt?: number;
+  attempts?: number;
+  maxAttempts?: number;
+  lockedBy?: string;
+  leaseUntil?: number;
+  dedupeKey?: string;
+  lastError?: string;
+  createdAt?: number;
+  updatedAt?: number;
+  completedAt?: number;
+  progress?: string;
+  currentStep?: number;
+  totalSteps?: number;
+  result?:
+    | {
+        success: boolean;
+        message?: string;
+        data?: string;
+      }
+    | string
+    | null;
+  error?: string;
+  docsCount?: number;
+  cancelRequested?: boolean;
+  runId?: string;
+  regenerationStats?: {
+    inserted: number;
+    updated: number;
+    skipped: number;
+    rejected: number;
+    deleted: number;
+  };
 };
+
+// CLI result types imported from strategy interface for consistency
 
 // Standardized job status definitions - must match Convex schema
 type JobStatus =
@@ -49,14 +121,7 @@ type JobStatus =
   | 'canceled'
   | 'dead';
 
-type ProgressUpdate = {
-  jobId: string;
-  status: JobStatus;
-  progress?: string;
-  currentStep?: number;
-  totalSteps?: number;
-  error?: string;
-};
+// Removed unused ProgressUpdate type
 
 export class PermanentWorker {
   private convex: ConvexClient;
@@ -133,7 +198,9 @@ export class PermanentWorker {
 
     if (developmentMode) {
       if (executionMode === 'local') {
+        // Development mode with local CLI execution
       } else {
+        // Development mode with Docker execution
       }
 
       return;
@@ -194,6 +261,7 @@ export class PermanentWorker {
     }
 
     if (this.activeJobs.size > 0) {
+      // Worker shutting down with active jobs - they will be cleaned up by polling loop
     }
 
     // Cleanup
@@ -225,9 +293,9 @@ export class PermanentWorker {
 
     if (claimedJob) {
       const job: Job = {
-        id: claimedJob.id as string,
-        repositoryId: claimedJob.repositoryId as string,
-        userId: claimedJob.userId as string,
+        id: claimedJob.id,
+        repositoryId: claimedJob.repositoryId,
+        userId: claimedJob.userId,
         prompt: claimedJob.prompt,
         callbackToken: claimedJob.callbackToken,
         attempts: claimedJob.attempts || 0,
@@ -253,8 +321,8 @@ export class PermanentWorker {
    * Returns validation data if successful, null if validation failed
    */
   private async preValidateJob(job: Job): Promise<{
-    repository: any;
-    user: any;
+    repository: Repository;
+    user: User;
     token: string;
   } | null> {
     this.logger.logInfo(`[PreValidate] Starting validation for job ${job.id}`);
@@ -262,7 +330,7 @@ export class PermanentWorker {
     // 1. Validate repository exists
     this.logger.logInfo(`[PreValidate] Fetching repository ${job.repositoryId}`);
     const repository = await this.convex.query(api.repositories.getByRepositoryId, {
-      repositoryId: job.repositoryId as any,
+      repositoryId: job.repositoryId,
     });
 
     if (!repository) {
@@ -279,7 +347,7 @@ export class PermanentWorker {
     // 2. Validate user exists and has GitHub access
     this.logger.logInfo(`[PreValidate] Fetching user ${repository.userId}`);
     const user = await this.convex.query(api.users.getUserById, {
-      userId: repository.userId as any,
+      userId: repository.userId,
     });
 
     if (!user?.githubId) {
@@ -510,13 +578,13 @@ export class PermanentWorker {
     }
   }
 
-  private startHeartbeat(jobId: string): NodeJS.Timeout {
+  private startHeartbeat(jobId: Id<'jobs'>): NodeJS.Timeout {
     return setInterval(async () => {
       await this.logger.safeExecute(
         'job-heartbeat',
         async () => {
           await this.convex.mutation(api.queue.heartbeat, {
-            jobId: jobId as any,
+            jobId: jobId,
             workerId: this.config.workerId,
             leaseMs: this.config.leaseTime,
           });
@@ -527,14 +595,14 @@ export class PermanentWorker {
   }
 
   private async updateJobStatus(
-    jobId: string,
+    jobId: Id<'jobs'>,
     status: JobStatus,
     progress?: string,
   ): Promise<void> {
     // Don't set step numbers for status updates - let the CLI control step progression
     // Only send the status and progress message
     await this.convex.mutation(api.queue.heartbeat, {
-      jobId: jobId as any,
+      jobId: jobId,
       workerId: this.config.workerId,
       status: status as 'cloning' | 'analyzing' | 'gathering' | 'running',
       progress,
@@ -542,10 +610,10 @@ export class PermanentWorker {
     });
   }
 
-  private async updateJobProgress(jobId: string, progress: string): Promise<void> {
+  private async updateJobProgress(jobId: Id<'jobs'>, progress: string): Promise<void> {
     // Use unified ProgressHandler for all progress processing
-    const { ProgressHandler } = await import('./progress-handler.js');
-    const progressInfo = ProgressHandler.processProgress(progress);
+    const { processProgress, formatForUI } = await import('./progress-handler.js');
+    const progressInfo = processProgress(progress);
 
     if (!progressInfo) {
       // If we can't parse the progress, just send the raw message
@@ -553,7 +621,7 @@ export class PermanentWorker {
         'update-job-progress',
         async () => {
           await this.convex.mutation(api.queue.heartbeat, {
-            jobId: jobId as any,
+            jobId: jobId,
             workerId: this.config.workerId,
             progress: progress.trim(),
             currentStep: 0,
@@ -566,13 +634,13 @@ export class PermanentWorker {
     }
 
     // Format the message for UI display
-    const uiMessage = ProgressHandler.formatForUI(progressInfo);
+    const uiMessage = formatForUI(progressInfo);
 
     await this.logger.safeExecute(
       'update-job-progress',
       async () => {
         await this.convex.mutation(api.queue.heartbeat, {
-          jobId: jobId as any,
+          jobId: jobId,
           workerId: this.config.workerId,
           progress: uiMessage,
           currentStep: progressInfo.step,
@@ -583,7 +651,7 @@ export class PermanentWorker {
     );
   }
 
-  private async completeJob(jobId: string, result: any): Promise<void> {
+  private async completeJob(jobId: Id<'jobs'>, result: CLIResult): Promise<void> {
     // Convert complex result to simple structure for Convex schema
     const simpleResult = {
       success: result.success || false,
@@ -594,32 +662,32 @@ export class PermanentWorker {
     };
 
     await this.convex.mutation(api.queue.complete, {
-      jobId: jobId as any,
+      jobId: jobId,
       workerId: this.config.workerId,
       result: simpleResult,
       docsCount: result.documents?.length || 0,
     });
   }
 
-  private async failJob(jobId: string, error: string): Promise<void> {
+  private async failJob(jobId: Id<'jobs'>, error: string): Promise<void> {
     await this.convex.mutation(api.queue.retryOrFail, {
-      jobId: jobId as any,
+      jobId: jobId,
       workerId: this.config.workerId,
       error,
     });
   }
 
-  private async saveResults(job: Job, result: any): Promise<void> {
+  private async saveResults(job: Job, result: CLIResult): Promise<void> {
     // Check if we have documents to save
     if (!result.documents || result.documents.length === 0) {
       return;
     }
     // Call the Convex mutation to upsert documents
     await this.convex.mutation(api.docs.upsertFromJob, {
-      jobId: job.id as any,
-      repositoryId: job.repositoryId as any,
+      jobId: job.id,
+      repositoryId: job.repositoryId,
       runId: `run_${Date.now()}`, // Unique run identifier
-      files: result.documents.map((doc: any) => ({
+      files: result.documents.map((doc) => ({
         slug: doc.slug,
         title: doc.title,
         content: doc.content,
@@ -627,8 +695,8 @@ export class PermanentWorker {
         chapterIndex: doc.chapterIndex >= 0 ? doc.chapterIndex : undefined,
       })),
       summary: {
-        chaptersCount: result.documents.filter((d: any) => d.kind === 'chapter').length,
-        tutorialsCount: result.documents.filter((d: any) => d.kind === 'tutorial').length,
+        chaptersCount: result.documents.filter((d) => d.kind === 'chapter').length,
+        tutorialsCount: result.documents.filter((d) => d.kind === 'tutorial').length,
         generatedAt: Date.now(),
       },
     });

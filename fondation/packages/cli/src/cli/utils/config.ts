@@ -1,4 +1,4 @@
-import { cosmiconfig } from 'cosmiconfig';
+import { type CosmiconfigResult, cosmiconfig } from 'cosmiconfig';
 import { z } from 'zod';
 import { DEFAULT_MODEL_CONFIG, getModelConfig } from '../../config';
 import { env } from '../../env';
@@ -158,8 +158,8 @@ export async function loadConfig(options: LoadConfigOptions = {}): Promise<CLICo
         ),
       ]);
 
-      const result = (await loadWithTimeout) as any;
-      if (!result) {
+      const result = (await loadWithTimeout) as CosmiconfigResult;
+      if (!result || !result.config) {
         throw new Error(`Configuration file not found: ${options.configPath}`);
       }
 

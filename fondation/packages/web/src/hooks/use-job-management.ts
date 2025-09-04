@@ -15,8 +15,8 @@ export function useJobManagement({
   repositoryId,
   userId,
   repositoryFullName,
-  repositoryName,
-  defaultBranch,
+  repositoryName: _repositoryName,
+  defaultBranch: _defaultBranch,
 }: UseJobManagementOptions) {
   // Use the new atomic regenerate mutation instead of the old create
   const generateCourse = useMutation(api.jobs.regenerate);

@@ -24,11 +24,40 @@ export interface GitHubApiOptions {
   retryDelay?: number;
 }
 
-export interface GitHubApiResponse<T = any> {
+export interface GitHubApiResponse<T = unknown> {
   data?: T;
   error?: string;
   rateLimit?: GitHubRateLimit;
   status?: number;
+}
+
+export interface GitHubRateLimitResponse {
+  resources: {
+    core: {
+      limit: number;
+      remaining: number;
+      reset: number;
+      used: number;
+    };
+    graphql?: {
+      limit: number;
+      remaining: number;
+      reset: number;
+      used: number;
+    };
+    integration_manifest?: {
+      limit: number;
+      remaining: number;
+      reset: number;
+      used: number;
+    };
+    search?: {
+      limit: number;
+      remaining: number;
+      reset: number;
+      used: number;
+    };
+  };
 }
 
 /**
@@ -46,10 +75,6 @@ export class GitHubClient {
   private rateLimitReset = 0;
   private rateLimitLimit = 5000;
 
-  // Request queue for rate limiting
-  private requestQueue: Array<() => Promise<void>> = [];
-  private isProcessingQueue = false;
-
   constructor(options: GitHubApiOptions) {
     this.token = options.token;
     this.baseUrl = options.baseUrl || 'https://api.github.com';
@@ -61,7 +86,10 @@ export class GitHubClient {
   /**
    * Make a rate-limited request to GitHub API
    */
-  async request<T = any>(path: string, options: RequestInit = {}): Promise<GitHubApiResponse<T>> {
+  async request<T = unknown>(
+    path: string,
+    options: RequestInit = {},
+  ): Promise<GitHubApiResponse<T>> {
     // Check rate limits before making request
     await this.checkRateLimit();
 
@@ -89,8 +117,6 @@ export class GitHubClient {
         if (response.status === 429) {
           const resetTime = this.rateLimitReset * 1000;
           const waitTime = Math.max(resetTime - Date.now(), 1000);
-
-          console.warn(`Rate limit exceeded. Waiting ${waitTime}ms until reset.`);
           await this.sleep(waitTime);
           continue; // Retry the request
         }
@@ -145,9 +171,15 @@ export class GitHubClient {
     const remaining = headers.get('X-RateLimit-Remaining');
     const reset = headers.get('X-RateLimit-Reset');
 
-    if (limit) this.rateLimitLimit = Number.parseInt(limit, 10);
-    if (remaining) this.rateLimitRemaining = Number.parseInt(remaining, 10);
-    if (reset) this.rateLimitReset = Number.parseInt(reset, 10);
+    if (limit) {
+      this.rateLimitLimit = Number.parseInt(limit, 10);
+    }
+    if (remaining) {
+      this.rateLimitRemaining = Number.parseInt(remaining, 10);
+    }
+    if (reset) {
+      this.rateLimitReset = Number.parseInt(reset, 10);
+    }
   }
 
   /**
@@ -162,9 +194,6 @@ export class GitHubClient {
       if (timeUntilReset > 0 && this.rateLimitRemaining < 10) {
         // Very low on requests, wait until reset
         const waitTime = timeUntilReset * 1000;
-        console.warn(
-          `Low on API requests (${this.rateLimitRemaining} remaining). Waiting ${waitTime}ms for reset.`,
-        );
         await this.sleep(waitTime);
       } else if (this.rateLimitRemaining < 50) {
         // Moderate throttling
@@ -186,18 +215,16 @@ export class GitHubClient {
   }
 
   /**
-   * Check rate limit status without making a request
+   * Check rate limit status by fetching current rate limit information
    */
   async checkRateLimitStatus(): Promise<GitHubRateLimit> {
-    const response = await this.request('/rate_limit');
+    const response = await this.request<GitHubRateLimitResponse>('/rate_limit');
 
     if (response.data) {
-      const core = response.data.resources?.core;
-      if (core) {
-        this.rateLimitLimit = core.limit;
-        this.rateLimitRemaining = core.remaining;
-        this.rateLimitReset = core.reset;
-      }
+      const core = response.data.resources.core;
+      this.rateLimitLimit = core.limit;
+      this.rateLimitRemaining = core.remaining;
+      this.rateLimitReset = core.reset;
     }
 
     return this.getCurrentRateLimit();
@@ -237,10 +264,18 @@ export class GitHubClient {
   }): Promise<GitHubApiResponse> {
     const params = new URLSearchParams();
 
-    if (options?.type) params.append('type', options.type);
-    if (options?.sort) params.append('sort', options.sort);
-    if (options?.per_page) params.append('per_page', String(options.per_page));
-    if (options?.page) params.append('page', String(options.page));
+    if (options?.type) {
+      params.append('type', options.type);
+    }
+    if (options?.sort) {
+      params.append('sort', options.sort);
+    }
+    if (options?.per_page) {
+      params.append('per_page', String(options.per_page));
+    }
+    if (options?.page) {
+      params.append('page', String(options.page));
+    }
 
     const query = params.toString();
     return this.request(`/user/repos${query ? `?${query}` : ''}`);

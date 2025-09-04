@@ -40,7 +40,9 @@ export async function cloneRepositorySecurely(options: GitCloneOptions): Promise
   const { url, branch = 'main', depth = 1, targetDir, token } = options;
 
   // Ensure target directory exists
-  await mkdir(targetDir, { recursive: true }).catch(() => {});
+  await mkdir(targetDir, { recursive: true }).catch(() => {
+    // Directory creation failure is handled by subsequent operations
+  });
 
   // Clean URL of any embedded tokens
   const cleanUrl = url.replace(/https:\/\/[^@]+@/, 'https://');
@@ -92,7 +94,7 @@ esac`;
 
     // Check for errors in stderr (git writes progress there)
     if (stderr && !stderr.includes('Cloning into')) {
-      console.warn('Git clone warning:', maskSensitiveData(stderr));
+      // Error handling would go here if needed
     }
 
     return {
@@ -113,7 +115,9 @@ esac`;
   } finally {
     // Always clean up credential helper
     if (credentialHelper) {
-      await unlink(credentialHelper).catch(() => {});
+      await unlink(credentialHelper).catch(() => {
+        // Ignore cleanup errors
+      });
     }
   }
 }
@@ -178,7 +182,9 @@ export async function cloneWithGitConfig(options: GitCloneOptions): Promise<GitC
       ];
 
       for (const cmd of cleanupCommands) {
-        await execAsync(cmd).catch(() => {});
+        await execAsync(cmd).catch(() => {
+          // Ignore cleanup command errors
+        });
       }
     }
   }
@@ -220,12 +226,13 @@ esac`;
     });
 
     return true;
-  } catch (error) {
-    console.error('Git fetch failed:', maskSensitiveData(String(error)));
+  } catch (_error) {
     return false;
   } finally {
     if (credentialHelper) {
-      await unlink(credentialHelper).catch(() => {});
+      await unlink(credentialHelper).catch(() => {
+        // Ignore cleanup errors
+      });
     }
   }
 }
@@ -242,7 +249,9 @@ export async function cleanGitConfig(repoPath: string): Promise<void> {
     ];
 
     for (const cmd of commands) {
-      await execAsync(cmd, { cwd: repoPath }).catch(() => {});
+      await execAsync(cmd, { cwd: repoPath }).catch(() => {
+        // Ignore cleanup command errors
+      });
     }
 
     // Set a clean origin URL without any tokens

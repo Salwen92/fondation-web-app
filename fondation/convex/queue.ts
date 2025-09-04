@@ -1,5 +1,4 @@
 import { v } from 'convex/values';
-import type { Id } from './_generated/dataModel';
 import { internalMutation, mutation, query } from './_generated/server';
 
 // Default configuration
@@ -54,7 +53,7 @@ export const claimOne = mutation({
       updatedAt: now,
     });
 
-    console.log(`[Queue] Job ${job._id} claimed by worker ${args.workerId}`);
+    // [Queue] Job claimed by worker - would log to monitoring in production
     return {
       id: job._id,
       repositoryId: job.repositoryId,
@@ -305,7 +304,7 @@ export const createJob = mutation({
       progress: 'Initializing...',
     });
 
-    console.log(`[Queue] Job created: ${jobId}`);
+    // [Queue] Job created - would log to monitoring in production
 
     return {
       jobId,

@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
 import { Search, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface CourseSearchBarProps {
   searchQuery: string;
@@ -15,7 +15,7 @@ interface CourseSearchBarProps {
 export function CourseSearchBar({
   searchQuery,
   onSearchChange,
-  placeholder = "Rechercher par nom de dépôt ou description...",
+  placeholder = 'Rechercher par nom de dépôt ou description...',
   className = '',
 }: CourseSearchBarProps) {
   const handleClear = React.useCallback(() => {
@@ -26,7 +26,7 @@ export function CourseSearchBar({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onSearchChange(e.target.value);
     },
-    [onSearchChange]
+    [onSearchChange],
   );
 
   return (

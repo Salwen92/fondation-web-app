@@ -39,16 +39,17 @@ export const courseSortOptions = [
   { value: 'docsCount' as const, label: 'Nombre de documents' },
 ];
 
-export function searchCourses(
-  courses: CourseWithRepo[],
-  searchQuery: string
-): CourseWithRepo[] {
-  if (!searchQuery.trim()) return courses;
+export function searchCourses(courses: CourseWithRepo[], searchQuery: string): CourseWithRepo[] {
+  if (!searchQuery.trim()) {
+    return courses;
+  }
 
   const query = searchQuery.toLowerCase();
   return courses.filter((course) => {
     const repo = course.repository;
-    if (!repo) return false;
+    if (!repo) {
+      return false;
+    }
 
     return (
       repo.name.toLowerCase().includes(query) ||
@@ -60,9 +61,11 @@ export function searchCourses(
 
 export function filterCoursesByStatus(
   courses: CourseWithRepo[],
-  status: CourseStatus
+  status: CourseStatus,
 ): CourseWithRepo[] {
-  if (status === 'all') return courses;
+  if (status === 'all') {
+    return courses;
+  }
 
   return courses.filter((course) => {
     switch (status) {
@@ -85,10 +88,7 @@ export function filterCoursesByStatus(
   });
 }
 
-export function sortCourses(
-  courses: CourseWithRepo[],
-  sortBy: CourseSortBy
-): CourseWithRepo[] {
+export function sortCourses(courses: CourseWithRepo[], sortBy: CourseSortBy): CourseWithRepo[] {
   const sortedCourses = [...courses];
 
   switch (sortBy) {
@@ -112,7 +112,9 @@ export function sortCourses(
 }
 
 export function getStatusFilter(allJobs: CourseJob[], status: CourseStatus): CourseJob[] {
-  if (status === 'all') return allJobs;
+  if (status === 'all') {
+    return allJobs;
+  }
 
   return allJobs.filter((job) => {
     switch (status) {
@@ -137,13 +139,13 @@ export function getStatusFilter(allJobs: CourseJob[], status: CourseStatus): Cou
 
 export function getLatestJobPerRepo(jobs: CourseJob[]): CourseJob[] {
   const jobsByRepo = new Map<Id<'repositories'>, CourseJob>();
-  
+
   for (const job of jobs) {
     const existingJob = jobsByRepo.get(job.repositoryId);
     if (!existingJob || job.createdAt > existingJob.createdAt) {
       jobsByRepo.set(job.repositoryId, job);
     }
   }
-  
+
   return Array.from(jobsByRepo.values());
 }

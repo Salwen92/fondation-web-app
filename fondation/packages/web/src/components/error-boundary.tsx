@@ -30,7 +30,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     // Log error to monitoring service in production
     if (process.env.NODE_ENV === 'production') {
       // TODO: Send to error tracking service like Sentry
-    } else {
+      // Placeholder for production error reporting
     }
   }
 
@@ -72,7 +72,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <div className="flex gap-3 justify-center">
               <Button
                 variant="outline"
-                onClick={() => (window.location.href = '/')}
+                onClick={() => {
+                  window.location.href = '/';
+                }}
                 className="gap-2"
               >
                 <Home className="h-4 w-4" />

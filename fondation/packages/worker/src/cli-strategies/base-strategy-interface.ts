@@ -33,9 +33,10 @@ export type CLIResult = {
   documents?: Array<{
     slug: string;
     title: string;
-    content: string;
-    kind: 'chapter' | 'tutorial' | 'toc' | 'yaml';
     chapterIndex: number;
+    kind: 'chapter' | 'tutorial' | 'toc' | 'yaml';
+    content: string;
+    sourceKey?: string;
   }>;
   error?: string;
   metadata?: Record<string, unknown>;

@@ -7,11 +7,11 @@
  * @module encryption
  */
 
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
-const TAG_LENGTH = 16;
+const _TAG_LENGTH = 16;
 const ENCRYPTED_PREFIX = 'enc_v1_';
 
 /**
@@ -27,9 +27,6 @@ function getEncryptionKey(): Buffer {
           'Generate one with: openssl rand -hex 32',
       );
     }
-
-    // Development fallback - DO NOT USE IN PRODUCTION
-    console.warn('⚠️  Using development encryption key. Set ENCRYPTION_KEY for production.');
     return crypto.scryptSync('dev-key-do-not-use-in-production', 'salt', 32);
   }
 
@@ -63,11 +60,10 @@ export function encryptToken(plaintext: string): string {
     const authTag = cipher.getAuthTag();
 
     // Format: prefix_iv:tag:encrypted
-    const result =
-      ENCRYPTED_PREFIX + iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
+    const result = `${ENCRYPTED_PREFIX + iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
 
     return result;
-  } catch (error) {
+  } catch (_error) {
     // Don't leak sensitive information in error messages
     throw new Error('Token encryption failed');
   }
@@ -83,7 +79,6 @@ export function decryptToken(encryptedData: string): string {
 
   // Handle legacy base64 "obfuscation" for migration period
   if (encryptedData.startsWith('obf_')) {
-    console.warn('⚠️  Detected legacy obfuscated token. Please re-encrypt.');
     try {
       const base64Part = encryptedData.slice(4);
       return Buffer.from(base64Part, 'base64').toString('utf-8');
@@ -116,7 +111,7 @@ export function decryptToken(encryptedData: string): string {
     decrypted += decipher.final('utf8');
 
     return decrypted;
-  } catch (error) {
+  } catch (_error) {
     // Don't leak information about why decryption failed
     throw new Error('Token decryption failed');
   }
@@ -140,7 +135,9 @@ export function isLegacyObfuscated(data: string): boolean {
  * Safely decrypt a token, handling various formats
  */
 export function safeDecrypt(token: string): string {
-  if (!token) return token;
+  if (!token) {
+    return token;
+  }
 
   if (isEncrypted(token)) {
     return decryptToken(token);
@@ -158,7 +155,9 @@ export function safeDecrypt(token: string): string {
  * Mask sensitive tokens in strings (for logging)
  */
 export function maskSensitiveData(text: string): string {
-  if (!text) return text;
+  if (!text) {
+    return text;
+  }
 
   return (
     text

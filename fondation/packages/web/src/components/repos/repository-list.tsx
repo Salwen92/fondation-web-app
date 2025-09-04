@@ -66,7 +66,9 @@ export function RepositoryList({ userId }: RepositoryListProps) {
 
   useEffect(() => {
     if (repositories?.length === 0 && session?.accessToken) {
-      void handleFetchRepositories();
+      handleFetchRepositories().catch(() => {
+        // Repository fetch error handled in the function
+      });
     }
   }, [repositories, session?.accessToken, handleFetchRepositories]);
 

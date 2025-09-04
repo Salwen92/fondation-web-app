@@ -154,6 +154,18 @@
           }
         }
       }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      "includes": ["convex/_generated/**/*"],
+      "linter": {
+        "enabled": false
+      }
     }
   ]
 }

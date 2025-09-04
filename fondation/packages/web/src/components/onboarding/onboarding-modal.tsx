@@ -91,9 +91,9 @@ export function OnboardingModal({ isOpen, onClose, userName }: OnboardingModalPr
         <div className="space-y-6 py-4">
           {/* Progress indicator */}
           <div className="flex justify-between mb-6">
-            {ONBOARDING_STEPS.map((_, index) => (
+            {ONBOARDING_STEPS.map((step, index) => (
               <div
-                key={index}
+                key={step.title}
                 className={`flex-1 h-2 mx-1 rounded-full transition-colors ${
                   index <= currentStep ? 'bg-primary' : 'bg-muted'
                 }`}
@@ -149,8 +149,8 @@ export function OnboardingModal({ isOpen, onClose, userName }: OnboardingModalPr
           {/* Completed steps */}
           {currentStep === ONBOARDING_STEPS.length - 1 && (
             <div className="space-y-2">
-              {ONBOARDING_STEPS.map((step, index) => (
-                <div key={index} className="flex items-center space-x-2 text-sm">
+              {ONBOARDING_STEPS.map((step, _index) => (
+                <div key={step.title} className="flex items-center space-x-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
                   <span>{step.title}</span>
                 </div>

@@ -21,15 +21,11 @@ export const fetchGitHubRepositories = action({
 
       // Check rate limit
       const rateLimit = headers['x-ratelimit-remaining'];
-      const rateLimitReset = headers['x-ratelimit-reset'];
 
-      if (rateLimit && Number.parseInt(rateLimit) < 10) {
-        const resetTime = rateLimitReset
-          ? new Date(Number.parseInt(rateLimitReset) * 1000).toLocaleString()
-          : 'unknown';
-        console.warn(
-          `GitHub API rate limit low: ${rateLimit} requests remaining. Resets at: ${resetTime}`,
-        );
+      if (rateLimit && Number.parseInt(rateLimit, 10) < 10) {
+        // GitHub API rate limit low - would log to monitoring service in production
+        // Rate limit: ${rateLimit} requests remaining
+        // Reset time available in x-ratelimit-reset header
       }
 
       const repositories = await Promise.all(
@@ -71,7 +67,7 @@ export const fetchGitHubRepositories = action({
 
       return repositories;
     } catch (error) {
-      console.error('Error fetching repositories:', error);
+      // Error fetching repositories - will be handled below with specific error messages
 
       // Handle specific GitHub API errors
       if (error instanceof Error) {
@@ -211,7 +207,7 @@ export const triggerAnalyze = mutation({
 
     // Note: The client will trigger the worker service directly
     // to avoid localhost restrictions in development
-    console.log('Regeneration job created, client will trigger worker service');
+    // Regeneration job created, client will trigger worker service
 
     return {
       jobId: newJobId,

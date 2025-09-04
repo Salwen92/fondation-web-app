@@ -73,7 +73,10 @@ export default async function CourseLayout({ children }: { children: React.React
 
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
-            <button className="relative p-2 rounded-lg glass hover:bg-muted/50 transition-colors">
+            <button
+              type="button"
+              className="relative p-2 rounded-lg glass hover:bg-muted/50 transition-colors"
+            >
               <Zap className="h-5 w-5" />
               <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full animate-pulse" />
             </button>

@@ -5,7 +5,11 @@ import { clearStuckJobsSchema } from '@/lib/api-validation';
 import { logger } from '@/lib/logger';
 import { withValidation } from '@/lib/middleware/validation';
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!convexUrl) {
+  throw new Error('NEXT_PUBLIC_CONVEX_URL environment variable is not set');
+}
+const convex = new ConvexHttpClient(convexUrl);
 
 interface ClearJobsRequest {
   repositoryFullName: string;

@@ -44,7 +44,11 @@ class Logger {
 
     // Flush logs every 5 seconds in production
     if (process.env.NODE_ENV === 'production' && typeof setInterval !== 'undefined') {
-      this.flushInterval = setInterval(() => void this.flush(), 5000);
+      this.flushInterval = setInterval(() => {
+        this.flush().catch(() => {
+          // Error handling for flush failures would be implemented here
+        });
+      }, 5000);
     }
 
     // Catch unhandled errors
@@ -88,7 +92,9 @@ class Logger {
   fatal(message: string, error?: Error, context?: LogContext): void {
     this.log(LogLevel.FATAL, message, context, error);
     // Immediately flush on fatal errors
-    void this.flush();
+    this.flush().catch(() => {
+      // Error handling for flush failures in fatal error context
+    });
   }
 
   /**
@@ -125,7 +131,9 @@ class Logger {
 
       // Flush if queue is getting large
       if (this.queue.length >= 10) {
-        void this.flush();
+        this.flush().catch(() => {
+          // Error handling for flush failures when queue is large
+        });
       }
     }
   }
@@ -173,7 +181,9 @@ class Logger {
         });
       }
     } catch (_error) {
-      logs.forEach((log) => this.logToConsole(log));
+      logs.forEach((log) => {
+        this.logToConsole(log);
+      });
     }
   }
 
@@ -228,7 +238,9 @@ class Logger {
     if (this.flushInterval) {
       clearInterval(this.flushInterval);
     }
-    void this.flush();
+    this.flush().catch(() => {
+      // Error handling for final flush on cleanup
+    });
 
     if (typeof window !== 'undefined') {
       window.removeEventListener('error', this.handleWindowError);

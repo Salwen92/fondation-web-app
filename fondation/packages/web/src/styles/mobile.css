@@ -172,6 +172,7 @@
 
 /* Accessibility improvements for mobile */
 @media (prefers-reduced-motion: reduce) {
+  /* biome-ignore lint/style/noDescendingSpecificity: Universal selector for accessibility */
   * {
     animation-duration: 0.01ms;
     animation-iteration-count: 1;

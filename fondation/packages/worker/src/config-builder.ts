@@ -238,11 +238,9 @@ export class WorkerConfigBuilder {
         // Additional development CLI checks could go here
         // For now, we trust that development setup is correct
       }
-    } else {
+    } else if (!this.config.cliPath?.includes('/app/packages/cli/dist/')) {
       // Production CLI validation
-      if (!this.config.cliPath?.includes('/app/packages/cli/dist/')) {
-        errors.push('Production mode requires bundled CLI path at /app/packages/cli/dist/');
-      }
+      errors.push('Production mode requires bundled CLI path at /app/packages/cli/dist/');
     }
 
     // Validate numeric configuration values

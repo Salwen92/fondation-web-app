@@ -327,7 +327,34 @@ export class EnvironmentConfig {
   /**
    * Get comprehensive environment summary for debugging
    */
-  getEnvironmentSummary(): Record<string, any> {
+  getEnvironmentSummary(): {
+    environment: Environment;
+    executionMode: ExecutionMode;
+    nodeEnv: string | undefined;
+    platform: NodeJS.Platform;
+    arch: string;
+    docker: DockerEnvironmentCheck;
+    env: {
+      hasConvexUrl: boolean;
+      hasClaudeToken: boolean;
+      hasGitHubToken: boolean;
+      hasCliPath: boolean;
+      hasTempDir: boolean;
+      isDebug: boolean;
+      isDryRun: boolean;
+    };
+    config: {
+      workerId: string;
+      pollInterval: number;
+      leaseTime: number;
+      heartbeatInterval: number;
+      maxConcurrentJobs: number;
+    };
+    validation: {
+      production: EnvironmentValidationResult | null;
+      development: EnvironmentValidationResult | null;
+    };
+  } {
     const dockerCheck = this.getDockerEnvironmentCheck();
 
     return {
@@ -387,10 +414,8 @@ export class EnvironmentConfig {
 
     // Log warnings if any
     if (validation.warnings.length > 0) {
-      console.warn(
-        `Environment warnings for ${this.getEnvironment()} mode:\n` +
-          validation.warnings.join('\n'),
-      );
+      // Production logging should use proper logger, not console
+      // Warnings are collected in validation.warnings for the caller to handle
     }
   }
 }

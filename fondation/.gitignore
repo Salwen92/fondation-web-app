@@ -39,6 +39,7 @@ bun-debug.log*
 
 # Convex
 .convex/
+convex/_generated/
 convex/*.js
 convex/*.js.map
 convex/*.d.ts

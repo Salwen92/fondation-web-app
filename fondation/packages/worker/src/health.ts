@@ -57,7 +57,9 @@ export class HealthServer {
       this.handleRequest(req, res);
     });
 
-    this.server.listen(port, () => {});
+    this.server.listen(port, () => {
+      // Server started - no additional action needed
+    });
   }
 
   stop(): void {

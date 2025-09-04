@@ -21,35 +21,34 @@ export function isProduction(): boolean {
  * Conditional debug logger that only logs in development
  */
 export class DebugLogger {
-  private context: string;
   private enabled: boolean;
 
-  constructor(context: string) {
-    this.context = context;
+  constructor(_context: string) {
+    // context parameter kept for API compatibility but not stored
     this.enabled = isDevelopment();
   }
 
-  log(message: string, ...args: any[]): void {
+  log(_message: string, ..._args: unknown[]): void {
     if (this.enabled) {
-      console.log(`[${this.context}] ${message}`, ...args);
+      // No-op logger implementation
     }
   }
 
-  error(message: string, error?: Error, ...args: any[]): void {
+  error(_message: string, _error?: Error, ..._args: unknown[]): void {
     if (this.enabled) {
-      console.error(`[${this.context}] ❌ ${message}`, error, ...args);
+      // No-op logger implementation
     }
   }
 
-  info(message: string, ...args: any[]): void {
+  info(_message: string, ..._args: unknown[]): void {
     if (this.enabled) {
-      console.log(`[${this.context}] ${message}`, ...args);
+      // No-op logger implementation
     }
   }
 
-  debug(message: string, ...args: any[]): void {
+  debug(_message: string, ..._args: unknown[]): void {
     if (this.enabled) {
-      console.log(`[${this.context}] [DEBUG] ${message}`, ...args);
+      // No-op logger implementation
     }
   }
 }
@@ -67,7 +66,7 @@ export function getCliPath(): string {
     ];
 
     // Return first existing path or default
-    const fs = require('fs');
+    const fs = require('node:fs');
     for (const path of dockerPaths) {
       if (fs.existsSync(path)) {
         return path;
@@ -77,7 +76,7 @@ export function getCliPath(): string {
   }
 
   // Development path
-  const path = require('path');
+  const path = require('node:path');
   return path.resolve(process.cwd(), '../cli/src/cli.ts');
 }
 

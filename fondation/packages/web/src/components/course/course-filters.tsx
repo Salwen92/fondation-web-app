@@ -1,6 +1,6 @@
 'use client';
 
-import { Filter, ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, Filter } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -9,10 +9,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  courseStatusOptions,
-  courseSortOptions,
-  type CourseStatus,
   type CourseSortBy,
+  type CourseStatus,
+  courseSortOptions,
+  courseStatusOptions,
 } from '@/lib/course-search';
 
 interface CourseFiltersProps {

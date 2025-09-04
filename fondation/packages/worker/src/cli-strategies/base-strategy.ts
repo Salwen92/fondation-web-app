@@ -109,13 +109,13 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
     this.logger.log(`Heartbeat interval: ${config.heartbeatInterval || 'none'}`);
     this.logger.log(`Environment variables count: ${Object.keys(config.env).length}`);
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
         this.logger.log(`Spawning CLI process`);
         // Spawn the CLI process
         // In development, run from repository directory for proper path resolution
         // In production, use default working directory (container's workdir)
-        const spawnOptions: any = {
+        const spawnOptions: import('node:child_process').SpawnOptions = {
           env: config.env,
           stdio: ['pipe', 'pipe', 'pipe'],
         };
@@ -155,9 +155,9 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
             const timeSinceLastProgress = Date.now() - lastProgressTime;
             if (!hasReceivedCliProgress && timeSinceLastProgress > 30000) {
               // 30 seconds of silence
-              options
-                .onProgress?.(`Étape 1/6: Analyse en cours... (${elapsed}s)`)
-                .catch(console.error);
+              options.onProgress?.(`Étape 1/6: Analyse en cours... (${elapsed}s)`).catch(() => {
+                // Progress update error ignored
+              });
             }
           }, config.heartbeatInterval);
         }
@@ -209,7 +209,7 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
                   lastProgressMessage = message;
                   lastProgressTime = Date.now();
                   hasReceivedCliProgress = true; // Mark that we've received real CLI progress
-                  await options.onProgress!(message);
+                  await options.onProgress?.(message);
                 }
               }
             : undefined;
@@ -217,16 +217,18 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
           // Process complete lines only to prevent malformed JSON parsing
           for (const line of lines) {
             if (line.trim()) {
-              // Import and use ProgressHandler directly here
+              // Import and use progress handler functions directly here
               import('../progress-handler.js')
-                .then(({ ProgressHandler }) => {
-                  const progressInfo = ProgressHandler.processProgress(line);
+                .then(({ processProgress, formatForUI }) => {
+                  const progressInfo = processProgress(line);
                   if (progressInfo && progressCallback) {
-                    const uiMessage = ProgressHandler.formatForUI(progressInfo);
+                    const uiMessage = formatForUI(progressInfo);
                     progressCallback(uiMessage);
                   }
                 })
-                .catch(console.error);
+                .catch(() => {
+                  // Progress update error ignored
+                });
             }
           }
         });
@@ -240,7 +242,7 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
           stderr += text;
 
           if (this.shouldLogDebugInfo()) {
-            console.error(`[${this.getName()}] STDERR:`, text);
+            // Debug logging for stderr would go here
           }
         });
 
@@ -385,16 +387,20 @@ export abstract class BaseStrategy implements CLIExecutionStrategy {
    * Clean up resources (timeouts, intervals)
    */
   private cleanup(timeout?: NodeJS.Timeout, heartbeat?: NodeJS.Timeout): void {
-    if (timeout) clearTimeout(timeout);
-    if (heartbeat) clearInterval(heartbeat);
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    if (heartbeat) {
+      clearInterval(heartbeat);
+    }
   }
 
   /**
    * Parse generated files from .claude-tutorial-output directory
-   * Shared across all strategies - uses OutputParser utility
+   * Shared across all strategies - uses parseOutputFiles utility
    */
   private async parseOutputFiles(repoPath: string): Promise<CLIResult['documents']> {
-    const { OutputParser } = await import('./output-parser.js');
-    return OutputParser.parseOutputFiles(repoPath);
+    const { parseOutputFiles } = await import('./output-parser.js');
+    return parseOutputFiles(repoPath);
   }
 }

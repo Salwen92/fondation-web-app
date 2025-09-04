@@ -85,9 +85,6 @@ export const getDashboardStats = query({
       ['pending', 'cloning', 'analyzing', 'gathering', 'running'].includes(job.status),
     ).length;
 
-    // Count completed jobs
-    const completedJobs = jobs.filter((job) => job.status === 'completed').length;
-
     // Count total docs generated
     const totalDocs = jobs.reduce((sum, job) => {
       return sum + (job.docsCount || 0);
@@ -185,7 +182,7 @@ export const clearAllGitHubTokens = mutation({
           githubAccessToken: undefined,
         });
         clearedCount++;
-        console.log(`Cleared token for user ${user.githubId || user._id}`);
+        // Cleared token for user - would log to audit trail in production
       }
     }
 

@@ -3,7 +3,7 @@
 import { api } from '@convex/generated/api';
 import type { Id } from '@convex/generated/dataModel';
 import { useMutation, useQuery } from 'convex/react';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 interface RegenerateOptions {
@@ -69,15 +69,18 @@ export function useRegenerate(repository?: Repository, options: RegenerateOption
     }
   };
 
-  const handleComplete = (jobId: string) => {
-    toast.success('Régénération terminée!', {
-      description: 'Votre cours a été mis à jour avec succès.',
-    });
+  const handleComplete = useCallback(
+    (jobId: string) => {
+      toast.success('Régénération terminée!', {
+        description: 'Votre cours a été mis à jour avec succès.',
+      });
 
-    setIsModalOpen(false);
-    setCurrentJobId(null);
-    options.onComplete?.(jobId);
-  };
+      setIsModalOpen(false);
+      setCurrentJobId(null);
+      options.onComplete?.(jobId);
+    },
+    [options],
+  );
 
   // Auto-complete when active job finishes
   React.useEffect(() => {

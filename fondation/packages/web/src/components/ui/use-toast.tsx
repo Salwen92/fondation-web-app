@@ -29,7 +29,9 @@ function dispatch(
       break;
   }
 
-  listeners.forEach((listener) => listener(toastState));
+  listeners.forEach((listener) => {
+    listener(toastState);
+  });
 }
 
 export function useToast() {

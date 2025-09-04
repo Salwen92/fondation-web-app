@@ -3,7 +3,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { type NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 
-const convexClient = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!convexUrl) {
+  throw new Error('NEXT_PUBLIC_CONVEX_URL environment variable is not set');
+}
+const convexClient = new ConvexHttpClient(convexUrl);
 
 export async function GET(
   request: NextRequest,

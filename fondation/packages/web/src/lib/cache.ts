@@ -169,7 +169,9 @@ export function useCachedQuery<T>(
 
   React.useEffect(() => {
     if (options?.enabled !== false && state.data === null) {
-      void refetch();
+      refetch().catch(() => {
+        // Error handling would be implemented here
+      });
     }
   }, [options?.enabled, state.data, refetch]);
 

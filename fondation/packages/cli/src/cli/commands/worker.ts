@@ -3,14 +3,22 @@
 import { Command } from 'commander';
 import type { Logger } from 'pino';
 
+interface WorkerOptions {
+  convexUrl?: string;
+  githubToken?: string;
+  claudeToken?: string;
+  pollInterval: string;
+  _logger?: Logger;
+}
+
 export const workerCommand = new Command('worker')
   .description('Start the Fondation worker to process analysis jobs from Convex')
   .option('--convex-url <url>', 'Convex deployment URL (required)')
   .option('--github-token <token>', 'GitHub personal access token for private repos')
   .option('--claude-token <token>', 'Claude OAuth token for API access')
   .option('--poll-interval <ms>', 'Polling interval in milliseconds', '5000')
-  .action(async (options: any) => {
-    const logger = options._logger as Logger | undefined;
+  .action(async (options: WorkerOptions) => {
+    const logger = options._logger;
 
     logger?.info('🚀 Starting Fondation Worker');
 

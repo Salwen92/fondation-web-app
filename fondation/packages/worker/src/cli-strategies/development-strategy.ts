@@ -22,7 +22,6 @@ import {
   DebugLogger,
   getCliPath,
   isDevelopment,
-  isProduction,
   shouldIncludeOAuthToken,
 } from '../utils/environment.js';
 import { BaseStrategy, type CommandConfig, type ValidationResult } from './base-strategy';

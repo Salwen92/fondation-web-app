@@ -1,7 +1,6 @@
 import { v } from 'convex/values';
 import { v4 as uuidv4 } from 'uuid';
-import { api, internal } from './_generated/api';
-import { action, internalAction, mutation, query } from './_generated/server';
+import { mutation, query } from './_generated/server';
 
 export const create = mutation({
   args: {
@@ -63,10 +62,6 @@ export const create = mutation({
       progress: 'Initializing...',
     });
     // Job created successfully
-
-    // Get user's GitHub token
-    const user = await ctx.db.get(args.userId);
-    const githubToken = user?.githubAccessToken;
 
     // Don't trigger worker service from here in development
     // The client will trigger it directly to avoid localhost restrictions
@@ -375,13 +370,24 @@ export const setStatus = mutation({
     error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const patch: any = { status: args.status };
-    if (args.status === 'running') patch.updatedAt = Date.now();
+    type JobPatch = {
+      status: typeof args.status;
+      updatedAt?: number;
+      completedAt?: number;
+      error?: string;
+    };
+
+    const patch: JobPatch = { status: args.status };
+    if (args.status === 'running') {
+      patch.updatedAt = Date.now();
+    }
     if (args.status === 'completed' || args.status === 'failed') {
       patch.completedAt = Date.now();
       patch.updatedAt = Date.now();
     }
-    if (args.error) patch.error = args.error;
+    if (args.error) {
+      patch.error = args.error;
+    }
 
     await ctx.db.patch(args.jobId, patch);
   },

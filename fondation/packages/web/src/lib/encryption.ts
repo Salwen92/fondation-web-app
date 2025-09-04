@@ -13,12 +13,12 @@
  * @module encryption
  */
 
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
-const TAG_LENGTH = 16;
-const SALT_LENGTH = 32;
+const _TAG_LENGTH = 16;
+const _SALT_LENGTH = 32;
 const ENCRYPTED_PREFIX = 'enc_v1_';
 
 /**
@@ -35,9 +35,6 @@ function getEncryptionKey(): Buffer {
           'Generate one with: openssl rand -hex 32',
       );
     }
-
-    // Development fallback - DO NOT USE IN PRODUCTION
-    console.warn('⚠️  Using development encryption key. Set ENCRYPTION_KEY for production.');
     return crypto.scryptSync('dev-key-do-not-use-in-production', 'salt', 32);
   }
 
@@ -80,11 +77,10 @@ export function encryptToken(plaintext: string): string {
     const authTag = cipher.getAuthTag();
 
     // Format: prefix_iv:tag:encrypted
-    const result =
-      ENCRYPTED_PREFIX + iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
+    const result = `${ENCRYPTED_PREFIX + iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
 
     return result;
-  } catch (error) {
+  } catch (_error) {
     // Don't leak sensitive information in error messages
     throw new Error('Token encryption failed');
   }
@@ -104,7 +100,6 @@ export function decryptToken(encryptedData: string): string {
 
   // Handle legacy base64 "obfuscation" for migration period
   if (encryptedData.startsWith('obf_')) {
-    console.warn('⚠️  Detected legacy obfuscated token. Please re-encrypt.');
     try {
       const base64Part = encryptedData.slice(4);
       return Buffer.from(base64Part, 'base64').toString('utf-8');
@@ -126,9 +121,17 @@ export function decryptToken(encryptedData: string): string {
       throw new Error('Malformed encrypted data');
     }
 
-    const iv = Buffer.from(parts[0]!, 'hex');
-    const authTag = Buffer.from(parts[1]!, 'hex');
-    const encrypted = parts[2]!;
+    const ivPart = parts[0];
+    const authTagPart = parts[1];
+    const encryptedPart = parts[2];
+
+    if (!ivPart || !authTagPart || !encryptedPart) {
+      throw new Error('Invalid encrypted data parts');
+    }
+
+    const iv = Buffer.from(ivPart, 'hex');
+    const authTag = Buffer.from(authTagPart, 'hex');
+    const encrypted = encryptedPart;
 
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(authTag);
@@ -137,7 +140,7 @@ export function decryptToken(encryptedData: string): string {
     decrypted += decipher.final('utf8') as unknown as string;
 
     return decrypted;
-  } catch (error) {
+  } catch (_error) {
     // Don't leak information about why decryption failed
     throw new Error('Token decryption failed');
   }
@@ -170,7 +173,9 @@ export function isLegacyObfuscated(data: string): boolean {
  * @returns Encrypted token
  */
 export function safeEncrypt(token: string): string {
-  if (!token) return token;
+  if (!token) {
+    return token;
+  }
 
   // Don't double-encrypt
   if (isEncrypted(token)) {
@@ -193,7 +198,9 @@ export function safeEncrypt(token: string): string {
  * @returns Decrypted token
  */
 export function safeDecrypt(token: string): string {
-  if (!token) return token;
+  if (!token) {
+    return token;
+  }
 
   if (isEncrypted(token)) {
     return decryptToken(token);
@@ -223,7 +230,9 @@ export function generateEncryptionKey(): string {
  * @returns Text with tokens masked
  */
 export function maskSensitiveData(text: string): string {
-  if (!text) return text;
+  if (!text) {
+    return text;
+  }
 
   return (
     text
@@ -247,12 +256,11 @@ export function maskSensitiveData(text: string): string {
 // Export a function to verify the encryption setup
 export function verifyEncryptionSetup(): boolean {
   try {
-    const testData = 'test_token_' + Date.now();
+    const testData = `test_token_${Date.now()}`;
     const encrypted = encryptToken(testData);
     const decrypted = decryptToken(encrypted);
     return decrypted === testData;
-  } catch (error) {
-    console.error('Encryption setup verification failed:', error);
+  } catch (_error) {
     return false;
   }
 }

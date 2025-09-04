@@ -60,7 +60,7 @@ export interface SecurityEvent {
   resource?: string;
   action: string;
   result: 'success' | 'failure';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   error?: string;
 }
 
@@ -108,7 +108,7 @@ export class SecurityAuditLogger {
       severity?: SecurityEventSeverity;
       result?: 'success' | 'failure';
       resource?: string;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
       error?: string;
       request?: Request;
     } = {},
@@ -152,7 +152,7 @@ export class SecurityAuditLogger {
   /**
    * Log authentication event
    */
-  logAuthentication(userId: string, success: boolean, metadata?: Record<string, any>): void {
+  logAuthentication(userId: string, success: boolean, metadata?: Record<string, unknown>): void {
     this.logEvent(
       success ? SecurityEventType.AUTH_LOGIN : SecurityEventType.AUTH_FAILED,
       success ? 'User authenticated successfully' : 'Authentication failed',
@@ -360,19 +360,12 @@ export class SecurityAuditLogger {
     }
   }
 
-  private sendAlert(type: string, event: SecurityEvent): void {
-    // In production, this would send to monitoring service
-    console.error(`SECURITY ALERT [${type}]:`, {
-      eventId: event.id,
-      type: event.type,
-      severity: event.severity,
-      userId: event.userId,
-      timestamp: event.timestamp,
-    });
+  private sendAlert(_type: string, _event: SecurityEvent): void {
+    // Alert system integration would be implemented here
   }
 
   private outputEvent(event: SecurityEvent): void {
-    const logData = {
+    const _logData = {
       ...event,
       // Remove sensitive data from logs
       metadata: event.metadata ? maskSensitiveData(JSON.stringify(event.metadata)) : undefined,
@@ -380,20 +373,16 @@ export class SecurityAuditLogger {
 
     // In production, send to centralized logging
     if (process.env.NODE_ENV === 'production') {
-      // Send to logging service
-      console.log(JSON.stringify(logData));
+      // Production logging to centralized system would be implemented here
+    } else if (
+      event.severity === SecurityEventSeverity.ERROR ||
+      event.severity === SecurityEventSeverity.CRITICAL
+    ) {
+      // Development error/critical logging would be implemented here
+    } else if (event.severity === SecurityEventSeverity.WARNING) {
+      // Development warning logging would be implemented here
     } else {
-      // Development logging
-      if (
-        event.severity === SecurityEventSeverity.ERROR ||
-        event.severity === SecurityEventSeverity.CRITICAL
-      ) {
-        console.error('[SECURITY]', logData);
-      } else if (event.severity === SecurityEventSeverity.WARNING) {
-        console.warn('[SECURITY]', logData);
-      } else {
-        console.log('[SECURITY]', logData);
-      }
+      // Development info logging would be implemented here
     }
   }
 

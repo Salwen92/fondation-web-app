@@ -33,11 +33,13 @@ export function DashboardContent({ githubId, userName }: DashboardContentProps) 
   // Create user if it doesn't exist
   React.useEffect(() => {
     if (!user && githubId && userName) {
-      void createUser({
+      createUser({
         githubId,
         username: userName ?? 'user',
         email: '', // We don't have email in session
         avatarUrl: `https://github.com/${userName}.png`,
+      }).catch(() => {
+        // User creation error handled by Convex
       });
     }
   }, [user, githubId, userName, createUser]);
@@ -133,7 +135,7 @@ export function DashboardContent({ githubId, userName }: DashboardContentProps) 
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
+        {stats.map((stat, _index) => (
           <div key={stat.title}>
             <Card className="glass glass-hover p-6 backdrop-blur-xl transition-transform duration-200 hover:scale-[1.02]">
               <div className="flex items-start justify-between">
@@ -172,17 +174,26 @@ export function DashboardContent({ githubId, userName }: DashboardContentProps) 
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer">
+            <button
+              type="button"
+              className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer"
+            >
               <BarChart3 className="h-6 w-6 mb-2 text-blue-500" />
               <h4 className="font-semibold mb-1">Analytique</h4>
               <p className="text-sm text-muted-foreground">Voir les métriques détaillées</p>
             </button>
-            <button className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer">
+            <button
+              type="button"
+              className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer"
+            >
               <Users className="h-6 w-6 mb-2 text-green-500" />
               <h4 className="font-semibold mb-1">Équipe</h4>
               <p className="text-sm text-muted-foreground">Gérer les collaborateurs</p>
             </button>
-            <button className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer">
+            <button
+              type="button"
+              className="p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] text-left cursor-pointer"
+            >
               <FileText className="h-6 w-6 mb-2 text-purple-500" />
               <h4 className="font-semibold mb-1">Modèles</h4>
               <p className="text-sm text-muted-foreground">Parcourir les modèles de docs</p>

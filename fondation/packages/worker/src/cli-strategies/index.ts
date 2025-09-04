@@ -6,6 +6,6 @@
 
 export type { CLIExecutionStrategy, CLIResult } from './base-strategy.js';
 export { DevelopmentCLIStrategy } from './development-strategy.js';
-export { OutputParser } from './output-parser.js';
+export { parseOutputFiles } from './output-parser.js';
 export { ProductionCLIStrategy } from './production-strategy.js';
-export { CLIStrategyFactory } from './strategy-factory.js';
+export { createCLIStrategy, getCLIStrategyName } from './strategy-factory.js';

@@ -4,13 +4,7 @@
  * Kept for backward compatibility during migration
  */
 
-import {
-  decryptToken,
-  encryptToken,
-  isEncrypted,
-  isLegacyObfuscated,
-  maskSensitiveData,
-} from './encryption';
+import { decryptToken, encryptToken, isEncrypted, isLegacyObfuscated } from './encryption';
 import { logger } from './logger';
 
 /**

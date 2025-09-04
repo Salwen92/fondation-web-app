@@ -6,7 +6,7 @@
  * - Production: Docker container execution with environment variables
  */
 
-import { type CLIResult, CLIStrategyFactory } from './cli-strategies';
+import { type CLIResult, createCLIStrategy } from './cli-strategies';
 import { DebugLogger, getCliPath } from './utils/environment.js';
 
 export class CLIExecutor {
@@ -34,7 +34,7 @@ export class CLIExecutor {
 
     // Create appropriate strategy for current environment
     this.logger.log(`Creating CLI strategy`);
-    const strategy = CLIStrategyFactory.create(this.cliPath);
+    const strategy = createCLIStrategy(this.cliPath);
     this.logger.log(`✅ Strategy created: ${strategy.constructor.name}`);
 
     this.logger.log(`Starting strategy validation`);

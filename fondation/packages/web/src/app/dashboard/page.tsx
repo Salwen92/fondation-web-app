@@ -11,6 +11,6 @@ export default async function DashboardPage() {
 
   // Ensure githubId exists, fallback gracefully if needed
   const githubId = session.user?.githubId || session.user?.id;
-  
+
   return <DashboardContent githubId={githubId} userName={session.user.name} />;
 }

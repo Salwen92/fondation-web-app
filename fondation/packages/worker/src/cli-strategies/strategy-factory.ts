@@ -9,21 +9,19 @@ import type { CLIExecutionStrategy } from './base-strategy';
 import { DevelopmentCLIStrategy } from './development-strategy';
 import { ProductionCLIStrategy } from './production-strategy';
 
-export class CLIStrategyFactory {
-  /**
-   * Create appropriate CLI execution strategy based on current environment
-   */
-  static create(cliPath: string): CLIExecutionStrategy {
-    if (isDevelopment()) {
-      return new DevelopmentCLIStrategy(cliPath);
-    }
-    return new ProductionCLIStrategy(cliPath);
+/**
+ * Create appropriate CLI execution strategy based on current environment
+ */
+export function createCLIStrategy(cliPath: string): CLIExecutionStrategy {
+  if (isDevelopment()) {
+    return new DevelopmentCLIStrategy(cliPath);
   }
+  return new ProductionCLIStrategy(cliPath);
+}
 
-  /**
-   * Get strategy name for the current environment
-   */
-  static getStrategyName(): string {
-    return isDevelopment() ? 'Development' : 'Production';
-  }
+/**
+ * Get strategy name for the current environment
+ */
+export function getCLIStrategyName(): string {
+  return isDevelopment() ? 'Development' : 'Production';
 }

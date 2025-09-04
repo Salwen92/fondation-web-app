@@ -12,6 +12,7 @@ import {
   createCustomWorkerConfig,
   createWorkerConfig,
   type WorkerConfig,
+  type WorkerConfigBuilder,
 } from './config-builder.js';
 
 /**
@@ -31,7 +32,9 @@ export function createConfig(): WorkerConfig {
  *
  * @param customizer Function to customize the builder before building
  */
-export function createCustomConfig(customizer: (builder: any) => any): WorkerConfig {
+export function createCustomConfig(
+  customizer: (builder: WorkerConfigBuilder) => WorkerConfigBuilder,
+): WorkerConfig {
   return createCustomWorkerConfig(customizer);
 }
 

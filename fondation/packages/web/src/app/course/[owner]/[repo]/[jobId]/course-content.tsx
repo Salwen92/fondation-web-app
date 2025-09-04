@@ -32,7 +32,7 @@ interface CourseContentProps {
 export default function CourseContent({ owner, repo, jobId }: CourseContentProps) {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast: _toast } = useToast();
 
   // Fetch job details
   const job = useQuery(api.jobs.getById, {
@@ -175,12 +175,14 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
 
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={() => router.push('/dashboard')}
                   className="px-4 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors"
                 >
                   Retour au tableau de bord
                 </button>
                 <button
+                  type="button"
                   onClick={() => window.location.reload()}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                 >
@@ -327,6 +329,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
             {/* Action Buttons */}
             <div className="flex items-center gap-3">
               <button
+                type="button"
                 onClick={handleRegenerateClick}
                 disabled={job?.status === 'running' || !canRegenerate}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -336,6 +339,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
               </button>
 
               <button
+                type="button"
                 onClick={() => router.push('/dashboard')}
                 className="px-4 py-2 bg-muted/50 backdrop-blur-sm text-foreground rounded-lg hover:bg-muted/70 transition-all duration-300 border border-border/40"
               >
@@ -370,6 +374,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                   <div className="space-y-2">
                     {chapters.map((doc) => (
                       <button
+                        type="button"
                         key={doc._id}
                         onClick={() => setSelectedSlug(doc.slug)}
                         className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 cursor-pointer ${
@@ -394,6 +399,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                   <div className="space-y-2">
                     {tutorials.map((doc) => (
                       <button
+                        type="button"
                         key={doc._id}
                         onClick={() => setSelectedSlug(doc.slug)}
                         className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 cursor-pointer ${
@@ -416,6 +422,7 @@ export default function CourseContent({ owner, repo, jobId }: CourseContentProps
                   <div className="space-y-2">
                     {[...yamls, ...tocs].map((doc) => (
                       <button
+                        type="button"
                         key={doc._id}
                         onClick={() => setSelectedSlug(doc.slug)}
                         className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 cursor-pointer ${

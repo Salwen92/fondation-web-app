@@ -5,7 +5,7 @@
  * Validates builder pattern functionality, method chaining, environment integration
  */
 
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   createCustomWorkerConfig,
   createWorkerConfig,
@@ -109,7 +109,7 @@ describe('WorkerConfigBuilder', () => {
 
   describe('Environment Integration', () => {
     it('should use EnvironmentConfig singleton for defaults', () => {
-      const config = WorkerConfigBuilder.create()
+      const _config = WorkerConfigBuilder.create()
         .withEnvironmentDefaults()
         .withCliPath()
         .withTempDirectory()
@@ -227,8 +227,10 @@ describe('WorkerConfigBuilder', () => {
       // Test invalid production CLI path
       const builder = WorkerConfigBuilder.create();
       builder.withEnvironmentDefaults();
-      (builder as any).config.cliPath = '/invalid/path';
-      (builder as any).config.developmentMode = false;
+      // @ts-expect-error - Accessing private property for testing
+      builder.config.cliPath = '/invalid/path';
+      // @ts-expect-error - Accessing private property for testing
+      builder.config.developmentMode = false;
 
       expect(() => {
         builder.withValidation().build();

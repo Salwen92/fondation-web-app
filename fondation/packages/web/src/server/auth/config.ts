@@ -5,7 +5,6 @@ import { getScopeConfiguration, logScopeUsage, validateTokenScopes } from '@/lib
 import {
   logAuthentication,
   logSecurityEvent,
-  logTokenAccess,
   SecurityEventSeverity,
   SecurityEventType,
 } from '@/lib/security-audit';
@@ -85,7 +84,6 @@ export const authConfig = {
           const validation = await validateTokenScopes(account.access_token);
 
           if (!validation.valid) {
-            console.error('Token missing required scopes:', validation.missing);
             // Log security event
             logSecurityEvent(
               SecurityEventType.TOKEN_VALIDATION_FAILED,
@@ -157,6 +155,8 @@ export const authConfig = {
   },
   // Force re-authentication to ensure fresh tokens
   events: {
-    async signOut() {},
+    async signOut() {
+      // Additional signout cleanup would be implemented here
+    },
   },
 } satisfies NextAuthConfig;

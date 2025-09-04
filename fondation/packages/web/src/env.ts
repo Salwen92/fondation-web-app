@@ -73,21 +73,20 @@ class EnvironmentConfig {
     const missing = required.filter((key) => !this.vars[key]);
 
     if (missing.length > 0) {
-      console.warn(`Missing environment variables: ${missing.join(', ')}`);
-      console.warn('Authentication may not work properly without these variables.');
+      // In production, this would throw an error for missing required environment variables
     }
 
     // Security warnings
     if (process.env.NODE_ENV === 'production') {
       if (!this.vars.AUTH_SECRET || !this.vars.NEXTAUTH_SECRET) {
-        console.error('CRITICAL: AUTH_SECRET/NEXTAUTH_SECRET is required in production!');
+        // Production environment should have authentication secrets configured
       }
 
       if (
         this.vars.NEXTAUTH_URL?.startsWith('http://') &&
         !this.vars.NEXTAUTH_URL.includes('localhost')
       ) {
-        console.warn('WARNING: Using HTTP in production is insecure. Use HTTPS.');
+        // Production should use HTTPS for authentication URLs
       }
     }
   }

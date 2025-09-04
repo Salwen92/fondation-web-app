@@ -23,7 +23,7 @@ export const updateRepositoryMetadata = mutation({
 
     const user = await ctx.db.get(repository.userId);
     if (!user?.githubAccessToken) {
-      console.error('No GitHub access token available');
+      // No GitHub access token available - return null to indicate graceful failure
       return null;
     }
 
@@ -44,8 +44,11 @@ export const updateRepositoryMetadata = mutation({
       // Check for rate limiting
       if (languagesResponse.status === 429) {
         const resetTime = languagesResponse.headers.get('X-RateLimit-Reset');
-        console.error(`GitHub rate limit exceeded. Reset at: ${resetTime}`);
-        return { success: false, error: 'Rate limit exceeded' };
+        // GitHub rate limit exceeded - return error with reset time info
+        const errorMessage = resetTime
+          ? `Rate limit exceeded. Reset at: ${new Date(Number.parseInt(resetTime, 10) * 1000).toISOString()}`
+          : 'Rate limit exceeded';
+        return { success: false, error: errorMessage };
       }
 
       if (!languagesResponse.ok) {
@@ -76,8 +79,11 @@ export const updateRepositoryMetadata = mutation({
       // Check for rate limiting
       if (repoResponse.status === 429) {
         const resetTime = repoResponse.headers.get('X-RateLimit-Reset');
-        console.error(`GitHub rate limit exceeded. Reset at: ${resetTime}`);
-        return { success: false, error: 'Rate limit exceeded' };
+        // GitHub rate limit exceeded - return error with reset time info
+        const errorMessage = resetTime
+          ? `Rate limit exceeded. Reset at: ${new Date(Number.parseInt(resetTime, 10) * 1000).toISOString()}`
+          : 'Rate limit exceeded';
+        return { success: false, error: errorMessage };
       }
 
       if (!repoResponse.ok) {
@@ -91,7 +97,25 @@ export const updateRepositoryMetadata = mutation({
       };
 
       // Update repository with fetched data
-      const updateData: any = {
+      type UpdateData = {
+        languages: {
+          primary: string;
+          all: Array<{
+            name: string;
+            percentage: number;
+            bytes: number;
+          }>;
+        };
+        stats: {
+          stars: number;
+          forks: number;
+          issues: number;
+        };
+        lastFetched: number;
+        lastAnalyzedAt?: number;
+      };
+
+      const updateData: UpdateData = {
         languages: {
           primary: languages[0]?.name ?? 'Unknown',
           all: languages,
@@ -113,9 +137,10 @@ export const updateRepositoryMetadata = mutation({
 
       return { success: true };
     } catch (error) {
-      console.error('Failed to fetch GitHub metadata:', error);
-      // Don't throw - gracefully degrade
-      return null;
+      // Failed to fetch GitHub metadata - gracefully degrade without throwing
+      // Log would go to monitoring service in production
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: `Failed to fetch metadata: ${errorMessage}` };
     }
   },
 });
@@ -127,7 +152,9 @@ export const getRepositoryWithMetadata = query({
   },
   handler: async (ctx, args) => {
     const repository = await ctx.db.get(args.repositoryId);
-    if (!repository) return null;
+    if (!repository) {
+      return null;
+    }
 
     // Check if data is stale (older than 1 hour)
     const oneHourAgo = Date.now() - 60 * 60 * 1000;
