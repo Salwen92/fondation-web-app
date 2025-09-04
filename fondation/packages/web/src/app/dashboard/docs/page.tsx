@@ -73,21 +73,27 @@ const getStatusDisplay = (status?: string) => {
 export default function DocsPage() {
   const { data: session } = useSession();
 
-  // Get all completed jobs for the user
+  // Get the Convex user by githubId first
+  const convexUser = useQuery(
+    api.users.getUserByGithubId,
+    session?.user?.githubId ? { githubId: session.user.githubId } : 'skip',
+  );
+
+  // Get all jobs for the user
   const jobs = useQuery(
     api.jobs.listUserJobs,
-    session?.user?.id ? { userId: session.user.id as Id<'users'> } : 'skip',
+    convexUser?._id ? { userId: convexUser._id } : 'skip',
   );
 
   // Get repository details for each job - moved to top level to fix hook rules
   const repositories = useQuery(
     api.repositories.listUserRepositories,
-    session?.user?.id ? { userId: session.user.id as Id<'users'> } : 'skip',
+    convexUser?._id ? { userId: convexUser._id } : 'skip',
   );
 
   const allJobs = jobs ?? [];
 
-  if (!session?.user?.id) {
+  if (!session?.user?.githubId) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
