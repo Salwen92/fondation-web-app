@@ -4,6 +4,7 @@ import { api } from '@convex/generated/api';
 import type { Id } from '@convex/generated/dataModel';
 import { useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
+import React from 'react';
 import {
   AlertCircle,
   Book,
@@ -93,6 +94,23 @@ export default function DocsPage() {
 
   const allJobs = jobs ?? [];
 
+  // Group jobs by repository and get the latest job for each repository
+  const latestJobsPerRepo = React.useMemo(() => {
+    if (!allJobs.length) return [];
+    
+    const jobsByRepo = new Map();
+    
+    // Group jobs by repositoryId and keep only the latest one
+    for (const job of allJobs) {
+      const existingJob = jobsByRepo.get(job.repositoryId);
+      if (!existingJob || job.createdAt > existingJob.createdAt) {
+        jobsByRepo.set(job.repositoryId, job);
+      }
+    }
+    
+    return Array.from(jobsByRepo.values());
+  }, [allJobs]);
+
   if (!session?.user?.githubId) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -104,7 +122,7 @@ export default function DocsPage() {
     );
   }
 
-  if (allJobs.length === 0) {
+  if (latestJobsPerRepo.length === 0) {
     return (
       <div className="space-y-6">
         <div>
@@ -144,12 +162,12 @@ export default function DocsPage() {
           Mes Cours
         </h1>
         <p className="text-muted-foreground">
-          {allJobs.length} cours générés à partir de vos dépôts
+          {latestJobsPerRepo.length} cours générés à partir de vos dépôts
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {allJobs.map((job, index) => {
+        {latestJobsPerRepo.map((job, index) => {
           const repo = repoMap.get(job.repositoryId);
           if (!repo) {
             return null;
