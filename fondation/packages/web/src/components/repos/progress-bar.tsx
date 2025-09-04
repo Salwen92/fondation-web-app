@@ -1,6 +1,6 @@
 'use client';
 
-import React;
+import * as React from 'react';
 
 interface ProgressBarProps {
   currentStep: number;

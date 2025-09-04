@@ -1,7 +1,6 @@
 'use client';
 
 import { api } from '@convex/generated/api';
-import type { Id } from '@convex/generated/dataModel';
 import { useQuery } from 'convex/react';
 // import { motion } from 'framer-motion'; // Removed to fix blinking during scroll
 import React from 'react';
@@ -23,6 +22,17 @@ import { useSession } from 'next-auth/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CourseSearchBar } from '@/components/course/course-search-bar';
+import { CourseFilters } from '@/components/course/course-filters';
+import {
+  searchCourses,
+  filterCoursesByStatus,
+  sortCourses,
+  getLatestJobPerRepo,
+  type CourseStatus,
+  type CourseSortBy,
+  type CourseWithRepo,
+} from '@/lib/course-search';
 
 // Get status icon and color for job status
 const getStatusDisplay = (status?: string) => {
@@ -73,6 +83,11 @@ const getStatusDisplay = (status?: string) => {
 
 export default function DocsPage() {
   const { data: session } = useSession();
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState<CourseStatus>('all');
+  const [sortBy, setSortBy] = React.useState<CourseSortBy>('date');
 
   // Get the Convex user by githubId first
   const convexUser = useQuery(
@@ -93,24 +108,37 @@ export default function DocsPage() {
   );
 
   const allJobs = jobs ?? [];
+  const repoMap = new Map(repositories?.map((r) => [r._id, r]) ?? []);
 
-  // Show ONLY completed jobs, get the latest completed job per repository
+  // Process jobs with search and filtering
+  const filteredAndSortedJobs = React.useMemo(() => {
+    if (!allJobs.length) return [];
+    
+    // Apply status filter first
+    const statusFilteredJobs = filterCoursesByStatus(allJobs, statusFilter);
+    
+    // Get latest job per repository
+    const latestJobs = getLatestJobPerRepo(statusFilteredJobs);
+    
+    // Convert to CourseWithRepo format
+    const coursesWithRepo: CourseWithRepo[] = latestJobs.map((job) => ({
+      ...job,
+      repository: repoMap.get(job.repositoryId),
+    })).filter((course) => course.repository); // Only include courses with valid repos
+    
+    // Apply search filter
+    const searchFiltered = searchCourses(coursesWithRepo, searchQuery);
+    
+    // Apply sorting
+    return sortCourses(searchFiltered, sortBy);
+  }, [allJobs, statusFilter, searchQuery, sortBy, repoMap]);
+
+  // For empty state, we still show completed jobs only
   const completedJobsPerRepo = React.useMemo(() => {
     if (!allJobs.length) return [];
     
-    // First filter to only completed jobs
     const completedJobs = allJobs.filter(job => job.status === 'completed');
-    const jobsByRepo = new Map();
-    
-    // Group completed jobs by repositoryId and keep only the latest one
-    for (const job of completedJobs) {
-      const existingJob = jobsByRepo.get(job.repositoryId);
-      if (!existingJob || job.createdAt > existingJob.createdAt) {
-        jobsByRepo.set(job.repositoryId, job);
-      }
-    }
-    
-    return Array.from(jobsByRepo.values());
+    return getLatestJobPerRepo(completedJobs);
   }, [allJobs]);
 
   if (!session?.user?.githubId) {
@@ -155,8 +183,6 @@ export default function DocsPage() {
     );
   }
 
-  const repoMap = new Map(repositories?.map((r) => [r._id, r]) ?? []);
-
   return (
     <div className="space-y-6">
       <div>
@@ -164,16 +190,53 @@ export default function DocsPage() {
           Mes Cours
         </h1>
         <p className="text-muted-foreground">
-          {completedJobsPerRepo.length} cours générés à partir de vos dépôts
+          {filteredAndSortedJobs.length} cours{searchQuery || statusFilter !== 'all' ? ' trouvés' : ''}
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {completedJobsPerRepo.map((job, index) => {
-          const repo = repoMap.get(job.repositoryId);
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        <CourseSearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          className="max-w-md"
+        />
+        <CourseFilters
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          sortBy={sortBy}
+          onSortByChange={setSortBy}
+        />
+      </div>
+
+      {/* Results */}
+      {filteredAndSortedJobs.length === 0 && (searchQuery || statusFilter !== 'all') ? (
+        <div className="flex items-center justify-center min-h-[30vh]">
+          <Card className="glass p-8 text-center max-w-md">
+            <FolderOpen className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+            <h2 className="text-lg font-semibold mb-2">Aucun cours trouvé</h2>
+            <p className="text-muted-foreground mb-4">
+              Aucun cours ne correspond à vos critères de recherche.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter('all');
+              }}
+            >
+              Réinitialiser les filtres
+            </Button>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filteredAndSortedJobs.map((course) => {
+          const repo = course.repository;
           if (!repo) {
             return null;
           }
+          const job = course;
 
           return (
             <div key={job._id}>
@@ -285,7 +348,8 @@ export default function DocsPage() {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
