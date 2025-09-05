@@ -16,6 +16,8 @@ import {
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AnimatedBackground } from '@/components/ui/animated-background';
 import { Button } from '@/components/ui/button';
@@ -73,6 +75,15 @@ const stats = [
 
 export default function LandingPage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (session) {
+      router.push('/dashboard');
+    }
+  }, [session, router]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

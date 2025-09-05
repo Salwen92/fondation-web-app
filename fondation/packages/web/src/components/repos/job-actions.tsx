@@ -9,6 +9,7 @@ interface JobActionsProps {
   isCompleted: boolean;
   isFailed: boolean;
   isCanceled: boolean;
+  docsCount?: number;
   onGenerate: () => void;
   onCancel: () => void;
   onViewCourse: () => void;
@@ -25,18 +26,21 @@ export function JobActions({
   isCompleted,
   isFailed,
   isCanceled,
+  docsCount = 0,
   onGenerate,
   onCancel,
   onViewCourse,
   onRegenerate,
   repositoryName,
 }: JobActionsProps) {
+  const hasValidDocs = isCompleted && docsCount > 0;
+
   return (
     <div className="flex gap-2">
-      {isCompleted ? (
+      {hasValidDocs ? (
         <>
           <Button
-            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white cursor-pointer"
             size="sm"
             onClick={onViewCourse}
             data-testid="view-course-button"
@@ -49,7 +53,7 @@ export function JobActions({
               variant="outline"
               size="sm"
               onClick={onRegenerate}
-              className="glass border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+              className="glass border-purple-200 hover:bg-purple-50 hover:border-purple-300 cursor-pointer"
               data-testid="regenerate-button"
             >
               <RefreshCw className="h-4 w-4 text-purple-500" />
@@ -60,7 +64,7 @@ export function JobActions({
         <Button
           onClick={onGenerate}
           disabled={isProcessing}
-          className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+          className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white cursor-pointer"
           size="sm"
           id={
             repositoryName ? `generate-${repositoryName.replace(/[^a-zA-Z0-9]/g, '-')}` : undefined
@@ -98,7 +102,7 @@ export function JobActions({
           variant="outline"
           size="sm"
           onClick={onCancel}
-          className="glass border-red-200 hover:bg-red-50 hover:border-red-300"
+          className="glass border-red-200 hover:bg-red-50 hover:border-red-300 cursor-pointer"
           data-testid="cancel-button"
         >
           <X className="h-4 w-4 text-red-500" />

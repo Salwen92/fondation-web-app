@@ -1,4 +1,4 @@
-import { FileText, FolderGit2, Home, Settings, Terminal, Zap } from 'lucide-react';
+import { FolderGit2, Home, Settings, Terminal, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { UserMenu } from '@/components/auth/user-menu';
@@ -53,13 +53,6 @@ export default async function CourseLayout({ children }: { children: React.React
               >
                 <FolderGit2 className="h-4 w-4" />
                 <span>Dépôts</span>
-              </Link>
-              <Link
-                href="/dashboard/docs"
-                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <FileText className="h-4 w-4" />
-                <span>Documentation</span>
               </Link>
               <Link
                 href="/dashboard/settings"

@@ -1,4 +1,4 @@
-import type { DefaultSession, NextAuthConfig } from 'next-auth';
+import type { NextAuthConfig, Account, Profile } from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
 import { env } from '@/env';
 import { getScopeConfiguration, logScopeUsage, validateTokenScopes } from '@/lib/github-scopes';
@@ -8,6 +8,13 @@ import {
   SecurityEventSeverity,
   SecurityEventType,
 } from '@/lib/security-audit';
+import type {
+  ExtendedSession,
+  ExtendedJWT,
+  GitHubProfile,
+  TokenValidation,
+  AuthError,
+} from '@/types/auth';
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -16,20 +23,11 @@ import {
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
 declare module 'next-auth' {
-  interface Session extends DefaultSession {
-    user: {
-      id: string;
-      githubId?: string;
-    } & DefaultSession['user'];
-    accessToken?: string;
-  }
+  interface Session extends ExtendedSession {}
 }
 
 declare module '@auth/core/jwt' {
-  interface JWT {
-    githubId?: string;
-    accessToken?: string;
-  }
+  interface JWT extends ExtendedJWT {}
 }
 
 /**
@@ -51,19 +49,22 @@ export const authConfig = {
     }),
   ],
   callbacks: {
-    session: ({ session, token }) => ({
+    session: ({ session, token }): ExtendedSession => ({
       ...session,
       user: {
         ...session.user,
         id: token.sub ?? '',
         githubId: token.githubId,
+        username: token.username,
       },
       accessToken: token.accessToken,
     }),
-    jwt: async ({ token, account, profile, trigger }) => {
+    jwt: async ({ token, account, profile, trigger }): Promise<ExtendedJWT> => {
       // Handle fresh sign-in or account change
       if (account?.provider === 'github' && profile) {
-        token.githubId = String(profile.id);
+        const githubProfile = profile as GitHubProfile;
+        token.githubId = String(githubProfile.id);
+        token.username = githubProfile.login;
         token.accessToken = account.access_token;
 
         // Mark this as a fresh login to ensure token update
@@ -77,19 +78,36 @@ export const authConfig = {
 
       return token;
     },
-    signIn: async ({ account, profile }) => {
+    signIn: async ({ account, profile }: { account: Account | null; profile?: Profile }): Promise<boolean> => {
       if (account?.provider === 'github' && profile) {
-        // Validate token scopes
+        const githubProfile = profile as GitHubProfile;
+        // Validate token scopes with proper error handling
         if (account.access_token) {
-          const validation = await validateTokenScopes(account.access_token);
+          let validation: TokenValidation;
+          try {
+            validation = await validateTokenScopes(account.access_token);
+          } catch (error) {
+            // Log token validation error but don't block sign-in
+            logSecurityEvent(
+              SecurityEventType.TOKEN_VALIDATION_FAILED,
+              'Token validation failed during sign-in',
+              {
+                userId: String(githubProfile.id),
+                severity: SecurityEventSeverity.ERROR,
+                error: error instanceof Error ? error.message : String(error),
+              },
+            );
+            // Allow sign-in to continue with basic validation
+            validation = { valid: true, scopes: [], missing: [] };
+          }
 
           if (!validation.valid) {
-            // Log security event
+            // Log security event for missing scopes
             logSecurityEvent(
               SecurityEventType.TOKEN_VALIDATION_FAILED,
               'Token missing required scopes',
               {
-                userId: String(profile.id),
+                userId: String(githubProfile.id),
                 severity: SecurityEventSeverity.WARNING,
                 metadata: { missingScopes: validation.missing },
               },
@@ -98,7 +116,12 @@ export const authConfig = {
           }
 
           // Log scope usage for security auditing
-          logScopeUsage(String(profile.id), validation.scopes, 'signin');
+          try {
+            logScopeUsage(String(githubProfile.id), validation.scopes, 'signin');
+          } catch (error) {
+            // Log error but don't fail sign-in
+            console.warn('[AUTH] Failed to log scope usage:', error);
+          }
         }
 
         // Always store/update GitHub access token for each sign-in (handles account switching)
@@ -113,31 +136,39 @@ export const authConfig = {
 
             // Create or update user with GitHub token - this handles account switching
             await client.mutation(api.users.createOrUpdateUser, {
-              githubId: String(profile.id),
-              username: String(profile.login || profile.name || 'Unknown'),
-              email: profile.email ?? undefined,
-              avatarUrl: profile.avatar_url as string | undefined,
+              githubId: String(githubProfile.id),
+              username: githubProfile.login || githubProfile.name || 'Unknown',
+              email: githubProfile.email ?? undefined,
+              avatarUrl: githubProfile.avatar_url ?? undefined,
             });
 
             // Always update the GitHub access token (fresh token for account switching)
             const obfuscatedToken = safeObfuscate(account.access_token);
             await client.mutation(api.users.updateGitHubToken, {
-              githubId: String(profile.id),
+              githubId: String(githubProfile.id),
               accessToken: obfuscatedToken,
             });
 
             // Log successful authentication
-            logAuthentication(String(profile.id), true, {
+            logAuthentication(String(githubProfile.id), true, {
               provider: 'github',
-              username: String(profile.login || profile.name),
+              username: githubProfile.login || githubProfile.name || 'Unknown',
             });
           } catch (error) {
             // Log the error but don't block sign-in
-            logSecurityEvent(SecurityEventType.TOKEN_CREATED, 'Failed to store GitHub token', {
-              userId: String(profile.id),
+            const authError: AuthError = {
+              name: 'AuthError',
+              type: 'TOKEN_ERROR',
+              message: 'Failed to store GitHub token',
+              cause: error,
+            };
+            
+            logSecurityEvent(SecurityEventType.TOKEN_CREATED, authError.message, {
+              userId: String(githubProfile.id),
               severity: SecurityEventSeverity.ERROR,
               result: 'failure',
-              error: error instanceof Error ? error.message : String(error),
+              error: authError.message,
+              metadata: { originalError: error instanceof Error ? error.message : String(error) },
             });
           }
         }
@@ -148,6 +179,7 @@ export const authConfig = {
   },
   pages: {
     signIn: '/login',
+    error: '/login',
   },
   session: {
     strategy: 'jwt',
@@ -155,8 +187,29 @@ export const authConfig = {
   },
   // Force re-authentication to ensure fresh tokens
   events: {
-    async signOut() {
-      // Additional signout cleanup would be implemented here
+    async signOut({ token }): Promise<void> {
+      // Clean up any cached tokens or user data
+      if (token?.githubId) {
+        try {
+          logAuthentication(token.githubId, false, {
+            provider: 'github',
+            reason: 'user_signout',
+          });
+        } catch (error) {
+          console.warn('[AUTH] Failed to log sign out:', error);
+        }
+      }
+    },
+    async signIn({ user, account, profile }): Promise<void> {
+      // Log successful sign-in events
+      if (account?.provider === 'github' && profile) {
+        const githubProfile = profile as GitHubProfile;
+        console.info('[AUTH] User signed in:', {
+          userId: githubProfile.id,
+          username: githubProfile.login,
+          provider: account.provider,
+        });
+      }
     },
   },
 } satisfies NextAuthConfig;

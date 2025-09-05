@@ -3,6 +3,52 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { action, internalMutation, internalQuery, mutation, query } from './_generated/server';
 
+// Helper function to fetch and transform GitHub language data
+async function fetchRepositoryLanguages(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+): Promise<{ primary: string; all: Array<{ name: string; percentage: number; bytes: number }> } | undefined> {
+  try {
+    const { data: languagesData } = await octokit.rest.repos.listLanguages({
+      owner,
+      repo,
+    });
+
+    // GitHub API returns { "TypeScript": 12345, "JavaScript": 6789, ... }
+    const languageEntries = Object.entries(languagesData);
+    
+    if (languageEntries.length === 0) {
+      return undefined;
+    }
+
+    const totalBytes = languageEntries.reduce((sum, [, bytes]) => sum + bytes, 0);
+
+    const allLanguages = languageEntries
+      .map(([name, bytes]) => ({
+        name,
+        bytes,
+        percentage: Math.round((bytes / totalBytes) * 100 * 100) / 100, // Round to 2 decimal places
+      }))
+      .sort((a, b) => b.bytes - a.bytes); // Sort by bytes descending
+
+    const primaryLanguage = allLanguages[0]?.name || 'Unknown';
+
+    return {
+      primary: primaryLanguage,
+      all: allLanguages,
+    };
+  } catch (error) {
+    // Language fetch failed, but don't fail the entire repository sync
+    // Log the error for debugging but continue with repository sync
+    console.error(`[CONVEX] Failed to fetch languages for ${owner}/${repo}:`, {
+      error: error instanceof Error ? error.message : String(error),
+      status: error instanceof Error && 'status' in error ? (error as any).status : undefined,
+    });
+    return undefined;
+  }
+}
+
 export const fetchGitHubRepositories = action({
   args: {
     accessToken: v.string(),
@@ -35,7 +81,39 @@ export const fetchGitHubRepositories = action({
             userId: args.userId,
           });
 
+          // Fetch language data from GitHub API - with detailed error handling
+          let languageData: Awaited<ReturnType<typeof fetchRepositoryLanguages>> = undefined;
+          try {
+            const [owner, repoName] = repo.full_name.split('/');
+            if (owner && repoName) {
+              console.info(`[CONVEX] Fetching languages for ${repo.full_name}...`);
+              languageData = await fetchRepositoryLanguages(octokit, owner, repoName);
+              
+              if (languageData) {
+                console.info(`[CONVEX] Successfully fetched languages for ${repo.full_name}:`, {
+                  primary: languageData.primary,
+                  count: languageData.all.length,
+                });
+              } else {
+                console.info(`[CONVEX] No languages found for ${repo.full_name}`);
+              }
+            } else {
+              console.warn(`[CONVEX] Invalid repository name format: ${repo.full_name}`);
+            }
+          } catch (error) {
+            // Language fetch failed for this specific repo - continue without language data
+            console.error(`[CONVEX] Failed to fetch languages for ${repo.full_name}:`, {
+              error: error instanceof Error ? error.message : String(error),
+              status: error instanceof Error && 'status' in error ? (error as any).status : undefined,
+            });
+            languageData = undefined;
+          }
+
           if (!existingRepo) {
+            console.info(`[CONVEX] Creating new repository: ${repo.full_name}`, {
+              hasLanguages: !!languageData,
+              languagesCount: languageData?.all.length || 0,
+            });
             await ctx.runMutation(internal.repositories.create, {
               userId: args.userId,
               githubRepoId: repo.id.toString(),
@@ -43,15 +121,21 @@ export const fetchGitHubRepositories = action({
               fullName: repo.full_name,
               description: repo.description ?? undefined,
               defaultBranch: repo.default_branch ?? 'main',
+              languages: languageData,
             });
           } else {
             // Update existing repository in case details changed
+            console.info(`[CONVEX] Updating existing repository: ${repo.full_name}`, {
+              hasLanguages: !!languageData,
+              languagesCount: languageData?.all.length || 0,
+            });
             await ctx.runMutation(internal.repositories.update, {
               id: existingRepo._id,
               name: repo.name,
               fullName: repo.full_name,
               description: repo.description ?? undefined,
               defaultBranch: repo.default_branch ?? 'main',
+              languages: languageData,
             });
           }
 
@@ -67,14 +151,19 @@ export const fetchGitHubRepositories = action({
 
       return repositories;
     } catch (error) {
-      // Error fetching repositories - will be handled below with specific error messages
+      // Enhanced error handling with detailed logging
+      console.error('[CONVEX] GitHub API Error:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
 
       // Handle specific GitHub API errors
       if (error instanceof Error) {
         if (error.message.includes('rate limit')) {
           throw new Error('GitHub API rate limit exceeded. Please try again later.');
         }
-        if (error.message.includes('401') || error.message.includes('unauthorized')) {
+        if (error.message.includes('401') || error.message.includes('unauthorized') || error.message.includes('Bad credentials')) {
           throw new Error('GitHub authentication failed. Please sign in again.');
         }
         if (error.message.includes('403')) {
@@ -110,6 +199,18 @@ export const create = internalMutation({
     fullName: v.string(),
     description: v.optional(v.string()),
     defaultBranch: v.string(),
+    languages: v.optional(
+      v.object({
+        primary: v.string(),
+        all: v.array(
+          v.object({
+            name: v.string(),
+            percentage: v.number(),
+            bytes: v.number(),
+          }),
+        ),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert('repositories', args);
@@ -123,6 +224,18 @@ export const update = internalMutation({
     fullName: v.string(),
     description: v.optional(v.string()),
     defaultBranch: v.string(),
+    languages: v.optional(
+      v.object({
+        primary: v.string(),
+        all: v.array(
+          v.object({
+            name: v.string(),
+            percentage: v.number(),
+            bytes: v.number(),
+          }),
+        ),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;

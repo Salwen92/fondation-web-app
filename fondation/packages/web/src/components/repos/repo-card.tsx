@@ -22,7 +22,8 @@ interface RepoCardProps {
     description?: string;
     defaultBranch: string;
     languages?: {
-      all?: Array<{ name: string }>;
+      primary?: string;
+      all?: Array<{ name: string; percentage: number; bytes: number }>;
     };
   };
   userId: Id<'users'>;
@@ -216,6 +217,7 @@ function RepoCardComponent({ repo, userId }: RepoCardProps) {
             isCompleted={!!isCompleted}
             isFailed={!!isFailed}
             isCanceled={!!isCanceled}
+            docsCount={docsCount}
             onGenerate={handleGenerate}
             onCancel={handleCancel}
             onViewCourse={handleViewCourse}
